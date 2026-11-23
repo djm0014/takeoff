@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vanity Wall Solver</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eceeed; --surface:#fafbfa; --ink:#1c2321; --muted:#5a6561; --line:#cdd4d1; --wallc:#9aa5a1; --face:#f1f3f2;
+  --accent:#c9541a; --accent-ink:#ffffff; --good:#23755a; --warn:#a56a12; --bad:#b83227; --glass:#dbe7ea;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark;
+    --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c; --wallc:#56635f; --face:#222a28;
+    --accent:#f08a4b; --accent-ink:#1a120c; --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72; --glass:#2c3b3f;}
+}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c; --wallc:#56635f; --face:#222a28;
+  --accent:#f08a4b; --accent-ink:#1a120c; --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72; --glass:#2c3b3f;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:24px}
+h2{font-size:17px;letter-spacing:.03em;text-transform:uppercase}
+p{margin:0}
+[hidden]{display:none!important}
+.page{max-width:820px;margin:0 auto;padding:16px 16px 64px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.sub{color:var(--muted)}
+details.sec{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.sec>summary{cursor:pointer;list-style:none;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--display);font-size:22px;color:var(--muted)}
+details.sec[open]>summary::after{content:"−"}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:0 16px 16px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wide{grid-column:1/-1}
+.field label,.lab{font-size:14px;font-weight:600}
+.field small{color:var(--muted);font-size:12.5px;line-height:1.3}
+.txt{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;padding:0 12px;width:100%}
+.txt[aria-invalid="true"]{border-color:var(--bad);color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 11px;font:inherit;font-weight:500;min-height:40px}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips button:disabled{opacity:.7;cursor:default}
+.chips button[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:5px 12px;font-weight:600;min-height:36px;font-size:14px}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.4}
+ul.jobs{list-style:none;margin:0;padding:0}
+ul.jobs li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+ul.jobs li:first-child{border-top:0}
+ul.jobs span{color:var(--muted);font-size:14px;display:block}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.flags li{display:flex;gap:8px;align-items:flex-start;font-size:15px}
+.flags i{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--warn)}
+.fixes{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.btn.fix{border-color:var(--accent);color:var(--accent);font-size:13.5px;min-height:32px;padding:3px 10px}
+.flags i.ans{background:var(--accent)} .flags i.bad{background:var(--bad)} .flags i.good{background:var(--good)}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:6px 8px 6px 0;border-top:1px solid var(--line);vertical-align:top}
+th{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-top:0}
+td:not(:first-child){white-space:nowrap}
+.note{color:var(--muted);font-size:14px;background:var(--bg);border-radius:8px;padding:9px 12px}
+/* elevation */
+.elev svg{width:100%;height:auto;display:block;max-height:78vh}
+.elev svg *{vector-effect:non-scaling-stroke}
+.face{fill:var(--face)} .side{fill:var(--wallc)}
+.stud{fill:none;stroke:var(--muted);stroke-width:.6;stroke-dasharray:3 3}
+.ob{fill:var(--surface);stroke:var(--ink);stroke-width:1.2}
+.ob2{fill:none;stroke:var(--ink);stroke-width:.7}
+.hid{fill:none;stroke:var(--muted);stroke-width:.8;stroke-dasharray:4 3}
+.glass{fill:var(--glass);stroke:var(--ink);stroke-width:1.2}
+.ro{fill:none;stroke:var(--accent);stroke-width:1;stroke-dasharray:5 3}
+.gok{fill:none;stroke:var(--good);stroke-width:1;stroke-dasharray:4 3}
+.gbad{fill:var(--bad);fill-opacity:.12;stroke:var(--bad);stroke-width:1;stroke-dasharray:4 3}
+.pres .stud,.pres .hid,.pres .mk,.pres .cl,.pres .ct,.pres .ro,.pres .gok,.pres .gbad,.pres .tech{display:none}
+.pres .face{fill:#fff}.pres .side{fill:#c9c9c9}.pres .ob{fill:#fff;stroke:#111}.pres .ob2{stroke:#111}.pres .glass{fill:#e8edef;stroke:#111}
+.pres .dim{stroke:#111}.pres .dt{fill:#111}.pres .dl{fill:#555}
+.fig{fill:#6d7371;fill-opacity:.5}.figl{fill:none;stroke:#6d7371;stroke-opacity:.5;stroke-linecap:round;vector-effect:none!important}
+.eye{fill:none;stroke:#111;stroke-width:.7;stroke-dasharray:3 3}
+.clr{fill:var(--good);fill-opacity:.35}
+.cl{stroke:var(--accent);stroke-width:.8;stroke-dasharray:12 3 2 3;fill:none}
+.mk{fill:none;stroke:var(--accent);stroke-width:1.3}
+.dim{stroke:var(--ink);stroke-width:.6;fill:none}
+.dt{fill:var(--ink);font-family:var(--body);font-weight:500}
+.dl{fill:var(--muted);font-family:var(--body);font-weight:600}
+.ct{fill:var(--accent);font-family:var(--body);font-weight:700}
+</style>
+</head>
+<body>
+<div class="page">
+  <header><h1>Vanity Wall Solver</h1><p class="sub">Centerlines and heights for the vanity, faucet, mirror or medicine cabinet, lights and outlet. Inches; fractions work. Heights are above the finished floor (AFF).</p></header>
+  <div id="wiz" hidden></div>
+  <div id="results" style="display:flex;flex-direction:column;gap:12px">
+  <section class="card elev"><div class="chips" role="radiogroup" aria-label="View"><button type="button" role="radio" aria-checked="true" data-view="elev">Elevation</button><button type="button" role="radio" aria-checked="false" data-view="sect">Section at sink</button><button type="button" role="radio" aria-checked="false" data-view="pres">Presentation</button></div><div id="svgwrap"></div></section>
+  <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Checks</h2><button class="btn" id="undoFix" type="button" hidden>Undo fix</button></div><ul class="flags" id="checks"></ul></section>
+  <section class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2>Rough-in schedule</h2><button class="btn" id="copy" type="button">Copy</button></div>
+    <div id="sched"></div><p class="note">Horizontal locations are from the left end of the wall (finished face of the left wall or obstruction).</p></section>
+  <div id="form"></div>
+  </div>
+  <section class="card">
+    <h2>Saved jobs</h2>
+    <div class="field"><label for="jobName">Job name</label><input class="txt" id="jobName" type="text" maxlength="80" autocomplete="off"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" id="save" type="button" disabled>Save job</button><button class="btn" id="saveNew" type="button" hidden>Save as new</button><button class="btn" id="reset" type="button">New job (defaults)</button></div>
+    <p class="note" id="saveMsg" role="status" hidden></p>
+    <div id="jobs"></div>
+  </section>
+</div>
+<script>
+function parseIn(s){s=String(s==null?'':s).trim().replace(/["″”]/g,'').trim();if(!s)return NaN;let m;
+  if((m=s.match(/^(\d+)[\s-]+(\d+)\s*\/\s*(\d+)$/))&&+m[3])return +m[1]+m[2]/m[3];
+  if((m=s.match(/^(\d+)\s*\/\s*(\d+)$/))&&+m[2])return m[1]/m[2];
+  if(/^(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);return NaN;}
+function fmtN(v){const s=Math.round(Math.abs(v)*16),w=Math.floor(s/16);let n=s%16,d=16;while(n&&n%2===0){n/=2;d/=2;}return (v<0&&s?'-':'')+(n?(w?w+' ':'')+n+'/'+d:String(w));}
+const fmt=v=>fmtN(v)+'″';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const $=id=>document.getElementById(id);
+const r2=v=>Math.round(v*1000)/1000;
+
+const DEF={wall:'60',ceil:'96',stud:'',vpos:'center',vside:'R',qdone:'',wallc:'open',wcmove:'keep',plumb:'keep',exdx:'',vref:'clear',voff:'12',vw:'36',ctr:'36',bs:'4',sinks:'1',space:'',sink:'under',vh:'5',
+  fau:'deck',fh:'10',spout:'4',mir:'mirror',mm:'one',mw:'24',mh:'30',mro:'',mroh:'',place:'eye',mc:'64',mt:'76',fgap:'2',
+  lt:'bar',lw:'24',lh:'6',lgap:'3',sw:'5',sh:'12',sgap:'4',saff:'',rec:'R',rech:'42',drain:'19',sup:'22',spread:'8',
+  pw:'24',prim:'34',fig:'sink',figh:'69',preset:'comfort',mb:'40',lbkeep:'move',lbx:'',lbh:'',bid:'none',bidx:'',bidh:'20',wo:'none',wox:'12',woh:'16',studd:'3.5',wfin:'1/2',vd:'21',pd:'18',freach:'5',mcd:'5',mrd:'3 1/2',ldp:'5',sdp:'7',cab:'none',cabface:'front',cabd:'18',cabx:'',cabw:'18',cabh:'34 1/2',cabb:'0',cabn:'4',wc:'none',wcx:'18',wcseat:'17',wct:'30',wch:'8',wcs:'6',wcri:'12'};
+const lab=f=>typeof f.label==='function'?f.label(D):f.label,hint=f=>typeof f.hint==='function'?f.hint(D):f.hint;
+const N=(id,label,hint,show)=>({t:'num',id,label,hint,show}),C=(id,label,opts,show)=>({t:'choice',id,label,opts,show});
+const SECTIONS=[
+  {title:'Bathroom',open:true,fields:[C('preset','Who is this bathroom for?',[['tight','Tight space'],['std','Standard'],['comfort','Comfort height'],['aip','Aging in place']]),]},
+  {title:'Wall',open:true,fields:[N('wall','Wall width','Between side walls or obstructions'),N('ceil','Ceiling height'),C('studd','Stud depth',[['3.5','2×4'],['5.5','2×6']]),N('wfin','Wall finish thickness','Drywall 1/2″; board and tile about 1″'),C('wallc','Is the wall open to the studs?',[['open','Open'],['closed','Still finished']]),N('stud','First stud center from left','Leave blank if unknown; studs assumed 16″ OC',D=>D.wallc!=='closed')]},
+  {title:'Vanity and sink',open:true,fields:[C('sink','Sink type',[['under','Undermount / drop-in'],['vessel','Vessel'],['ped','Pedestal']]),
+    N('vw','Vanity width','',D=>D.sink!=='ped'),N('vd','Vanity depth','Cabinet, without the top',D=>D.sink!=='ped'),N('pw','Sink width','Widest part of the basin',D=>D.sink==='ped'),N('pd','Sink depth','Wall to front edge',D=>D.sink==='ped'),N('prim','Rim height','Top of the basin, usually 33–36″',D=>D.sink==='ped'),C('vpos','Vanity position',D=>[['center','Centered on wall'],...(D.wc!=='none'?[['beside','Centered between toilet and wall'],['far','Tight to the wall']]:[]),...(D.plumb==='keep'&&parseIn(D.exdx)>0&&(D.sinks!=='2'||D.sink==='ped')?[['drain','Centered on existing drain']]:[]),['left','Set from left']]),N('voff','Vanity from left wall','',D=>D.vpos==='left'),
+    C('vside','Vanity is on this side of the toilet',[['L','Left'],['R','Right']],D=>D.wc!=='none'&&(D.vpos==='beside'||D.vpos==='far')),
+    C('vref','Center between the wall and the toilet’s',[['clear','15″ clearance line'],['edge','Tank edge'],['cl','Centerline']],D=>D.wc!=='none'&&D.vpos==='beside'),
+    N('ctr','Countertop height','Top of counter',D=>D.sink!=='ped'),N('bs','Backsplash height','0 for none',D=>D.sink!=='ped'),C('sinks','Sinks',[['1','One'],['2','Two']],D=>D.sink!=='ped'),
+    N('space','Sink spacing','Center to center; blank splits the vanity in half',D=>D.sinks==='2'&&D.sink!=='ped'),
+    N('vh','Vessel height','Above counter',D=>D.sink==='vessel')]},
+  {title:'Toilet',open:true,fields:[C('wcmove','Is the toilet flange staying where it is?',[['keep','Staying — I’ll measure it'],['move','Moving — help me place it']],D=>D.wc!=='none'),C('wc','Toilet on this wall',[['none','None'],['left','Measure from left wall'],['right','Measure from right wall']]),
+    N('wcx',D=>D.wcmove==='move'?'New flange centerline from that wall':'Existing flange centerline from that wall',D=>D.wcmove==='move'?'Start around 18″ and watch the checks':'Measure to the center of the flange',D=>D.wc!=='none'),
+    N('wcseat','Seat height','About 15″ standard, 17″ comfort height',D=>D.wc!=='none'),N('wct','Tank top height','',D=>D.wc!=='none'),
+    N('wch','Supply stop height','',D=>D.wc!=='none'),N('wcs','Supply stop left of centerline','',D=>D.wc!=='none'),
+    N('wcri','Flange rough-in','Flange center from the finished wall',D=>D.wc!=='none')]},
+  {title:'Presentation',fields:[C('fig','Scale figure',[['sink','At the sink'],['side','Beside the vanity'],['none','None']]),N('figh','Figure height','In inches: 5′4″ = 64, 5′9″ = 69, 6′0″ = 72',D=>D.fig!=='none')]},
+  {title:'Storage cabinet',fields:[C('cab','Built-in cabinet on this wall',[['none','None'],['yes','Add one']]),
+    {t:'snap',id:'cabsnap',label:'Place it',show:D=>D.cab==='yes'},
+    N('cabx','Left edge from left wall','Blank puts it 15″ past the toilet centerline',D=>D.cab==='yes'),N('cabw','Width','Along this wall',D=>D.cab==='yes'),
+    C('cabface','Drawers open',[['front','Out into the room'],['left','Sideways, to the left'],['right','Sideways, to the right']],D=>D.cab==='yes'),
+    N('cabd','Depth from the wall','',D=>D.cab==='yes'&&D.cabface==='front'),
+    N('cabh','Top height','Above the floor',D=>D.cab==='yes'),N('cabb','Bottom height','0 if it sits on the floor; higher if wall-hung',D=>D.cab==='yes'),
+    N('cabn','Drawers','0 for a door',D=>D.cab==='yes')]},
+  {title:'Faucet and plumbing',fields:[C('fau','Faucet',[['deck','Deck-mount'],['wall','Wall-mount']]),N('fh','Faucet height','Overall, above sink rim',D=>D.fau==='deck'),N('freach','Spout reach',D=>D.fau==='wall'?'Wall to spout outlet':'Faucet body to spout outlet'),
+    N('spout','Spout above rim','Outlet height above the sink rim',D=>D.fau==='wall'),C('plumb','Are the sink drain and supplies staying?',[['keep','Staying — I’ll measure them'],['move','New rough-in']]),
+    N('exdx','Existing drain centerline from left wall','Leave blank if you can’t see it yet',D=>D.plumb==='keep'),
+    N('drain',D=>D.plumb==='keep'?'Existing drain stub height':'Drain stub height'),N('sup',D=>D.plumb==='keep'?'Existing supply height':'Supply height'),N('spread','Supply spread','Hot to cold')]},
+  {title:'Mirror or medicine cabinet',fields:[C('mir','Type',[['mirror','Mirror'],['surf','Cabinet, surface'],['rec','Cabinet, recessed'],['none','None']]),
+    C('mm','With two sinks',[['one','One centered'],['each','One per sink']],D=>D.sinks==='2'&&D.sink!=='ped'&&D.mir!=='none'),
+    N('mw','Width','',D=>D.mir!=='none'),N('mh','Height','',D=>D.mir!=='none'),
+    N('mro','Rough opening width','From the cabinet spec; blank = width − 1 3/4″',D=>D.mir==='rec'),N('mroh','Rough opening height','Blank = height − 1 3/4″',D=>D.mir==='rec'),N('mcd','Cabinet depth','',D=>D.mir==='surf'),N('mrd','Cabinet body depth','The part that goes into the wall',D=>D.mir==='rec'),
+    C('place','Set the height by',[['low','Just above faucet'],['eye','Center height'],['top','Top height'],['bot','Bottom height']],D=>D.mir!=='none'),
+    N('mb','Bottom height','40″ max for seated use',D=>D.mir!=='none'&&D.place==='bot'),
+    N('mc','Center height','',D=>D.mir!=='none'&&D.place==='eye'),N('mt','Top height','e.g. match the door head',D=>D.mir!=='none'&&D.place==='top'),
+    N('fgap','Gap above faucet','',D=>D.mir!=='none')]},
+  {title:'Lights and outlets',fields:[C('lt','Lights',[['bar','Bar above'],['sconce','Sconces each side'],['none','None']]),
+    C('lbkeep','Is the light box staying?',[['move','New location'],['keep','Staying — I’ll measure it']],D=>D.lt!=='none'),N('lbx','Existing box from left wall','To the box center',D=>D.lt!=='none'&&D.lbkeep==='keep'),N('lbh','Existing box height','Box center, above the floor',D=>D.lt!=='none'&&D.lbkeep==='keep'),
+    N('lw','Bar width','',D=>D.lt==='bar'),N('lh','Bar height','',D=>D.lt==='bar'),N('lgap','Gap above mirror','',D=>D.lt==='bar'),
+    N('sw','Sconce width','',D=>D.lt==='sconce'),N('sh','Sconce height','',D=>D.lt==='sconce'),N('sgap','Gap from mirror edge','',D=>D.lt==='sconce'),
+    N('saff','Sconce box height','Blank = a little above the mirror center',D=>D.lt==='sconce'),N('ldp','Bar projection','From the wall',D=>D.lt==='bar'),N('sdp','Sconce projection','From the wall',D=>D.lt==='sconce'),
+    C('rec','Vanity outlet',[['L','Left of mirror'],['R','Right of mirror'],['none','None']]),N('rech','Vanity outlet height','',D=>D.rec!=='none'),
+    C('bid','Bidet outlet',[['none','None'],['yes','Add one']]),N('bidx','Bidet outlet from left wall',D=>D.wc!=='none'?'Blank puts it 12″ right of the toilet centerline':'Distance to the outlet center',D=>D.bid==='yes'),N('bidh','Bidet outlet height','',D=>D.bid==='yes'),
+    C('wo','Wall outlet',[['none','None'],['yes','Add one']]),N('wox','Wall outlet from left wall','Distance to the outlet center',D=>D.wo==='yes'),N('woh','Wall outlet height','',D=>D.wo==='yes')]}
+];
+const FIELDS={};SECTIONS.forEach(s=>s.fields.forEach(f=>FIELDS[f.id]=f));
+FIELDS.has={t:'has',id:'has',label:'What’s going on this wall?'};
+const HAS=[['wc','Toilet',D=>D.wc!=='none',(D,on)=>{D.wc=on?(D.wc==='none'?'left':D.wc):'none';}],
+  ['cab','Storage cabinet',D=>D.cab==='yes',(D,on)=>{D.cab=on?'yes':'none';}],
+  ['mir','Mirror or medicine cabinet',D=>D.mir!=='none',(D,on)=>{D.mir=on?(D.mir==='none'?'mirror':D.mir):'none';}],
+  ['lt','Lights',D=>D.lt!=='none',(D,on)=>{D.lt=on?(D.lt==='none'?'bar':D.lt):'none';}],
+  ['rec','Vanity outlet',D=>D.rec!=='none',(D,on)=>{D.rec=on?(D.rec==='none'?'R':D.rec):'none';}],
+  ['bid','Bidet outlet',D=>D.bid==='yes',(D,on)=>{D.bid=on?'yes':'none';}],
+  ['wo','Wall outlet',D=>D.wo==='yes',(D,on)=>{D.wo=on?'yes':'none';}]];
+const PRESETS={tight:{ctr:'32',vd:'18',wcseat:'15',place:'low',rech:'42'},std:{ctr:'32',vd:'21',wcseat:'15',place:'low',rech:'42'},
+  comfort:{ctr:'36',vd:'21',wcseat:'17',place:'eye',mc:'64',rech:'42'},aip:{ctr:'34',vd:'21',wcseat:'18',place:'bot',mb:'40',rech:'42'}};
+const PDESC={tight:'Code minimums: 15″ beside the toilet and sink, 21″ in front, 32″ counter, 18″-deep vanity, mirror just above the faucet. Checks accept the minimums and fixes aim for them.',
+  std:'Traditional heights: 32″ counter, 15″ toilet seat, mirror just above the faucet. Checks aim for 18″ beside the toilet and 20″ from sink to wall.',
+  comfort:'36″ counter, 17″ toilet seat, mirror centered at 64″. Checks aim for 18″ beside the toilet and 20″ from sink to wall.',
+  aip:'34″ counter (ADA max), 18″ toilet seat, mirror bottom at 40″, outlets within 15–48″. Adds grab bar blocking to the schedule.'};
+FIELDS.preset.hint=D=>PDESC[D.preset]||'';
+const STEPS=[
+  {t:'Who is this bathroom for?',p:'This sets starting heights and what the checks aim for. Any number can still be changed later.',f:['preset']},
+  {t:'What’s on this wall?',p:'The vanity or sink is always included. Pick everything else that goes on this wall.',f:['has']},
+  {t:'The wall',p:'Measure finished surface to finished surface, side to side, between whatever stops the layout.',f:['wall','ceil','studd','wfin','wallc','stud']},
+  {t:'Toilet',show:D=>D.wc!=='none',p:'The flange usually decides where everything else on this wall goes.',f:['wcmove','wc','wcx','wcri','wcseat','wct','wch','wcs']},
+  {t:'Sink plumbing',p:'If the drain is staying, its location may set the sink centerline.',f:['plumb','exdx','drain','sup','spread']},
+  {t:'Vanity or sink',f:['sink','vw','vd','pw','pd','prim','ctr','bs','sinks','space','vh','vpos','vside','vref','voff']},
+  {t:'Faucet',f:['fau','fh','spout','freach']},
+  {t:'Mirror or medicine cabinet',show:D=>D.mir!=='none',f:['mir','mm','mw','mh','mro','mroh','mcd','mrd','place','mc','mt','fgap']},
+  {t:'Lights and outlets',show:D=>D.lt!=='none'||D.rec!=='none'||D.bid==='yes'||D.wo==='yes',f:['lt','lbkeep','lbx','lbh','lw','lh','lgap','ldp','sw','sh','sgap','saff','sdp','rec','rech','bid','bidx','bidh','wo','wox','woh']},
+  {t:'Storage cabinet',show:D=>D.cab==='yes',f:['cab','cabsnap','cabx','cabw','cabface','cabd','cabh','cabb','cabn']}];
+let D;try{const st=JSON.parse(localStorage.getItem('vanity1')||'{}')||{};D=Object.assign({},DEF,st);if(Object.keys(st).length&&st.qdone===undefined)D.qdone='1';}catch(e){D=Object.assign({},DEF);}
+const v=k=>{const x=parseIn(D[k]);return isNaN(x)?(parseIn(DEF[k])||0):x;};
+const opt=k=>{const x=parseIn(D[k]);return isNaN(x)?null:x;};
+
+/* ---------- solve ---------- */
+function solve(){
+  const ped=D.sink==='ped',R={ped},Wd=v('wall'),H=v('ceil'),vw=ped?v('pw'):v('vw'),n=!ped&&D.sinks==='2'?2:1,bs=ped?0:v('bs');
+  const wc=D.wc==='left'||D.wc==='right'?D.wc:null,tc=wc==='left'?v('wcx'):wc==='right'?Wd-v('wcx'):null;
+  let x0=(Wd-vw)/2;
+  if(D.vpos==='left')x0=v('voff');
+  const vs=D.vside==='L'?'L':'R';R.vs=vs;
+  if(wc&&D.vpos==='beside'){const off={cl:0,edge:10,clear:15}[D.vref]??15,a=vs==='R'?tc+off:0,b=vs==='R'?Wd:tc-off;x0=(a+b-vw)/2;
+    R.centered={gap:(b-a-vw)/2,ref:{cl:'toilet centerline',edge:'tank edge',clear:'15″ clearance line'}[D.vref]||'15″ clearance line',side:vs};}
+  else if(wc&&D.vpos==='far')x0=vs==='R'?Wd-vw:0;
+  const exd=D.plumb==='keep'?opt('exdx'):null;R.drainX=exd;
+  if(D.vpos==='drain'&&exd!=null)x0=exd-vw/2;
+  x0=Math.round(x0*16)/16;
+  const x1=x0+vw,vc=(x0+x1)/2,sp=opt('space');
+  const cls=n===1?[vc]:sp?[vc-sp/2,vc+sp/2]:[x0+vw/4,x0+3*vw/4];
+  const counter=ped?v('prim'):v('ctr'),bsTop=counter+bs,rim=D.sink==='vessel'?counter+v('vh'):counter;
+  const spoutAFF=rim+v('spout'),fTop=D.fau==='deck'?rim+v('fh'):spoutAFF+3;
+  {const dep=ped?v('pd'):v('vd'),bx=ped||D.sink==='vessel'?dep/2+1:(dep+1)/2+0.5,fx=D.fau==='deck'?Math.max(1.5,bx-9.5):0;R.sec={dep,bx,fx,outX:fx+v('freach')};}
+  Object.assign(R,{bs,Wd,H,vw,n,x0,x1,vc,cls,counter,bsTop,rim,spoutAFF,fTop,wc,tc});
+  const mirs=[];
+  if(D.mir!=='none'){const mw=v('mw'),mh=v('mh'),cs=(n===2&&D.mm==='each')?cls:[vc];
+    const low=Math.max(bs>0?bsTop+1:counter+1,fTop+v('fgap'));
+    let b=low,want=null;if(D.place==='eye')want=v('mc')-mh/2;if(D.place==='top')want=v('mt')-mh;if(D.place==='bot')want=v('mb');
+    if(want!=null){b=Math.max(low,want);R.forced=want<low-0.01;}
+    b=Math.round(b*16)/16;R.mLow=low;
+    for(const c of cs){const m={c,x:c-mw/2,w:mw,b,t:b+mh};
+      if(D.mir==='rec'){const rw=opt('mro')||mw-1.75,rh=opt('mroh')||mh-1.75;m.ro={x:c-rw/2,w:rw,b:b+(mh-rh)/2,h:rh};}
+      mirs.push(m);}}
+  R.mirs=mirs;
+  const refs=mirs.length?mirs:cls.map(c=>({c,x:c-8,w:16,b:fTop,t:fTop+24}));
+  const lights=[],sconces=[];
+  if(D.lt==='bar'){const lw=v('lw'),lh=v('lh');for(const m of refs){const b=m.t+v('lgap');lights.push({c:m.c,x:m.c-lw/2,w:lw,b,h:lh,box:b+lh/2});}}
+  if(D.lt==='sconce'){const sw=v('sw'),sh=v('sh');for(const m of refs){
+      const box=opt('saff')||Math.min(68,Math.max(60,Math.round(((m.b+m.t)/2+2)*2)/2));
+      for(const s of [-1,1]){const c=m.c+s*(m.w/2+v('sgap')+sw/2);sconces.push({c,x:c-sw/2,w:sw,b:box-sh/2,h:sh,box});}}}
+  R.lights=lights;R.sconces=sconces;
+  if(D.rec!=='none'){const objs=[...mirs.map(m=>[m.x,m.x+m.w]),...sconces.map(s=>[s.x,s.x+s.w]),...lights.map(l=>[l.x,l.x+l.w])];
+    const aff=Math.max(v('rech'),bsTop+2);let x;
+    if(D.rec==='R'){x=Math.max(x1-4,...objs.map(o=>o[1]+4));}else{x=Math.min(x0+4,...objs.map(o=>o[0]-4));}
+    R.rec={x,aff};}
+  R.outs=[];
+  if(D.bid==='yes'){let x=opt('bidx');if(x==null)x=R.tc!=null?R.tc+12:12;R.outs.push({key:'bid',name:'Bidet outlet',x,aff:v('bidh')});}
+  if(D.wo==='yes')R.outs.push({key:'wo',name:'Wall outlet',x:v('wox'),aff:v('woh')});
+  const f=opt('stud');R.studs=[];if(f!=null){let c=f;while(c-16>-1)c-=16;for(;c<Wd+1;c+=16)if(c>0.75&&c<Wd-0.75)R.studs.push(c);}
+  if(D.cab==='yes'){const w=v('cabw');let x=opt('cabx');
+    if(x==null){if(R.wc){const left=R.tc-15-w,right=R.tc+15,fitL=left>=0,fitR=right+w<=Wd,vanR=R.vc>R.tc;
+        x=vanR?(fitL?left:right):(fitR?right:left);}else x=0;}
+    const c=R.cab={x,w,b:Math.max(0,opt('cabb')||0),t:v('cabh'),n:Math.max(0,Math.min(8,Math.round(opt('cabn')??4))),face:D.cabface||'front'};
+    c.carc=c.face==='front'?v('cabd'):w;c.slide=[24,22,20,18,16,14,12,10].find(z=>z<=c.carc-1.5)||0;
+    const kick=c.b<0.01?4:0,bb=c.b+kick,ih=c.t-bb-1.5;c.drawers=[];
+    if(c.n>0)for(let i=0;i<c.n;i++){const h=ih/c.n,y0=bb+0.75+i*h;c.drawers.push({y0,y1:y0+h});}
+    if(c.face!=='front'&&c.drawers.length){const L=c.face==='left',front=L?c.x:c.x+c.w,obs=[];
+      if(R.wc){const st=v('wcseat'),tt=v('wct');obs.push({x0:R.tc-8,x1:R.tc+8,y0:0,y1:st,name:'toilet'},{x0:R.tc-10,x1:R.tc+10,y0:st,y1:tt,name:'toilet tank'});}
+      obs.push({x0:R.x0,x1:R.x1,y0:0,y1:R.counter,name:R.ped?'sink':'vanity'});
+      c.drawers.forEach(d=>{let lim=L?0:Wd,by='wall';
+        for(const o of obs){if(o.y1<=d.y0+0.01||o.y0>=d.y1-0.01)continue;
+          if(L&&o.x1<=front+0.01&&o.x1>lim){lim=o.x1;by=o.name;}if(!L&&o.x0>=front-0.01&&o.x0<lim){lim=o.x0;by=o.name;}}
+        d.room=Math.abs(front-lim);d.by=by;d.need=c.slide+1.25;});}}
+  return R;
+}
+const STD=[18,24,30,36,42,48,60,72],fitStd=m=>STD.filter(w=>w<=m+1e-6).pop();
+const r16=x=>Math.round(x*16)/16;
+const setX=x=>D=>{D.vpos='left';D.voff=fmtN(r16(x));};
+const setW=w=>D=>{if(D.sink==='ped')D.pw=fmtN(w);else D.vw=fmtN(w);};
+function checks(R){const out=[],ok=(t,f)=>out.push(['good',t,f]),warn=(t,f)=>out.push(['warn',t,f]),bad=(t,f)=>out.push(['bad',t,f]);
+  const vn=R.ped?'sink':'vanity',lowMir=D.place!=='low'?[['Set the mirror just above the faucet',D=>{D.place='low';}]]:[],
+    flipRec=[['Move the outlet to the other side',D=>{D.rec=D.rec==='L'?'R':'L';}]],oneMir=R.n===2&&D.mm==='each'?[['Use one centered mirror',D=>{D.mm='one';}]]:[];
+  if(R.x0<-0.01||R.x1>R.Wd+0.01){const f=[];if(R.vw>R.Wd){const s=fitStd(R.Wd);if(s)f.push([`Use a ${s}″ ${vn}`,setW(s)]);}
+    else f.push(['Pull it back onto the wall',setX(Math.min(Math.max(R.x0,0),R.Wd-R.vw))]);
+    bad(`Vanity doesn’t fit: ${fmt(R.vw)} vanity on a ${fmt(R.Wd)} wall at that position.`,f);}
+  const side=Math.min(R.cls[0],R.Wd-R.cls[R.cls.length-1]);
+  {const f=[];if(side<15-1e-6){const need=15-side,nearL=R.cls[0]<R.Wd-R.cls[R.cls.length-1],nx=nearL?R.x0+need:R.x0-need;
+      if(nx>=-0.01&&nx+R.vw<=R.Wd+0.01)f.push([`Shift the ${vn} ${fmt(need)} away from the wall`,setX(nx)]);
+      if(R.n===1&&!R.ped&&R.vw<30&&(R.x0<0.5||R.x1>R.Wd-0.5))f.push(['Use a 30″ vanity',setW(30)]);
+      if(R.n===2&&!opt('space'))f.push(['Pull the sinks closer to center',D=>{D.space=fmtN(Math.max(30,Math.min(36,R.vw-30)));}]);}
+    if(side>=15-1e-6&&side<20-1e-6&&D.preset!=='tight'&&R.n===1){const need=20-side,nearL=R.cls[0]<R.Wd-R.cls[0],nx=nearL?R.x0+need:R.x0-need;
+      warn(`Sink centerline is ${fmt(side)} from the side wall: meets code; 20″ is more comfortable.`,nx>=-0.01&&nx+R.vw<=R.Wd+0.01?[[`Shift the ${vn} ${fmt(need)} away from the wall`,setX(nx)]]:[]);}
+    else (side<15-1e-6?bad:ok)(`Sink centerline is ${fmt(side)} from the nearest side wall (15″ minimum).`,f);}
+  if(R.n===2){const cc=R.cls[1]-R.cls[0];(cc<30-1e-6?bad:ok)(`Sinks are ${fmt(cc)} center to center (30″ minimum).`);
+    if(R.cls[0]-R.x0<8||R.x1-R.cls[1]<8)warn('A sink is within 8″ of the vanity end: check the bowl fits the cabinet.');}
+  if(R.centered){const c=R.centered;c.gap<0?bad(`Vanity is too wide to fit between the ${c.ref} and the wall.`,(()=>{const s=fitStd(R.vw+2*c.gap);return s?[[`Use a ${s}″ ${vn}`,setW(s)]]:[];})()):out.push(['ans',`Vanity centered between the ${c.ref} and the ${c.side==='R'?'right':'left'} wall: ${fmt(c.gap)} each side, left edge at ${fmt(R.x0)} from the left wall, sink centerline at ${fmt(R.cls[0])}${R.n>1?` and ${fmt(R.cls[1])}`:''}.`]);}
+  if(R.drainX!=null){const c=R.cls.reduce((a,b)=>Math.abs(b-R.drainX)<Math.abs(a-R.drainX)?b:a),d=R.drainX-c;
+    if(Math.abs(d)<=0.25)ok('Existing drain lines up with the sink centerline.');
+    else (R.ped&&Math.abs(d)>1?bad:warn)(`Existing drain is ${fmt(Math.abs(d))} ${d<0?'left':'right'} of the sink centerline. ${R.ped?'A pedestal hides very little offset: center on the drain or move it.':'Center the vanity on the drain, offset the trap in the cabinet, or move the drain.'}`,R.n===1?[[`Center the ${vn} on the drain`,D=>{D.vpos='drain';}]]:[]);}
+  if(R.wc&&D.wcmove==='move')warn('Toilet flange is moving: check joist direction and the drain path under the floor before locking in this spot.');
+  if(D.wallc==='closed'&&D.mir==='rec')warn('Wall is still finished: find the studs before committing to the recessed cabinet location.');
+  if(R.wc){const tc=R.tc,sw=Math.min(tc,R.Wd-tc),moveWc=nt=>D=>{D.wcmove='move';D.wcx=fmtN(r16(D.wc==='left'?nt:R.Wd-nt));};
+    if(tc<10||tc>R.Wd-10)bad('Toilet runs past the wall.');
+    (sw<15-1e-6?bad:ok)(`Toilet centerline is ${fmt(sw)} from the side wall (15″ minimum).`,sw<15-1e-6?[['Move the toilet to 18″ off the wall (moves the flange)',moveWc(tc<R.Wd/2?18:R.Wd-18)]]:[]);
+    const ve=tc<R.x0?R.x0-tc:tc>R.x1?tc-R.x1:0;
+    if(R.cab){const c=R.cab,ce=tc<c.x?c.x-tc:tc>c.x+c.w?tc-c.x-c.w:0;
+      const cf=[['Place the cabinet 15″ past the toilet',D=>{D.cabx='';}]];
+      if(ce===0)bad('Toilet and storage cabinet overlap.',cf);else (ce<15-1e-6?bad:ok)(`Toilet centerline is ${fmt(ce)} from the storage cabinet (15″ minimum).`,ce<15-1e-6?cf:[]);}
+    const right=R.vc>tc,away=need=>{const f=[],nx=right?R.x0+need:R.x0-need;
+        if(nx>=-0.01&&nx+R.vw<=R.Wd+0.01)f.push([`Shift the ${vn} ${fmt(need)} away from the toilet`,setX(nx)]);
+        const nt=right?tc-need:tc+need;if(nt>=15&&nt<=R.Wd-15)f.push([`Move the toilet ${fmt(need)} (moves the flange)`,moveWc(nt)]);
+        if(D.vpos==='far'||D.vpos==='beside'){const s=fitStd(R.vw-(D.vpos==='far'?need:2*need));if(s&&s>=18&&!R.ped)f.push([`Use a ${s}″ vanity`,setW(s)]);}
+        return f;};
+    if(tc>=R.x0&&tc<=R.x1)bad(`Toilet and ${vn} overlap.`,[[`Center the ${vn} between the toilet and the wall`,D=>{D.vpos='beside';D.vref='clear';D.vside=right?'R':'L';}]]);
+    else (ve<15-1e-6?bad:ok)(`Toilet centerline is ${fmt(ve)} from the ${vn} (15″ minimum).`,ve<15-1e-6?away(15-ve):[]);
+    const cc=Math.min(...R.cls.map(c=>Math.abs(c-tc)));(cc<30-1e-6?bad:ok)(`Toilet to sink centerline: ${fmt(cc)} (30″ minimum).`,cc<30-1e-6&&ve>=15-1e-6?away(30-cc):[]);
+    if(ve>=15&&ve<18&&D.preset!=='tight')warn(`${fmt(ve)} from toilet center to ${vn} meets code but feels tight; 18″ or more is more comfortable.`,away(18-ve));
+    if(R.rec&&Math.abs(R.rec.x-tc)<11&&R.rec.aff<v('wct')+4)warn('Outlet lands behind the toilet tank: move it to the other side.',flipRec);}
+  if(R.cab){const c=R.cab,gl=c.x,gr=R.Wd-c.x-c.w,gw=Math.min(gl,gr);
+    if(gw>0.01&&gw<4)warn(`Storage cabinet is ${fmt(gw)} off the ${gl<gr?'left':'right'} wall: a hard-to-clean gap.`,[['Push it tight to the wall',D=>{D.cabx=gl<gr?'0':fmtN(R.Wd-c.w);}]]);
+    if(c.n>0&&c.slide<10)warn(`Storage cabinet is only ${fmt(c.carc)} deep for its drawers: too shallow for standard slides.`);
+    if(c.face!=='front'&&c.drawers.length){const bad_=c.drawers.map((d,i)=>({d,i})).filter(o=>o.d.room<o.d.need-0.01);
+      if(bad_.length)warn(`Sideways drawers need about ${fmt(c.drawers[0].need)} to open fully (${c.slide}″ slides). ${bad_.map(o=>`Drawer ${o.i+1} from the bottom opens ${fmt(Math.min(o.d.room,c.slide))} before the ${o.d.by}`).join('; ')}.`,
+        [['Turn the drawers to face the room',D=>{D.cabface='front';}]]);
+      else ok(`Sideways drawers open fully: ${c.slide}″ slides with ${fmt(Math.min(...c.drawers.map(d=>d.room)))} or more of room.`);}
+  }
+  if(R.cab){const c=R.cab,ov=(a0,a1,b0,b1)=>a0<b1-0.01&&a1>b0+0.01;
+    if(c.x<-0.01||c.x+c.w>R.Wd+0.01)bad('Storage cabinet runs past the wall.');
+    if(c.t<=c.b)bad('Storage cabinet top is below its bottom.');
+    if(ov(c.x,c.x+c.w,R.x0,R.x1)&&ov(c.b,c.t,0,R.counter))bad(`Storage cabinet overlaps the ${vn}.`,R.wc&&opt('cabx')!=null?[['Place the cabinet 15″ past the toilet',D=>{D.cabx='';}]]:[]);
+    if(R.mirs.some(m=>ov(c.x,c.x+c.w,m.x,m.x+m.w)&&ov(c.b,c.t,m.b,m.t)))bad('Storage cabinet overlaps the mirror.');
+    if(R.rec&&R.rec.x>c.x&&R.rec.x<c.x+c.w&&R.rec.aff<c.t+2)warn('Outlet lands behind the storage cabinet: move it.',flipRec);}
+  {const {bx,fx,outX}=R.sec,off=outX-bx,need=r16(bx-fx);
+    if(D.fau==='wall'?Math.abs(off)>3:(off<-5||off>4))warn(`Spout outlet lands ${fmt(Math.abs(off))} ${off<0?'behind':'in front of'} the drain${off<0?', close to the back of the bowl':', close to the front edge'}.`,[[`Use a ${fmt(need)} spout reach`,D=>{D.freach=fmtN(need);}]]);}
+  if(D.mir==='rec'&&v('mrd')>(parseIn(D.studd)||3.5)+0.01)bad(`Recessed cabinet body is ${fmt(v('mrd'))} deep; a ${(parseIn(D.studd)||3.5)>4?'2×6':'2×4'} cavity is ${fmt(parseIn(D.studd)||3.5)}.`,[['Use a surface-mount cabinet',D=>{D.mir='surf';}],...((parseIn(D.studd)||3.5)<5?[['Frame this wall with 2×6',D=>{D.studd='5.5';}]]:[])]);
+  if(R.rim>38)warn(`Sink rim at ${fmt(R.rim)}: high for most people. Lower the vanity for a vessel sink.`,D.sink==='vessel'?[[`Lower the vanity to ${fmt(36-v('vh'))} (rim at 36″)`,D=>{D.ctr=fmtN(36-v('vh'));}]]:[]);
+  else if(R.rim<30)warn(`Sink rim at ${fmt(R.rim)} is low.`);
+  if(v('drain')>R.counter-12&&D.sink!=='vessel')warn(`Drain stub at ${fmt(v('drain'))} may be too high for the sink tailpiece and trap.`);
+  if(v('sup')<v('drain'))warn('Supplies are below the drain stub.');
+  if(R.ped){if(v('spread')/2>3.5)warn(`Pedestal: supplies ${fmt(v('spread'))} apart will likely show beside the column. Most pedestals want them about 4–6″ apart (check the spec).`,[['Set supplies 4″ apart',D=>{D.spread='4';}]]);
+    if(v('drain')>R.rim-10)warn('Pedestal: drain stub is high for the trap to hide behind the column.');
+    ok('Pedestal: block the wall for the sink hanger bracket before drywall.');}
+  let vent=false,first=true;for(const m of R.mirs){
+    if(R.forced&&first)warn(`Mirror was raised to clear the faucet and backsplash: bottom at ${fmt(m.b)}.`);
+    const ctr=(m.b+m.t)/2;
+    if(first&&D.preset!=='aip'&&(ctr<58||ctr>70))warn(`Mirror center at ${fmt(ctr)} AFF: most people look for about 60–66″.`,[['Center the mirror at 64″',D=>{D.place='eye';D.mc='64';}]]);
+    if(m.t>R.H-2){const nh=r16(m.t-m.b-(m.t-(R.H-2)));bad(`Mirror top at ${fmt(m.t)} runs into the ceiling.`,[...lowMir,...(nh>=12?[[`Use a ${fmt(nh)} tall mirror`,D=>{D.mh=fmtN(nh);}]]:[])]);}
+    if(m.x<-0.01||m.x+m.w>R.Wd+0.01)bad('Mirror runs past the wall.');
+    if(m.ro){const lab=R.mirs.length>1?(m.c<R.vc?'Left cabinet':'Right cabinet'):'Recessed cabinet',hits=R.studs.filter(c=>c+0.75>m.ro.x&&c-0.75<m.ro.x+m.ro.w);
+      if(!R.studs.length){if(first)warn(`Recessed cabinet needs a ${fmt(m.ro.w)} × ${fmt(m.ro.h)} rough opening; enter the stud layout to check it against the studs.`);}
+      else if(hits.length)warn(`${lab} cuts ${hits.length} stud${hits.length>1?'s':''}: frame a header and sill for the ${fmt(m.ro.w)} × ${fmt(m.ro.h)} rough opening.`,[['Use a surface-mount cabinet',D=>{D.mir='surf';}]]);
+      else ok(`${lab} fits between studs (${fmt(m.ro.w)} wide rough opening).`);
+      if(!vent){vent=true;warn('The sink vent usually runs up the sink centerline: confirm the cabinet bay is clear.');}}
+    first=false;}
+  if(R.mirs.length>1&&R.mirs[0].x+R.mirs[0].w>R.mirs[1].x-0.01)bad('The two mirrors overlap: narrow them or widen the sink spacing.',oneMir);
+  if(R.mirs.length&&R.fTop+0.5>R.mirs[0].b)bad('Faucet hits the mirror.',lowMir);
+  let lightTold=false;for(const l of R.lights){if(l.b+l.h>R.H-1&&!lightTold){lightTold=true;const over=l.b+l.h-(R.H-1),m=R.mirs[0],nh=m?r16(m.t-m.b-over):0;
+      bad(`Light bar top at ${fmt(l.b+l.h)} is too close to the ceiling: lower the mirror or use sconces.`,[['Use sconces instead',D=>{D.lt='sconce';}],...lowMir,...(m&&nh>=12?[[`Use a ${fmt(nh)} tall mirror`,D=>{D.mh=fmtN(nh);}]]:[])]);}
+    const m=R.mirs.find(m=>m.c===l.c);if(m&&l.w>m.w+0.01)warn(`Light bar (${fmt(l.w)}) is wider than the mirror (${fmt(m.w)}).`,[[`Use a ${fmt(m.w)} bar`,D=>{D.lw=fmtN(m.w);}]]);}
+  if(R.lights.length>1&&R.lights[0].x+R.lights[0].w>R.lights[1].x)bad('The two light bars overlap.',oneMir);
+  if(R.sconces.length){const pr=[];for(let i=0;i<R.sconces.length;i+=2)pr.push(R.sconces[i+1].c-R.sconces[i].c);
+    const barFix=[['Use a light bar above instead',D=>{D.lt='bar';}]];
+    pr.slice(0,1).forEach(d=>{if(d<28||d>40){const mw=R.mirs.length?R.mirs[0].w:16,tg=d<28?30:36,g=r16((tg-mw-v('sw'))/2);
+      warn(`Sconces are ${fmt(d)} apart: about 28–40″ apart lights a face evenly.`,[...(g>=1?[[`Space the sconces ${tg}″ apart`,D=>{D.sgap=fmtN(g);}]]:[]),...(d>40?barFix:[])]);}});
+    if(R.sconces.some(s=>s.x<0||s.x+s.w>R.Wd))bad('A sconce runs past the wall.',barFix);
+    let told=false;for(let i=1;i+1<R.sconces.length;i+=2)if(!told&&R.sconces[i].x+R.sconces[i].w>R.sconces[i+1].x){told=true;bad('Sconces between the two mirrors collide: use one centered mirror or narrower mirrors.',[...oneMir,...barFix]);}}
+  if(R.rec){const e=Math.min(...R.cls.map(c=>Math.max(0,Math.abs(R.rec.x-c)-8)));
+    if(R.rec.x<2||R.rec.x>R.Wd-2)warn('No room for the outlet beside the mirror: put it on the side wall, within 36″ of the basin.',flipRec);
+    else (e>36?bad:ok)(`Outlet is ${fmt(e)} from the basin edge (36″ maximum).`,e>36?flipRec:[]);}
+  for(const o of R.outs||[]){const mv=[[`Move the ${o.name.toLowerCase()} to ${fmt(o.key==='bid'&&R.tc!=null?R.tc+14:6)}`,D=>{D[o.key==='bid'?'bidx':'wox']=fmtN(o.key==='bid'&&R.tc!=null?R.tc+14:6);}]];
+    if(o.x<1.5||o.x>R.Wd-1.5){bad(`${o.name} is off the wall.`,mv);continue;}
+    if(o.x>R.x0-1.4&&o.x<R.x1+1.4&&o.aff<R.counter+1)warn(`${o.name} lands behind the ${R.ped?'sink':'vanity'}.`);
+    if(R.cab&&o.x>R.cab.x-1.4&&o.x<R.cab.x+R.cab.w+1.4&&o.aff>R.cab.b-2&&o.aff<R.cab.t+2)warn(`${o.name} lands behind the storage cabinet.`);
+    if(R.wc&&Math.abs(o.x-R.tc)<11.5&&o.aff>v('wcseat')-2&&o.aff<v('wct')+2)warn(`${o.name} lands behind the toilet tank: it needs to sit beside the tank to reach the plug.`,o.key==='bid'?mv:[]);
+    if(o.key==='bid'&&!R.wc)warn('Bidet outlet is on, but there is no toilet on this wall.');
+    if(o.key==='bid'&&R.wc&&Math.abs(o.x-R.tc)>30)warn(`Bidet outlet is ${fmt(Math.abs(o.x-R.tc))} from the toilet centerline: check the bidet seat's cord length.`,mv);}
+  if(D.preset==='aip'){
+    if(!R.ped&&R.counter>34.01)warn(`Counter at ${fmt(R.counter)}: 34″ max for seated use.`,[['Set the counter to 34″',D=>{D.ctr='34';}]]);
+    if(R.wc){const st=v('wcseat');if(st<17||st>19)warn(`Toilet seat at ${fmt(st)}: 17–19″ for aging in place.`,[['Use an 18″ seat height',D=>{D.wcseat='18';}]]);}
+    if(R.mirs.length&&R.mirs[0].b>40.01){const fh=r16(40-v('fgap')-R.rim),f=[];
+      if(D.fau==='deck'&&fh>=3)f.push([`Use a ${fmt(fh)}-tall faucet`,D=>{D.fh=fmtN(fh);D.place='bot';D.mb='40';}]);
+      if(D.place!=='bot')f.push(['Set the mirror bottom to 40″',D=>{D.place='bot';D.mb='40';}]);
+      warn(`Mirror bottom at ${fmt(R.mirs[0].b)}: 40″ max over the sink for seated use.`,f);}
+    [R.rec,...(R.outs||[])].filter(Boolean).forEach(o=>{if(o.aff>48||o.aff<15)warn(`${o.name||'Vanity outlet'} at ${fmt(o.aff)}: keep outlets within 15–48″ for reach.`,!o.name?[['Set it to 44″',D=>{D.rech='44';}]]:[]);});
+    ok('Aging in place: plan lever handles and a 30″ × 48″ clear space in front of the sink.');}
+  if(D.preset==='tight'&&!R.ped&&R.vw>24)ok('Tight space: a pedestal sink or an 18–24″ vanity frees up floor.');
+  if(D.lt!=='none'&&D.lbkeep==='keep'){const bx=opt('lbx'),bh=opt('lbh');
+    if(D.lt==='sconce')warn('The existing single box won’t serve sconces: they need a box on each side. Plan new boxes or switch to a light bar.',[['Use a light bar above instead',D=>{D.lt='bar';}]]);
+    else if(R.lights.length){const l=R.lights.reduce((a,b)=>bx!=null&&Math.abs(b.c-bx)<Math.abs(a.c-bx)?b:a);
+      if(bx!=null){const d=bx-l.c;if(Math.abs(d)<=0.5)ok('Existing light box lines up with the light centerline.');
+        else warn(`Existing light box is ${fmt(Math.abs(d))} ${d<0?'left':'right'} of the light centerline. Center the vanity on it, or move the box.`,R.n===1||D.mm==='one'?[[`Center the ${vn} on the light box`,setX(bx-R.vw/2)]]:[]);}
+      if(bh!=null){const d=bh-l.box;if(Math.abs(d)<=0.5)ok('Existing light box height works with the mirror and bar.');
+        else{const mt=r16(bh-v('lgap')-v('lh')/2);warn(`Existing light box is at ${fmt(bh)}; the bar's box lands at ${fmt(l.box)}.`,R.mirs.length?[[`Set the mirror top to ${fmt(mt)} to meet the box`,D=>{D.place='top';D.mt=fmtN(mt);}]]:[]);}}}}
+  out.sort((a,b)=>({ans:-1,bad:0,warn:1,good:2}[a[0]]-{ans:-1,bad:0,warn:1,good:2}[b[0]]));
+  return out;}
+function schedule(R){const rows=[],rng=(a,b)=>`${fmtN(a)}–${fmt(b)}`;
+  R.cls.forEach((c,i)=>{const s=R.n>1?` (${i?'right':'left'} sink)`:'';
+    rows.push([`Sink centerline${s}`,fmt(c),'']);rows.push([`Drain stub${s}${D.plumb==='keep'?' (existing)':''}`,R.drainX!=null&&R.n===1?fmt(R.drainX):fmt(c),fmt(v('drain'))]);
+    rows.push([`Supplies${s}${D.plumb==='keep'?' (existing)':''}`,`${fmtN(c-v('spread')/2)} & ${fmt(c+v('spread')/2)}`,fmt(v('sup'))]);
+    if(D.fau==='wall')rows.push([`Wall faucet spout${s}`,fmt(c),fmt(R.spoutAFF)+' (set valve per spec)']);});
+  if(R.cab){const c=R.cab;rows.push(['Storage cabinet',rng(c.x,c.x+c.w),rng(c.b,c.t)]);
+    if(c.n>0&&c.slide)rows.push([`Drawers (${c.n}, ${c.face==='front'?'facing the room':'opening '+c.face})`,`${c.slide}″ full-extension slides`,`${fmt(c.carc)} box space`]);
+    if(c.b>0)rows.push(['Cabinet blocking (wall-hung)',rng(c.x,c.x+c.w),`at ${fmtN(c.b+2)} & ${fmt(c.t-2)}`]);}
+  if(R.wc){rows.push(['Toilet centerline',fmt(R.tc),'']);rows.push([D.wcmove==='move'?'Toilet flange (new)':'Toilet flange (existing)',`on centerline, ${fmt(v('wcri'))} off finished wall`,'floor']);
+    rows.push(['Toilet supply stop',fmt(R.tc-v('wcs')),fmt(v('wch'))]);}
+  if(R.ped){rows.push(['Pedestal sink',rng(R.x0,R.x1),`${fmt(R.rim)} rim`]);
+    rows.push(['Sink hanger blocking',rng(R.x0-2,R.x1+2),rng(R.rim-9,R.rim-1.5)+' (check bracket height in spec)']);}
+  else{rows.push(['Vanity',rng(R.x0,R.x1),`${fmt(R.counter)} top`]);
+  rows.push(['Vanity backing (blocking)',rng(R.x0,R.x1),rng(R.counter-6,R.counter-1.5)]);}
+  R.mirs.forEach(m=>{rows.push([D.mir==='mirror'?'Mirror':'Medicine cabinet',rng(m.x,m.x+m.w),rng(m.b,m.t)]);
+    if(m.ro)rows.push(['Cabinet rough opening',rng(m.ro.x,m.ro.x+m.ro.w),rng(m.ro.b,m.ro.b+m.ro.h)]);
+    else rows.push([D.mir==='mirror'?'Mirror blocking':'Cabinet blocking',rng(m.x,m.x+m.w),`at ${fmtN(m.b)} & ${fmt(m.t)}`]);});
+  R.lights.forEach(l=>rows.push([D.lbkeep==='keep'?'Light box (bar), per layout':'Light box (bar)',fmt(l.c),fmt(l.box)]));
+  if(D.lt!=='none'&&D.lbkeep==='keep'&&(opt('lbx')!=null||opt('lbh')!=null))rows.push(['Light box (existing)',opt('lbx')!=null?fmt(opt('lbx')):'—',opt('lbh')!=null?fmt(opt('lbh')):'—']);
+  if(D.preset==='aip'&&R.wc){rows.push(['Grab bar blocking behind toilet',rng(Math.max(0,R.tc-24),Math.min(R.Wd,R.tc+24)),rng(32,38)]);
+    rows.push(['Grab bar blocking, side wall','adjacent wall, 12–54″ from this wall',rng(32,38)]);}
+  R.sconces.forEach(s=>rows.push(['Sconce box',fmt(s.c),fmt(s.box)]));
+  if(R.rec)rows.push(['Vanity outlet (GFCI)',fmt(R.rec.x),fmt(R.rec.aff)+' center']);
+  (R.outs||[]).forEach(o=>rows.push([o.name+' (GFCI)',fmt(o.x),fmt(o.aff)+' center']));
+  return rows;}
+
+/* ---------- elevation ---------- */
+function heights(R,sect){const H=R.H,counter=R.counter,pts=[['Ceiling',H],['Drain',v('drain')],['Supply',v('sup')],[R.ped?'Rim':'Counter',counter]];
+  if(R.bs>0)pts.push(['Splash',R.bsTop]);if(D.sink==='vessel')pts.push(['Rim',R.rim]);
+  pts.push([D.fau==='deck'?'Faucet':'Spout',D.fau==='deck'?R.fTop:R.spoutAFF]);
+  if(R.mirs.length){pts.push([D.mir==='mirror'?'Mirror':'Cab',R.mirs[0].b],[D.mir==='mirror'?'Mirror top':'Cab top',R.mirs[0].t]);}
+  if(R.lights.length)pts.push(['Light box',R.lights[0].box]);if(R.sconces.length)pts.push(['Sconce box',R.sconces[0].box]);
+  if(R.rec)pts.push([sect?'Outlet':'Vanity outlet',R.rec.aff]);
+  if(!sect)(R.outs||[]).forEach(o=>pts.push([o.key==='bid'?'Bidet outlet':'Wall outlet',o.aff]));
+  if(!sect&&R.wc)pts.push(['WC supply',v('wch')],['Tank top',v('wct')]);
+  if(!sect&&R.cab){pts.push(['Cabinet top',R.cab.t]);if(R.cab.b>0)pts.push(['Cabinet bottom',R.cab.b]);}
+  return pts;}
+function presHeights(R){const pts=[['Ceiling',R.H],[R.ped?'Sink rim':'Counter',R.counter]];
+  if(R.mirs.length){const cab=D.mir!=='mirror';pts.push([cab?'Cabinet bottom':'Mirror bottom',R.mirs[0].b],[cab?'Cabinet top':'Mirror top',R.mirs[0].t]);}
+  if(R.lights.length)pts.push(['Light',R.lights[0].box]);if(R.sconces.length)pts.push(['Sconces',R.sconces[0].box]);
+  if(D.fig!=='none'){const fh=Math.max(36,Math.min(84,v('figh')));pts.push([`Eye (${fmtN(Math.floor(fh/12))}′${fmtN(fh%12)}″ person)`,fh*0.93]);}
+  return pts;}
+function ordSVG(pts,hx,H,fs,Y){let s='';
+  pts.sort((a,b)=>a[1]-b[1]);const gap=fs*1.05;let last=-1e9;const ly=pts.map(p=>{const y=Math.max(p[1],last+gap);last=y;return y;});
+  const over=last-H;if(over>0)for(let i=ly.length-1,top=H+Math.max(0,fs*0.3);i>=0;i--){ly[i]=Math.min(ly[i],top-(ly.length-1-i)*gap);}
+  s+=`<path class="dim" d="M${hx} ${Y(0)}V${Y(H)}${pts.map(p=>`M${hx-fs*0.4} ${Y(p[1])}H${hx+fs*0.4}`).join('')}"/>`;
+  pts.forEach((p,i)=>{const ty=ly[i];if(Math.abs(ty-p[1])>0.01)s+=`<path class="dim" d="M${hx+fs*0.4} ${Y(p[1])}L${hx+fs*0.9} ${Y(ty)}"/>`;
+    s+=`<text class="dt" font-size="${fs*0.78}" x="${hx+fs*1.05}" y="${Y(ty)+fs*0.27}"><tspan class="dl">${p[0]}</tspan> ${fmtN(p[1])}</text>`;});
+  return s;}
+function hdim(x0,x1,y,fs,label,up){const t=fs*0.3;return `<path class="dim" d="M${x0} ${y}H${x1}M${x0-t} ${y+t}l${2*t} ${-2*t}M${x1-t} ${y+t}l${2*t} ${-2*t}"/><text class="dt" font-size="${fs*0.72}" text-anchor="middle" x="${(x0+x1)/2}" y="${up?y-fs*0.35:y+fs*0.95}">${label}</text>`;}
+function drawSection(R){
+  const H=R.H,sd=parseIn(D.studd)||3.5,wf=v('wfin'),{dep,bx,fx,outX}=R.sec,counter=R.counter,wt=2*wf+sd;
+  const Wr=Math.max(dep+1+21,34)+3,fs=Math.max(Wr+wt,H)/26,Y=a=>r2(H-a),ML=wt+fs*1.5,MR=fs*10.5,MB=fs*5;let s='';
+  s+=`<rect class="face" x="${-wf-sd}" y="0" width="${sd}" height="${H}"/><rect class="stud" x="${-wf-sd}" y="0" width="${sd}" height="${H}"/>`;
+  s+=`<rect class="ob" x="${-wt}" y="0" width="${wf}" height="${H}"/><rect class="ob" x="${-wf}" y="0" width="${wf}" height="${H}"/>`;
+  s+=`<rect class="side" x="${-wt-fs}" y="${H}" width="${Wr+wt+fs}" height="1.5"/><rect class="side" x="${-wt-fs}" y="-1.5" width="${Wr+wt+fs}" height="1.5"/>`;
+  s+=`<text class="dl" font-size="${fs*0.7}" x="${-wf-sd/2}" y="${fs*1.6}" text-anchor="middle" transform="rotate(-90 ${-wf-sd/2} ${fs*1.6})">${sd>4?'2×6':'2×4'} cavity</text>`;
+  // clear floor zone
+  s+=`<rect x="${dep+1}" y="${H-0.8}" width="21" height="0.8" class="clr"/>`;
+  if(R.ped){s+=`<path class="ob" d="M0 ${Y(counter)}H${dep}V${Y(counter-2)}Q${dep-1} ${Y(counter-7.5)} ${dep-5} ${Y(counter-7.5)}H3Q0 ${Y(counter-7.5)} 0 ${Y(counter-5)}Z"/>`;
+    s+=`<path class="ob" d="M${bx-3} ${Y(counter-7.5)}L${bx-4} ${Y(0)}H${bx+4}L${bx+3} ${Y(counter-7.5)}Z"/>`;}
+  else{const ct=counter-1.5;
+    s+=`<path class="ob" d="M0 ${Y(0)}H${dep-3}V${Y(4)}H${dep}V${Y(ct)}H0Z"/><rect class="ob" x="0" y="${Y(counter)}" width="${dep+1}" height="1.5"/>`;
+    if(R.bs>0)s+=`<rect class="ob" x="0" y="${Y(R.bsTop)}" width="0.75" height="${R.bs}"/>`;
+    if(D.sink==='vessel')s+=`<path class="ob" d="M${bx-8} ${Y(R.rim)}H${bx+8}Q${bx+7} ${Y(counter)} ${bx} ${Y(counter)}Q${bx-7} ${Y(counter)} ${bx-8} ${Y(R.rim)}Z"/>`;
+    else s+=`<path class="hid" d="M${bx-7.5} ${Y(ct)}V${Y(ct-6)}Q${bx-7.5} ${Y(ct-7)} ${bx-6} ${Y(ct-7)}H${bx+6}Q${bx+7.5} ${Y(ct-7)} ${bx+7.5} ${Y(ct-6)}V${Y(ct)}"/>`;}
+  // trap, drain and supplies
+  const bb=R.ped?counter-6.5:D.sink==='vessel'?counter-1.5:counter-8.5,dr=v('drain'),sp=v('sup');
+  s+=`<path class="mk" d="M${bx} ${Y(bb)}V${Y(dr+1)}Q${bx} ${Y(dr-4)} ${bx-2.5} ${Y(dr-4)}Q${bx-5} ${Y(dr-4)} ${bx-5} ${Y(dr)}H0"/><circle class="mk" cx="0.5" cy="${Y(dr)}" r="1"/>`;
+  s+=`<path class="mk" d="M0 ${Y(sp)}H2.5"/><circle class="mk" cx="2.5" cy="${Y(sp)}" r="0.9"/>`;
+  // faucet
+  if(D.fau==='deck')s+=`<path class="ob" d="M${fx-1} ${Y(R.rim)}V${Y(R.fTop)}H${outX}V${Y(R.fTop-1.5)}H${fx+1}V${Y(R.rim)}Z"/>`;
+  else s+=`<path class="ob" d="M0 ${Y(R.spoutAFF+1)}H${outX}V${Y(R.spoutAFF)}H0Z"/><rect class="ob" x="0" y="${Y(R.spoutAFF+5)}" width="0.8" height="3"/>`;
+  s+=`<path class="hid" d="M${outX-0.5} ${Y(D.fau==='deck'?R.fTop-1.5:R.spoutAFF)}V${Y(R.rim-2)}"/>`;
+  s+=`<path class="cl" d="M${bx} ${Y(R.rim+3)}V${Y(R.rim-10)}"/>`;
+  // mirror or cabinet
+  for(const m of R.mirs.slice(0,1)){
+    if(D.mir==='mirror')s+=`<rect class="glass" x="0" y="${Y(m.t)}" width="0.5" height="${m.t-m.b}"/>`;
+    else if(D.mir==='surf'){const d=v('mcd');s+=`<rect class="ob" x="0" y="${Y(m.t)}" width="${d}" height="${m.t-m.b}"/><rect class="glass" x="${d-0.4}" y="${Y(m.t)}" width="0.4" height="${m.t-m.b}"/>`;s+=hdim(0,d,Y(m.t)-fs*0.6,fs,fmtN(d),true);}
+    else{const d=v('mrd'),rh=m.ro?m.ro.h:m.t-m.b-1.75,rb=m.ro?m.ro.b:m.b+0.875;s+=`<rect class="ro" x="${-d}" y="${Y(rb+rh)}" width="${d}" height="${rh}"/><rect class="ob" x="0" y="${Y(m.t)}" width="0.9" height="${m.t-m.b}"/>`;}
+  }
+  for(const l of R.lights.slice(0,1)){const d=v('ldp');s+=`<rect class="ob" x="0" y="${Y(l.b+l.h)}" width="${d}" height="${l.h}" rx="1"/><rect class="mk" x="-1.5" y="${Y(l.box+2)}" width="1.5" height="4"/>`;s+=hdim(0,d,Y(l.b+l.h)-fs*0.6,fs,fmtN(d),true);}
+  for(const c of R.sconces.slice(0,1)){const d=v('sdp');s+=`<path class="ob" d="M0 ${Y(c.b+c.h)}H${d-2}Q${d} ${Y(c.b+c.h)} ${d} ${Y(c.b+c.h-2)}V${Y(c.b+2)}Q${d} ${Y(c.b)} ${d-2} ${Y(c.b)}H0Z"/><rect class="mk" x="-1.5" y="${Y(c.box+2)}" width="1.5" height="4"/>`;s+=hdim(0,d,Y(c.b+c.h)-fs*0.6,fs,fmtN(d),true);}
+  if(R.rec)s+=`<rect class="mk" x="-1.5" y="${Y(R.rec.aff+2)}" width="2" height="4"/>`;
+  // depth dims under the floor
+  const yd=H+fs*2.2;const xs=R.ped?[0,dep,dep+21]:[0,dep,dep+1,dep+22];
+  let dd=`<path class="dim" d="M${-wt} ${yd}H${xs[xs.length-1]}${[-wt,...xs].map(x=>`M${x} ${H+fs*0.6}V${yd+fs*0.4}M${x-fs*0.3} ${yd+fs*0.3}l${fs*0.6} ${-fs*0.6}`).join('')}"/>`;
+  const segs=[[-wt,0,fmtN(wt)],[0,dep,fmtN(dep)],...(R.ped?[[dep,dep+21,'21 clear']]:[[dep,dep+1,''],[dep+1,dep+22,'21 clear']])];
+  segs.forEach(([a,b,t])=>{if(t)dd+=`<text class="dt" font-size="${fs*0.72}" text-anchor="middle" x="${(a+b)/2}" y="${yd-fs*0.35}">${t}</text>`;});
+  s+=dd+`<text class="dl" font-size="${fs*0.68}" x="${-wt}" y="${yd+fs*1.5}">Wall · ${R.ped?'sink':'vanity'} depth · clear floor in front</text>`;
+  s+=ordSVG(heights(R,true),Wr+fs*1.2,H,fs,Y);
+  return `<svg viewBox="${r2(-ML)} ${r2(-fs*2.2)} ${r2(ML+Wr+fs*1.2+MR)} ${r2(H+fs*2.2+MB)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vanity wall section through the sink centerline">${s}</svg>`;}
+
+function draw(R){
+  const P=VIEW==='pres',{Wd,H}=R,fs=Math.max(Wd,H)/26,Y=a=>r2(H-a),M=fs*2.5,MR=fs*10,MB=fs*6.5;let s='';
+  s+=`<rect class="face" x="0" y="0" width="${Wd}" height="${H}"/><rect class="side" x="${-fs*0.8}" y="0" width="${fs*0.8}" height="${H}"/><rect class="side" x="${Wd}" y="0" width="${fs*0.8}" height="${H}"/>`;
+  s+=`<path class="dim" d="M${-fs*0.8} ${H}H${Wd+fs*0.8}M${-fs*0.8} 0H${Wd+fs*0.8}"/>`;
+  R.studs.forEach(c=>s+=`<rect class="stud" x="${c-0.75}" y="0" width="1.5" height="${H}"/>`);
+  // vanity
+  const {x0,x1,counter}=R,tk=4;
+  if(R.ped){const c=R.cls[0],hw=(x1-x0)/2,bt=counter-7.5;
+    s+=`<path class="ob" d="M${c-4} ${Y(0)}L${c-3} ${Y(bt-0.5)}H${c+3}L${c+4} ${Y(0)}Z"/><path class="ob" d="M${c-5} ${Y(0)}H${c+5}V${Y(1)}H${c-5}Z"/>`;
+    s+=`<path class="ob" d="M${x0} ${Y(counter)}H${x1}V${Y(counter-2)}Q${x1-1} ${Y(bt)} ${c+hw*0.5} ${Y(bt)}H${c-hw*0.5}Q${x0+1} ${Y(bt)} ${x0} ${Y(counter-2)}Z"/><path class="hid" d="M${c-hw+3} ${Y(counter-1)}Q${c} ${Y(bt+2)} ${c+hw-3} ${Y(counter-1)}"/>`;
+  }else{
+  s+=`<rect class="ob" x="${x0}" y="${Y(counter-1.5)}" width="${x1-x0}" height="${counter-1.5-tk}"/><rect class="ob" x="${x0+3}" y="${Y(tk)}" width="${x1-x0-6}" height="${tk}"/>`;
+  const dt=counter-1.5-6;if(R.vw>=24){const n=R.vw>=48?4:2,w=(x1-x0-2)/n;for(let i=0;i<n;i++)s+=`<rect class="ob2" x="${x0+1+i*w+0.5}" y="${Y(dt)}" width="${w-1}" height="${dt-tk-1}"/>`;
+    s+=`<rect class="ob2" x="${x0+1.5}" y="${Y(counter-2.5)}" width="${x1-x0-3}" height="${counter-2.5-dt-0.5}"/>`;}
+  s+=`<rect class="ob" x="${x0-0.5}" y="${Y(counter)}" width="${x1-x0+1}" height="1.5"/>`;
+  if(R.bs>0)s+=`<rect class="ob" x="${x0}" y="${Y(R.bsTop)}" width="${x1-x0}" height="${R.bs}"/>`;}
+  for(const c of R.cls){
+    if(R.ped){}
+    else if(D.sink==='vessel')s+=`<path class="ob" d="M${c-8} ${Y(R.rim)}H${c+8}Q${c+7} ${Y(counter)} ${c} ${Y(counter)}Q${c-7} ${Y(counter)} ${c-8} ${Y(R.rim)}Z"/>`;
+    else s+=`<path class="hid" d="M${c-8} ${Y(counter-1.5)}V${Y(counter-7)}H${c+8}V${Y(counter-1.5)}"/>`;
+    if(D.fau==='deck')s+=`<path class="ob" d="M${c-1} ${Y(R.rim)}V${Y(R.fTop-1)}Q${c-1} ${Y(R.fTop)} ${c} ${Y(R.fTop)}H${c+4}V${Y(R.fTop-2)}H${c+1}V${Y(R.rim)}Z"/>`;
+    else s+=`<rect class="ob" x="${c-1.5}" y="${Y(R.spoutAFF+3)}" width="3" height="3"/><circle class="ob" cx="${c-5}" cy="${Y(R.spoutAFF+2)}" r="1.4"/><circle class="ob" cx="${c+5}" cy="${Y(R.spoutAFF+2)}" r="1.4"/>`;
+    const dx=R.drainX!=null&&R.n===1?R.drainX:c;s+=`<circle class="mk" cx="${dx}" cy="${Y(v('drain'))}" r="1"/><circle class="mk" cx="${c-v('spread')/2}" cy="${Y(v('sup'))}" r="0.7"/><circle class="mk" cx="${c+v('spread')/2}" cy="${Y(v('sup'))}" r="0.7"/>`;}
+  for(const m of R.mirs){s+=`<rect class="glass" x="${m.x}" y="${Y(m.t)}" width="${m.w}" height="${m.t-m.b}"/>`;
+    const g=Math.min(m.w,m.t-m.b)*0.18;s+=`<path class="ob2" d="M${m.x+m.w*0.62} ${Y(m.t-2)}l${-g} ${g}M${m.x+m.w*0.72} ${Y(m.t-2)}l${-g*1.5} ${g*1.5}"/>`;
+    if(D.mir==='surf'||D.mir==='rec')s+=`<path class="ob2" d="M${m.c} ${Y(m.t)}V${Y(m.b)}"/>`;
+    if(m.ro)s+=`<rect class="ro" x="${m.ro.x}" y="${Y(m.ro.b+m.ro.h)}" width="${m.ro.w}" height="${m.ro.h}"/>`;}
+  for(const l of R.lights){s+=`<rect class="ob" x="${l.x}" y="${Y(l.b+l.h)}" width="${l.w}" height="${l.h}" rx="1"/>`;const n=Math.max(2,Math.round(l.w/8));
+    for(let i=0;i<n;i++){const cx=l.x+l.w*(i+0.5)/n;s+=`<circle class="ob2" cx="${cx}" cy="${Y(l.b+l.h/2)}" r="${Math.min(2,l.h/3)}"/>`;}
+    s+=`<rect class="mk" x="${l.c-2}" y="${Y(l.box+2)}" width="4" height="4"/>`;}
+  for(const c of R.sconces)s+=`<rect class="ob" x="${c.x}" y="${Y(c.b+c.h)}" width="${c.w}" height="${c.h}" rx="${c.w/2}"/><rect class="mk" x="${c.c-2}" y="${Y(c.box+2)}" width="4" height="4"/>`;
+  if(R.rec&&R.rec.x>=2&&R.rec.x<=Wd-2)s+=`<rect class="ob" x="${R.rec.x-1.4}" y="${Y(R.rec.aff+2.25)}" width="2.8" height="4.5" rx=".4"/>`;
+  if(R.wc){const c=R.tc,st=v('wcseat'),tt=v('wct'),tb=st+1.5;
+    s+=`<path class="ob" d="M${c-4.5} ${Y(0)}Q${c-8.5} ${Y(st-7)} ${c-7.5} ${Y(st-1.5)}H${c+7.5}Q${c+8.5} ${Y(st-7)} ${c+4.5} ${Y(0)}Z"/>`;
+    s+=`<rect class="ob" x="${c-8}" y="${Y(st)}" width="16" height="1.5" rx=".6"/>`;
+    if(tt>tb+2)s+=`<rect class="ob" x="${c-9.5}" y="${Y(tt-1)}" width="19" height="${tt-1-tb}" rx="1"/><rect class="ob" x="${c-10}" y="${Y(tt)}" width="20" height="1.2" rx=".5"/><path class="ob2" d="M${c-8} ${Y(tt-3)}h3"/>`;
+    s+=`<path class="hid" d="M${c-v('wcs')} ${Y(v('wch'))}V${Y(tb+1)}"/><circle class="mk" cx="${c-v('wcs')}" cy="${Y(v('wch'))}" r="0.9"/>`;
+    s+=`<path class="cl" d="M${c} ${-fs*0.6}V${H+fs*0.6}"/><text class="ct" font-size="${fs*0.8}" text-anchor="middle" x="${c}" y="${-fs*0.9}">WC</text>`;}
+  if(R.cab){const c=R.cab,kick=c.b<0.01?4:0,bb=c.b+kick;
+    if(kick)s+=`<rect class="ob" x="${c.x+3}" y="${Y(kick)}" width="${Math.max(0,c.w-3)}" height="${kick}"/>`;
+    s+=`<rect class="ob" x="${c.x}" y="${Y(c.t)}" width="${c.w}" height="${Math.max(0,c.t-bb)}"/>`;
+    const n=c.n,ih=c.t-bb-1.5;
+    if(c.face!=='front'){const L=c.face==='left',front=L?c.x:c.x+c.w;
+      c.drawers.forEach(d=>{s+=`<path class="hid" d="M${c.x+0.75} ${Y(d.y0)}H${c.x+c.w-0.75}"/>`;
+        const ext=c.slide,x0=L?front-ext:front,blocked=d.room<d.need-0.01;
+        s+=`<rect class="${blocked?'gbad':'gok'}" x="${x0}" y="${Y(d.y1-0.4)}" width="${ext}" height="${d.y1-d.y0-0.8}"/>`;});
+      s+=`<text class="dl tech" font-size="${fs*0.55}" text-anchor="middle" x="${c.x+c.w/2}" y="${Y(c.t)+fs*0.9}">side view</text><path class="mk" d="M${c.x+c.w/2} ${Y(c.t-5)}h${L?-4:4}m${L?2:-2} -1.5l${L?-2:2} 1.5l${L?2:-2} 1.5"/>`;}
+    else if(n>0)for(let i=0;i<n;i++){const h=ih/n,y0=bb+0.75+i*h;s+=`<rect class="ob2" x="${c.x+0.75}" y="${Y(y0+h-0.2)}" width="${c.w-1.5}" height="${h-0.4}"/><path class="ob2" d="M${c.x+c.w/2-2} ${Y(y0+h/2)}h4"/>`;}
+    else s+=`<rect class="ob2" x="${c.x+0.75}" y="${Y(c.t-0.75)}" width="${c.w-1.5}" height="${ih}"/><path class="ob2" d="M${c.x+c.w-3} ${Y(bb+ih/2+2)}v4"/>`;}
+  (R.outs||[]).forEach(o=>{if(o.x<1.5||o.x>Wd-1.5)return;s+=`<rect class="ob" x="${o.x-1.4}" y="${Y(o.aff+2.25)}" width="2.8" height="4.5" rx=".4"/><text font-size="${fs*0.6}" text-anchor="middle" x="${o.x}" y="${Y(o.aff+2.25)-fs*0.25}" class="dl tech">${o.key==='bid'?'Bidet':'Outlet'}</text>`;});
+  if(D.lt!=='none'&&D.lbkeep==='keep'&&opt('lbx')!=null&&opt('lbh')!=null)s+=`<rect class="ro" x="${opt('lbx')-2}" y="${Y(opt('lbh')+2)}" width="4" height="4"/><text class="dl tech" font-size="${fs*0.55}" text-anchor="middle" x="${opt('lbx')}" y="${Y(opt('lbh')+2)-fs*0.2}">existing</text>`;
+  if(P&&D.fig!=='none'){const fh=Math.max(36,Math.min(84,v('figh'))),u=fh/69;let c=R.cls[0];
+    if(D.fig==='side'){const right=R.Wd-R.x1,left=R.x0;c=right>=left?R.x1+Math.min(14,right/2):R.x0-Math.min(14,left/2);}
+    const e=fh*0.93,sh=fh*0.82,hip=fh*0.52,hr=fh*0.062;
+    s+=`<g class="figg"><circle class="fig" cx="${c}" cy="${Y(fh-hr)}" r="${hr}"/><path class="fig" d="M${c-7.6*u} ${Y(sh)}Q${c} ${Y(sh+1.6*u)} ${c+7.6*u} ${Y(sh)}L${c+6.2*u} ${Y(hip)}H${c-6.2*u}Z"/>`+
+      `<path class="figl" stroke-width="${2.6*u}" d="M${c-7.4*u} ${Y(sh-1.2*u)}L${c-9.6*u} ${Y(hip-1)}M${c+7.4*u} ${Y(sh-1.2*u)}L${c+9.6*u} ${Y(hip-1)}"/>`+
+      `<path class="figl" stroke-width="${4*u}" d="M${c-3*u} ${Y(hip)}L${c-3.8*u} ${Y(1.5)}M${c+3*u} ${Y(hip)}L${c+3.8*u} ${Y(1.5)}"/>`+
+      `<path class="eye" d="M${c+hr+0.5} ${Y(e)}H${Wd}"/></g>`;}
+  // centerlines
+  for(const c of R.cls)s+=`<path class="cl" d="M${c} ${-fs*0.6}V${H+fs*0.6}"/><text class="ct" font-size="${fs*0.8}" text-anchor="middle" x="${c}" y="${-fs*0.9}">CL</text>`;
+  if(R.n===2&&R.mirs.length===1)s+=`<path class="cl" d="M${R.vc} ${-fs*0.6}V${H}"/>`;
+  // horizontal chain
+  const hs=[...new Set(P?[0,R.x0,R.x1,Wd,...(R.cab?[R.cab.x,R.cab.x+R.cab.w]:[])]:[0,R.x0,...R.cls,R.x1,Wd,...(R.wc?[R.tc]:[]),...(R.cab?[R.cab.x,R.cab.x+R.cab.w]:[]),...(R.outs||[]).map(o=>o.x)].filter(x=>x>=-0.01&&x<=Wd+0.01).map(r2))].sort((a,b)=>a-b),yd=H+fs*2.2;
+  s+=`<path class="dim" d="M${hs[0]} ${yd}H${hs[hs.length-1]}${hs.map(x=>`M${x} ${H+fs*0.4}V${yd+fs*0.4}M${x-fs*0.3} ${yd+fs*0.3}l${fs*0.6} ${-fs*0.6}`).join('')}"/>`;
+  let alt=false;for(let i=0;i<hs.length-1;i++){const a=hs[i],b=hs[i+1];if(b-a<0.05)continue;const small=b-a<fs*2.4;alt=small?!alt:false;
+    s+=`<text class="dt" font-size="${fs*0.8}" text-anchor="middle" x="${(a+b)/2}" y="${yd-fs*0.35-(small&&alt?fs*1.05:0)}">${fmtN(b-a)}</text>`;}
+  const yd2=H+fs*4.6;s+=`<path class="dim" d="M0 ${yd2}H${Wd}M0 ${yd+fs*0.6}V${yd2+fs*0.4}M${Wd} ${yd+fs*0.6}V${yd2+fs*0.4}M${-fs*0.3} ${yd2+fs*0.3}l${fs*0.6} ${-fs*0.6}M${Wd-fs*0.3} ${yd2+fs*0.3}l${fs*0.6} ${-fs*0.6}"/><text class="dt" font-size="${fs*0.8}" text-anchor="middle" x="${Wd/2}" y="${yd2-fs*0.35}">${fmtN(Wd)}</text>`;
+  // heights (ordinate) on the right
+  s+=ordSVG(P?presHeights(R):heights(R,false),Wd+fs*2,H,fs,Y);
+  return `<svg class="${P?'pres':''}" viewBox="${r2(-M)} ${r2(-fs*2.4)} ${r2(Wd+M+MR)} ${r2(H+fs*2.4+MB)}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vanity wall elevation">${s}</svg>`;
+}
+
+/* ---------- form ---------- */
+function fieldHTML(f){if(f.show&&!f.show(D))return '';
+  if(f.t==='snap')return `<div class="field wide"><span class="lab">${f.label}</span><div class="chips"><button type="button" data-cabsnap="L">Tight to left wall</button><button type="button" data-cabsnap="R">Tight to right wall</button><button type="button" data-cabsnap="A">15″ past the toilet</button></div></div>`;
+  if(f.t==='has')return `<div class="field wide"><span class="lab" id="l-has">${f.label}</span><div class="chips" role="group" aria-labelledby="l-has"><button type="button" aria-pressed="true" disabled>Vanity or sink</button>${HAS.map(([k,l,on])=>`<button type="button" aria-pressed="${on(D)}" data-has="${k}">${l}</button>`).join('')}</div></div>`;
+  if(f.t==='num'){const h=hint(f);return `<div class="field"><label for="${f.id}">${lab(f)}</label><input class="txt" id="${f.id}" data-f inputmode="decimal" autocomplete="off" value="${esc(D[f.id]||'')}">${h?`<small>${h}</small>`:''}</div>`;}
+  const opts=typeof f.opts==='function'?f.opts(D):f.opts;
+  return `<div class="field wide"><span class="lab" id="l-${f.id}">${lab(f)}</span><div class="chips" role="radiogroup" aria-labelledby="l-${f.id}">${opts.map(([k,l])=>`<button type="button" role="radio" aria-checked="${D[f.id]===k}" data-c="${f.id}" data-k="${k}">${l}</button>`).join('')}</div>${hint(f)?`<small>${hint(f)}</small>`:''}</div>`;}
+let openState=null;
+let qi=0,FIXES=[],undoD=null,VIEW='elev';
+const visSteps=()=>STEPS.filter(st=>!st.show||st.show(D));
+function renderForm(){
+  const wiz=D.qdone!=='1';$('wiz').hidden=!wiz;$('results').hidden=wiz;
+  if(wiz){const vs=visSteps();qi=Math.max(0,Math.min(qi,vs.length-1));const st=vs[qi],last=qi===vs.length-1;
+    $('wiz').innerHTML=`<section class="card"><p class="sub" style="font-size:14px">Setup · step ${qi+1} of ${vs.length}</p><h2>${st.t}</h2>${st.p?`<p class="sub">${st.p}</p>`:''}
+      <div class="fields" style="padding:0">${st.f.map(id=>fieldHTML(FIELDS[id])).join('')}</div>
+      <div style="display:flex;gap:8px;justify-content:space-between"><button class="btn" type="button" data-q="back" ${qi?'':'disabled'}>Back</button><button class="btn pri" type="button" data-q="${last?'done':'next'}">${last?'See the layout':'Next'}</button></div>
+      <button class="btn" type="button" data-q="done" style="align-self:flex-start;border:0;padding-left:0;color:var(--muted)">Skip to the layout</button></section>`;
+    $('form').innerHTML='';return;}
+  const open=openState||SECTIONS.map(s=>!!s.open);
+  $('form').innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn" type="button" data-q="redo">Redo setup questions</button></div>`+SECTIONS.map((s,i)=>`<details class="sec" data-s="${i}" ${open[i]?'open':''}><summary><h2>${s.title}</h2></summary><div class="fields">${s.fields.map(fieldHTML).join('')}</div></details>`).join('');}
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.sec'))openState=[...document.querySelectorAll('details.sec')].map(d=>d.open);},true);
+function refresh(){const R=solve();$('svgwrap').innerHTML=VIEW==='sect'?drawSection(R):draw(R);document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-checked',String(b.dataset.view===VIEW)));
+  const ck=checks(R);FIXES=[];
+  $('checks').innerHTML=ck.map(([l,t,f])=>`<li><i class="${l}"></i><span>${esc(t)}${f&&f.length&&l!=='good'?`<span class="fixes">${f.map(([lab,fn])=>{FIXES.push(fn);return `<button class="btn fix" type="button" data-fix="${FIXES.length-1}">${esc(lab)}</button>`;}).join('')}</span>`:''}</span></li>`).join('');
+  $('undoFix').hidden=!undoD;
+  const rows=schedule(R);$('sched').innerHTML=`<table><tr><th>Item</th><th>From left</th><th>AFF</th></tr>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('')}</table>`;
+  try{localStorage.setItem('vanity1',JSON.stringify(D));}catch(e){}}
+document.addEventListener('input',e=>{const el=e.target;if(!el.hasAttribute('data-f'))return;D[el.id]=el.value;undoD=null;
+  el.setAttribute('aria-invalid',el.value.trim()&&isNaN(parseIn(el.value))?'true':'false');refresh();});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.c){D[b.dataset.c]=b.dataset.k;if(b.dataset.c==='preset'&&PRESETS[b.dataset.k])Object.assign(D,PRESETS[b.dataset.k]);renderForm();refresh();return;}
+  if(b.dataset.cabsnap){const w=v('cabw');D.cabx=b.dataset.cabsnap==='L'?'0':b.dataset.cabsnap==='R'?fmtN(Math.max(0,v('wall')-w)):'';undoD=null;renderForm();refresh();return;}
+  if(b.dataset.has){const h=HAS.find(x=>x[0]===b.dataset.has);h[3](D,!h[2](D));renderForm();refresh();return;}
+  if(b.dataset.q){const q=b.dataset.q;if(q==='next')qi++;else if(q==='back')qi=Math.max(0,qi-1);else if(q==='done')D.qdone='1';else if(q==='redo'){D.qdone='';qi=0;}
+    renderForm();refresh();window.scrollTo(0,0);return;}
+  if(b.dataset.view){VIEW=b.dataset.view;refresh();return;}
+  if(b.dataset.fix!=null){const fn=FIXES[+b.dataset.fix];if(!fn)return;undoD=JSON.parse(JSON.stringify(D));fn(D);renderForm();refresh();return;}
+  if(b.id==='undoFix'){if(undoD){D=undoD;undoD=null;renderForm();refresh();}return;}
+  if(b.id==='copy'){const R=solve(),rows=schedule(R),ck=checks(R);
+    const t=['VANITY WALL ROUGH-IN',`Wall ${fmt(R.Wd)}, ceiling ${fmt(R.H)}. From left = from the left end of the wall. AFF = above finished floor.`,'',...rows.map(r=>`${r[0]}: ${r[1]}${r[2]?' · '+r[2]+' AFF':''}`),'',...ck.filter(c=>c[0]!=='good').map(c=>'! '+c[1])].join('\n');
+    try{navigator.clipboard.writeText(t).then(()=>b.textContent='Copied',()=>b.textContent='Copy failed');}catch(x){b.textContent='Copy failed';}return;}
+  if(b.id==='reset'){if(b.dataset.armed){D=Object.assign({},DEF);cur=null;qi=0;delete b.dataset.armed;b.textContent='New job (defaults)';renderForm();refresh();paintJobs();}else{b.dataset.armed='1';b.textContent='Tap again to clear';}return;}
+  if(b.id==='save'||b.id==='saveNew'){saveJob(b.id==='saveNew',b);return;}
+  if(b.dataset.open){openJob(b.dataset.open);return;}
+  if(b.dataset.jdel){delJob(b.dataset.jdel);return;}
+});
+
+/* ---------- saved jobs (private to each signed-in person) ---------- */
+let db=null,uid=null,jobs=null,cur=null,pendingJ=null,jobsErr='';
+const col=()=>db.collection('data/users/'+uid);
+function paintJobs(){
+  $('save').disabled=!db;$('save').textContent=cur?'Save changes':'Save job';$('saveNew').hidden=!cur;
+  if(document.activeElement!==$('jobName'))$('jobName').value=cur?cur.name:'Vanity wall';
+  let h;
+  if(jobsErr==='off')h='<p class="note">Saving jobs needs this page open while you’re signed in to Claude. This browser still keeps your current entries.</p>';
+  else if(jobsErr==='err')h='<p class="note">Saved jobs couldn’t load. Reopen the page to try again.</p>';
+  else if(jobs===null)h='<p class="note">Loading saved jobs…</p>';
+  else if(!jobs.length)h='<p class="note">No saved jobs yet.</p>';
+  else h=`<ul class="jobs">${jobs.map(j=>`<li><div><b>${esc(j.name||'Untitled')}</b><span>Saved ${new Date(j.savedAt||0).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}${cur&&cur.id===j.id?' · open now':''}</span></div><div style="display:flex;gap:6px"><button class="btn" type="button" data-open="${esc(j.id)}">Open</button><button class="btn" type="button" data-jdel="${esc(j.id)}">${pendingJ===j.id?'Confirm delete':'Delete'}</button></div></li>`).join('')}</ul>`;
+  $('jobs').innerHTML=h;}
+const msg=t=>{const m=$('saveMsg');m.hidden=false;m.textContent=t;};
+async function saveJob(asNew,btn){if(!db)return;const name=($('jobName').value||'').trim().slice(0,80)||'Vanity wall';
+  const ref=(!asNew&&cur)?col().doc(cur.id):col().doc();btn.disabled=true;
+  try{await ref.set({name,D:JSON.parse(JSON.stringify(D)),savedAt:Date.now()});cur={id:ref.id,name};msg('Saved “'+name+'”.');}
+  catch(e){msg(e&&e.code==='quota_exceeded'?'Storage is full. Delete an old job and save again.':'Couldn’t save. Try again in a moment.');}
+  btn.disabled=false;paintJobs();}
+function openJob(id){const j=(jobs||[]).find(x=>x.id===id);if(!j||!j.D||typeof j.D!=='object')return;
+  D=Object.assign({},DEF,j.D);if(j.D.qdone===undefined)D.qdone='1';qi=0;cur={id:j.id,name:String(j.name||'Untitled')};pendingJ=null;renderForm();refresh();paintJobs();window.scrollTo(0,0);}
+async function delJob(id){if(pendingJ!==id){pendingJ=id;paintJobs();return;}pendingJ=null;
+  try{await col().doc(id).delete();if(cur&&cur.id===id)cur=null;}catch(e){msg('Couldn’t delete. Try again in a moment.');}paintJobs();}
+(async()=>{try{
+  if(!window.claude||typeof window.claude.use!=='function'){jobsErr='off';paintJobs();return;}
+  const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);uid=u?await u.id():null;
+  if(!d||!uid){jobsErr='off';paintJobs();return;}
+  db=d;paintJobs();
+  const t=setTimeout(()=>{if(jobs===null){jobsErr='err';paintJobs();}},10000);
+  col().onSnapshot(s=>{if(!s.metadata.fromCache)clearTimeout(t);jobsErr='';jobs=s.docs.filter(x=>x.exists).map(x=>Object.assign({},x.data(),{id:x.id})).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));paintJobs();},
+    e=>{clearTimeout(t);jobsErr=e&&e.code==='revoked'?'off':'err';paintJobs();});
+}catch(e){jobsErr='off';paintJobs();}})();
+renderForm();refresh();paintJobs();
+</script>
+</body>
+</html>

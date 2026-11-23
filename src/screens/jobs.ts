@@ -6,6 +6,14 @@ import { downloadText, h, icon, ICONS, menuButton, pickTextFile, toast } from '.
 import { go } from '../router';
 import { topbar } from './shell';
 
+const LEGACY_TOOLS: [string, string][] = [
+  ['Floor plan', 'floor-plan'],
+  ['Vanity wall', 'vanity-wall'],
+  ['Niche planner', 'niche-planner'],
+  ['Site survey', 'site-survey'],
+  ['Sheet goods calculator', 'takeoff-calculator'],
+];
+
 function formatUpdated(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
@@ -129,8 +137,13 @@ export async function renderJobs(root: HTMLElement): Promise<void> {
     h(
       'p',
       { class: 'small muted', style: 'margin-top:32px' },
-      'Jobs are saved on this phone and work with no signal. Export a job file to back it up or move it to another device. ',
-      h('a', { href: './legacy/takeoff-calculator/' }, 'Old sheet goods calculator'),
+      'Jobs are saved on this phone and work with no signal. Export a job file to back it up or move it to another device.',
+    ),
+    h(
+      'p',
+      { class: 'small muted' },
+      'Old tools, for comparison: ',
+      LEGACY_TOOLS.flatMap(([label, path], i) => [i ? ' · ' : '', h('a', { href: `./legacy/${path}/` }, label)]),
     ),
   );
 

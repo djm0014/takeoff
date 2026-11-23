@@ -1,7 +1,5 @@
 /*
- * The one style file. Colors are placeholders matched by eye to the plan's
- * description; swap in the exact values from the current tools once they're
- * in the repo.
+ * The one style file. Colors match the current tools (public/legacy/*).
  */
 @import '@fontsource/barlow/400.css';
 @import '@fontsource/barlow/500.css';
@@ -10,21 +8,21 @@
 @import '@fontsource/barlow-semi-condensed/600.css';
 
 :root {
-  --bg: #eceeec;
-  --surface: #ffffff;
-  --surface-2: #f5f6f5;
-  --ink: #2b3a35;
-  --ink-2: #55625d;
-  --ink-3: #85908b;
-  --line: #d3d8d5;
-  --line-2: #b3bbb7;
-  --accent: #b5541c;
+  --bg: #eceeed;
+  --surface: #fafbfa;
+  --surface-2: #f1f3f2;
+  --ink: #1c2321;
+  --ink-2: #5a6561;
+  --ink-3: #7b8682;
+  --line: #cdd4d1;
+  --line-2: #b3bcb8;
+  --accent: #c9541a;
   --accent-ink: #ffffff;
-  --accent-soft: #f6e4d8;
-  --ok: #2e7d4f;
-  --warn: #b7860b;
-  --bad: #b8322a;
-  --focus: #1f6fb2;
+  --accent-soft: #fbe9de;
+  --ok: #23755a;
+  --warn: #a56a12;
+  --bad: #b83227;
+  --focus: #c9541a;
 
   --radius: 10px;
   --tap: 44px;
@@ -43,41 +41,41 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #141a18;
-    --surface: #1d2522;
-    --surface-2: #232c29;
-    --ink: #e4e9e6;
-    --ink-2: #aab4af;
+    --bg: #131817;
+    --surface: #1c2321;
+    --surface-2: #222a28;
+    --ink: #e7ecea;
+    --ink-2: #9ba7a3;
     --ink-3: #7d8984;
-    --line: #34403b;
+    --line: #33403c;
     --line-2: #4a5852;
-    --accent: #e07a3c;
-    --accent-ink: #1a1208;
-    --accent-soft: #3a2618;
-    --ok: #5cb97f;
-    --warn: #e0b13d;
-    --bad: #ec6a5e;
-    --focus: #6aaef0;
+    --accent: #f08a4b;
+    --accent-ink: #1a120c;
+    --accent-soft: #3a2518;
+    --ok: #5fc49f;
+    --warn: #e3ad4e;
+    --bad: #f07f72;
+    --focus: #f08a4b;
     color-scheme: dark;
   }
 }
 
 :root[data-theme='dark'] {
-  --bg: #141a18;
-  --surface: #1d2522;
-  --surface-2: #232c29;
-  --ink: #e4e9e6;
-  --ink-2: #aab4af;
+  --bg: #131817;
+  --surface: #1c2321;
+  --surface-2: #222a28;
+  --ink: #e7ecea;
+  --ink-2: #9ba7a3;
   --ink-3: #7d8984;
-  --line: #34403b;
+  --line: #33403c;
   --line-2: #4a5852;
-  --accent: #e07a3c;
-  --accent-ink: #1a1208;
-  --accent-soft: #3a2618;
-  --ok: #5cb97f;
-  --warn: #e0b13d;
-  --bad: #ec6a5e;
-  --focus: #6aaef0;
+  --accent: #f08a4b;
+  --accent-ink: #1a120c;
+  --accent-soft: #3a2518;
+  --ok: #5fc49f;
+  --warn: #e3ad4e;
+  --bad: #f07f72;
+  --focus: #f08a4b;
   color-scheme: dark;
 }
 
@@ -115,7 +113,7 @@ h3 { font-size: 17px; }
 a { color: var(--accent); }
 
 :focus-visible {
-  outline: 2px solid var(--focus);
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 

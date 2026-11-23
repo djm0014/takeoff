@@ -2,7 +2,8 @@
 
 A phone-first field app for bathroom remodel layout. One shared job record
 feeds every screen: measure a wall or place a toilet once, and every tool sees
-it. See the combined app plan for goals, scope and milestones.
+it. See [docs/combined-app-plan.md](docs/combined-app-plan.md) for goals,
+scope and milestones.
 
 ## Status
 
@@ -15,9 +16,10 @@ it. See the combined app plan for goals, scope and milestones.
 - [x] Storage module (IndexedDB on the phone, swappable for sync later)
 - [x] Job list: new, open, rename, duplicate, delete, export and import a job file
 - [x] Tests run on every push
-- [ ] Old tools copied into `legacy/tools/`
+- [x] Old tools copied in unchanged, served at `/legacy/…` ([docs/legacy-tools.md](docs/legacy-tools.md))
+- [x] Key Dimensions table (`src/data/keyDimensions.ts`, from `docs/key-dimensions.xlsx`)
+- [x] Colors and fonts match the old tools
 - [ ] Custom domain
-- [ ] Code minimums table from the Bathroom Key Dimensions sheet
 
 ## Working on it
 
@@ -38,8 +40,10 @@ src/
   screens/   one file per screen
   styles/    the one style file
 tests/       automated tests (Vitest)
-public/      icons and files served as-is, including the old takeoff calculator
-legacy/      unchanged backups of the tools being replaced
+public/      icons and files served as-is
+  legacy/    unchanged copies of the old tools, for comparison
+docs/        plan, key dimensions sheet, service sheet, tool ideas
+marketing/   contractor landing page (not part of the app build yet)
 ```
 
 ## Rules
