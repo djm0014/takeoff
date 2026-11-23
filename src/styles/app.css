@@ -1,0 +1,387 @@
+/*
+ * The one style file. Colors are placeholders matched by eye to the plan's
+ * description; swap in the exact values from the current tools once they're
+ * in the repo.
+ */
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow-semi-condensed/500.css';
+@import '@fontsource/barlow-semi-condensed/600.css';
+
+:root {
+  --bg: #eceeec;
+  --surface: #ffffff;
+  --surface-2: #f5f6f5;
+  --ink: #2b3a35;
+  --ink-2: #55625d;
+  --ink-3: #85908b;
+  --line: #d3d8d5;
+  --line-2: #b3bbb7;
+  --accent: #b5541c;
+  --accent-ink: #ffffff;
+  --accent-soft: #f6e4d8;
+  --ok: #2e7d4f;
+  --warn: #b7860b;
+  --bad: #b8322a;
+  --focus: #1f6fb2;
+
+  --radius: 10px;
+  --tap: 44px;
+  --gutter: 16px;
+  --font-text: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: 'Barlow Semi Condensed', 'Barlow', system-ui, sans-serif;
+
+  /* Drawing line weights, one scale for every sheet. */
+  --stroke-fine: 0.5;
+  --stroke-light: 1;
+  --stroke-medium: 1.5;
+  --stroke-heavy: 2.5;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #141a18;
+    --surface: #1d2522;
+    --surface-2: #232c29;
+    --ink: #e4e9e6;
+    --ink-2: #aab4af;
+    --ink-3: #7d8984;
+    --line: #34403b;
+    --line-2: #4a5852;
+    --accent: #e07a3c;
+    --accent-ink: #1a1208;
+    --accent-soft: #3a2618;
+    --ok: #5cb97f;
+    --warn: #e0b13d;
+    --bad: #ec6a5e;
+    --focus: #6aaef0;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #141a18;
+  --surface: #1d2522;
+  --surface-2: #232c29;
+  --ink: #e4e9e6;
+  --ink-2: #aab4af;
+  --ink-3: #7d8984;
+  --line: #34403b;
+  --line-2: #4a5852;
+  --accent: #e07a3c;
+  --accent-ink: #1a1208;
+  --accent-soft: #3a2618;
+  --ok: #5cb97f;
+  --warn: #e0b13d;
+  --bad: #ec6a5e;
+  --focus: #6aaef0;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 var(--font-text);
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-head);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+}
+h1 { font-size: 24px; }
+h2 { font-size: 20px; }
+h3 { font-size: 17px; }
+
+a { color: var(--accent); }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- Layout ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px var(--gutter);
+  padding-top: max(6px, env(safe-area-inset-top));
+  background: var(--ink);
+  color: var(--bg);
+}
+:root[data-theme='dark'] .topbar,
+:root:not([data-theme='light']) .topbar {
+  border-bottom: 1px solid var(--line);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .topbar { background: var(--surface); color: var(--ink); }
+}
+:root[data-theme='dark'] .topbar { background: var(--surface); color: var(--ink); }
+
+.topbar h1 {
+  flex: 1;
+  font-size: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar .icon-btn { color: inherit; }
+
+main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--gutter);
+  padding-bottom: max(48px, env(safe-area-inset-bottom));
+}
+
+.stack > * + * { margin-top: 12px; }
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.spacer { flex: 1; }
+.muted { color: var(--ink-2); }
+.small { font-size: 14px; }
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 16px/1 var(--font-text);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.btn.danger { color: var(--bad); }
+.btn.block { width: 100%; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font: 500 15px var(--font-text);
+  cursor: pointer;
+}
+.icon-btn svg { width: 22px; height: 22px; }
+
+/* ---------- Cards and lists ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+}
+
+.job-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.job-list li + li { margin-top: 10px; }
+.job-card {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 0;
+}
+.job-card .open {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  padding: 8px 12px 8px 16px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.job-card .name {
+  display: block;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.job-card .meta {
+  display: block;
+  color: var(--ink-2);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--ink-2);
+}
+
+.screen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.screen-card h3 { margin-bottom: 4px; }
+.screen-card .status {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* ---------- Forms ---------- */
+
+.field { display: block; }
+.field > span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 16px/1.4 var(--font-text);
+  font-variant-numeric: tabular-nums;
+}
+.field textarea { min-height: 96px; resize: vertical; }
+.field input[aria-invalid='true'] { border-color: var(--bad); }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+/* ---------- Checks ---------- */
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.dot.ok { background: var(--ok); }
+.dot.warn { background: var(--warn); }
+.dot.bad { background: var(--bad); }
+
+/* ---------- Menu and toast ---------- */
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.menu button {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: 16px var(--font-text);
+  cursor: pointer;
+}
+.menu button:hover { background: var(--surface-2); }
+.menu button.danger { color: var(--bad); }
+.menu-wrap { position: relative; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 30;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 15px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25);
+}
+.toast.error { background: var(--bad); color: #fff; }
+
+.saved-note {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* ---------- Print ---------- */
+
+@media print {
+  .topbar, .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+  .card { border-color: #999; }
+}
