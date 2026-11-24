@@ -5,7 +5,7 @@
  */
 import type { Item, Wall } from '../data/model';
 import { formatInches } from '../lib/inches';
-import { toPlan, wallMatrix, type Pt, type RoomGeom, type WallGeom } from './geometry';
+import { headingVector, headings, toPlan, wallMatrix, type Pt, type RoomGeom, type WallGeom } from './geometry';
 import type { Zone } from './checks';
 import { DRYWALL, type Framing } from './framing';
 import { doorSize, isFixture, isOpening, itemName, span, toiletCenter } from './items';
@@ -22,6 +22,8 @@ export interface DrawInput {
   activeId?: string | null;
   /** Needed for the framing view. */
   framing?: Framing;
+  /** Wall being edited, drawn in the accent color. */
+  highlightWall?: number | null;
 }
 
 const r2 = (v: number) => Math.round(v * 1000) / 1000;
@@ -150,7 +152,9 @@ export function drawPlan(input: DrawInput): string {
   const F = view === 'framing' ? input.framing : undefined;
   let s = '';
   if (room.closed) s += `<polygon class="floor" points="${pts(room.inner)}"/>`;
-  for (const w of room.walls) if (w.length > 0) s += `<polygon class="${F ? 'face' : 'wall'}" points="${pts(w.body)}"/>`;
+  for (const w of room.walls) {
+    if (w.length > 0) s += `<polygon class="${F ? 'face' : 'wall'}${input.highlightWall === w.index ? ' hl' : ''}" points="${pts(w.body)}"/>`;
+  }
   if (F) {
     for (const f of F.walls) {
       const w = room.walls[f.wall]!;
@@ -166,9 +170,31 @@ export function drawPlan(input: DrawInput): string {
       s += grp(w, g);
     }
   }
+  const extra: Box[] = [];
   if (!room.closed && room.walls.length) {
     const last = room.walls[room.walls.length - 1]!;
     s += `<path class="gapline" d="M${r2(last.end.x)} ${r2(last.end.y)}L0 0"/><circle class="startpt" cx="0" cy="0" r="${r2(fs * 0.3)}"/>`;
+    // Arrow showing which way the next wall goes: from the first wall without a length,
+    // or from the end of the last wall, in the direction of the turn after it.
+    const hs = headings(walls);
+    const blank = walls.findIndex((w) => !(w.length > 0));
+    const n = walls.length;
+    const at = blank >= 0 ? room.walls[blank]!.start : last.end;
+    const heading = blank >= 0 ? hs[blank]! : hs[n - 1]! + walls[n - 1]!.turn;
+    const label = `Wall ${blank >= 0 ? blank + 1 : n + 1}`;
+    const d = headingVector(heading);
+    const len = fs * 3;
+    const tip = { x: at.x + d.x * len, y: at.y + d.y * len };
+    const hw = fs * 0.55;
+    const back = { x: tip.x - d.x * hw * 1.6, y: tip.y - d.y * hw * 1.6 };
+    const side = { x: -d.y * hw, y: d.x * hw };
+    s +=
+      `<path class="nextarrow" d="M${r2(at.x)} ${r2(at.y)}L${r2(back.x)} ${r2(back.y)}"/>` +
+      `<polygon class="nexthead" points="${pts([tip, { x: back.x + side.x, y: back.y + side.y }, { x: back.x - side.x, y: back.y - side.y }])}"/>`;
+    const lp = { x: tip.x + d.x * fs * 1.6, y: tip.y + d.y * fs * 1.6 };
+    s += `<text class="nextlbl" font-size="${r2(fs * 0.8)}" text-anchor="middle" dominant-baseline="central" x="${r2(lp.x)}" y="${r2(lp.y)}">${label}</text>`;
+    const half = fs * 2.2;
+    extra.push({ x0: lp.x - half, y0: lp.y - fs, x1: lp.x + half, y1: lp.y + fs }, { x0: at.x, y0: at.y, x1: at.x, y1: at.y });
   }
 
   if (view === 'design') {
@@ -270,6 +296,7 @@ export function drawPlan(input: DrawInput): string {
 
   // Fit the view to the walls and every label actually drawn.
   const pad = fs * 0.6;
+  boxes.push(...extra);
   const fit = boxes.length
     ? {
         x0: Math.min(b.minX, ...boxes.map((q) => q.x0)) - pad,

@@ -58,6 +58,9 @@ export const ICONS = {
   more: 'M12 6h.01M12 12h.01M12 18h.01',
   plus: 'M12 5v14M5 12h14',
   theme: 'M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z',
+  expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+  collapse: 'M4 12h16',
+  show: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
 };
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
