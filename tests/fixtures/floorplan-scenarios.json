@@ -1,0 +1,612 @@
+{
+  "note": "Rectangular rooms run through the old Bathroom Floor Plan tool. 'state' is in the old tool's format; 'expected' is the old tool's check list, recorded by scripts/record-floorplan-fixtures.cjs. Wall numbers in 'expected' are the old tool's (1 = top, clockwise).",
+  "scenarios": [
+    {
+      "name": "old tool default bathroom",
+      "state": {
+        "L": "96",
+        "W": "60",
+        "D": [
+          "3.5",
+          "3.5",
+          "3.5",
+          "3.5"
+        ],
+        "feats": [],
+        "items": [
+          {
+            "type": "tub",
+            "st": "ex",
+            "w": 3,
+            "off": "0",
+            "len": "60",
+            "dep": "30",
+            "drain": "L"
+          },
+          {
+            "type": "toilet",
+            "st": "ex",
+            "w": 0,
+            "off": "48",
+            "ri": "12"
+          },
+          {
+            "type": "vanity",
+            "st": "ex",
+            "w": 0,
+            "off": "64",
+            "wid": "30",
+            "dep": "21"
+          },
+          {
+            "type": "door",
+            "st": "ex",
+            "w": 2,
+            "off": "20",
+            "size": "28",
+            "hinge": "L",
+            "swing": "in"
+          },
+          {
+            "type": "window",
+            "st": "ex",
+            "w": 1,
+            "off": "24",
+            "wid": "24"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "level": "good",
+          "text": "Tub: 21″ clear in front, at least 30″ wide."
+        },
+        {
+          "level": "good",
+          "text": "Toilet side room: 18″ left and 16″ right of center (15″ minimum each side)."
+        },
+        {
+          "level": "good",
+          "text": "Toilet: 21″ clear in front."
+        },
+        {
+          "level": "good",
+          "text": "Vanity: 21″ clear in front of the sink."
+        },
+        {
+          "level": "good",
+          "text": "Door on wall 3 swings clear."
+        }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Tub drain",
+            "4",
+            "left end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "15 1/2″ from the tub wall framing, on the drain centerline"
+          ],
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 48 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 79 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "4",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "3",
+            "66 1/2″ to 96 1/2″",
+            "Grab bar blocking + valve"
+          ],
+          [
+            "1",
+            "1/2″ to 30 1/2″",
+            "Grab bar blocking"
+          ],
+          [
+            "1",
+            "64 1/2″ to 94 1/2″",
+            "Vanity and mirror backing"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "34 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "53 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 2",
+            "27″ long for a 24″ window RO"
+          ],
+          [
+            "Header, wall 3",
+            "33″ long for a 30″ door RO"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "toilet tight to vanity, door swings into toilet",
+      "state": {
+        "L": "84",
+        "W": "60",
+        "D": [
+          "3.5",
+          "3.5",
+          "3.5",
+          "3.5"
+        ],
+        "feats": [],
+        "items": [
+          {
+            "type": "toilet",
+            "st": "ex",
+            "w": 0,
+            "off": "40",
+            "ri": "12"
+          },
+          {
+            "type": "vanity",
+            "st": "new",
+            "w": 0,
+            "off": "50",
+            "wid": "30",
+            "dep": "21"
+          },
+          {
+            "type": "door",
+            "st": "ex",
+            "w": 2,
+            "off": "30",
+            "size": "30",
+            "hinge": "R",
+            "swing": "in"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "level": "bad",
+          "text": "Toilet side room: 40″ left and 10″ right of center (15″ minimum each side)."
+        },
+        {
+          "level": "good",
+          "text": "Toilet: 21″ clear in front."
+        },
+        {
+          "level": "good",
+          "text": "Vanity: 21″ clear in front of the sink."
+        },
+        {
+          "level": "good",
+          "text": "Door on wall 3 swings clear."
+        }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 40 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 65 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "1",
+            "50 1/2″ to 80 1/2″",
+            "Vanity and mirror backing"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "29 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "49 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 3",
+            "35″ long for a 32″ door RO"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "small shower, narrow room in front of tub",
+      "state": {
+        "L": "72",
+        "W": "40",
+        "D": [
+          "3.5",
+          "3.5",
+          "3.5",
+          "3.5"
+        ],
+        "feats": [],
+        "items": [
+          {
+            "type": "shower",
+            "st": "ex",
+            "w": 0,
+            "off": "0",
+            "wid": "28",
+            "dep": "30"
+          },
+          {
+            "type": "tub",
+            "st": "ex",
+            "w": 2,
+            "off": "0",
+            "len": "60",
+            "dep": "30",
+            "drain": "R"
+          },
+          {
+            "type": "door",
+            "st": "ex",
+            "w": 1,
+            "off": "4",
+            "size": "24",
+            "hinge": "L",
+            "swing": "out"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "level": "bad",
+          "text": "Shower (wall 1) and Tub (wall 3) overlap."
+        },
+        {
+          "level": "bad",
+          "text": "Shower: only 10″ in front, 24″ needed."
+        },
+        {
+          "level": "bad",
+          "text": "Shower is 28″ × 30″: code minimum is 30″ × 30″ and 900 sq in."
+        },
+        {
+          "level": "bad",
+          "text": "Tub: only 10″ in front, 21″ needed."
+        },
+        {
+          "level": "bad",
+          "text": "The tub blocks the door on wall 2."
+        }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Shower drain",
+            "1",
+            "15 1/2″ off back framing · 14 1/2″ from left corner framing"
+          ],
+          [
+            "Tub drain",
+            "3",
+            "right end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "tub end is not against a wall: set the valve location by hand"
+          ]
+        ],
+        [
+          [
+            "1",
+            "1/2″ to 28 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "4",
+            "10 1/2″ to 40 1/2″",
+            "Grab bar blocking"
+          ],
+          [
+            "3",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "2",
+            "10 1/2″ to 40 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "26 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "39 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 2",
+            "29″ long for a 26″ door RO"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "removed toilet is ignored, new toilet near corner",
+      "state": {
+        "L": "96",
+        "W": "72",
+        "D": [
+          "3.5",
+          "5.5",
+          "3.5",
+          "3.5"
+        ],
+        "feats": [],
+        "items": [
+          {
+            "type": "toilet",
+            "st": "rem",
+            "w": 0,
+            "off": "30",
+            "ri": "12"
+          },
+          {
+            "type": "toilet",
+            "st": "new",
+            "w": 0,
+            "off": "12",
+            "ri": "12"
+          },
+          {
+            "type": "vanity",
+            "st": "ex",
+            "w": 1,
+            "off": "10",
+            "wid": "48",
+            "dep": "22"
+          },
+          {
+            "type": "shower",
+            "st": "new",
+            "w": 2,
+            "off": "0",
+            "wid": "36",
+            "dep": "36"
+          },
+          {
+            "type": "door",
+            "st": "ex",
+            "w": 3,
+            "off": "20",
+            "size": "30",
+            "hinge": "L",
+            "swing": "in"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "level": "bad",
+          "text": "Vanity (wall 2) and Shower (wall 3) overlap."
+        },
+        {
+          "level": "bad",
+          "text": "Toilet side room: 12″ left and 62″ right of center (15″ minimum each side)."
+        },
+        {
+          "level": "bad",
+          "text": "Vanity: 21″ clear in front of the sink — something sits in that space (17″ of 30″ width clear)."
+        },
+        {
+          "level": "bad",
+          "text": "Shower: 24″ clear in front of the opening — something sits in that space (14″ of 24″ width clear)."
+        },
+        {
+          "level": "bad",
+          "text": "Door on wall 4 swings into the toilet."
+        },
+        {
+          "level": "good",
+          "text": "Toilet: 21″ clear in front."
+        }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 12 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "2",
+            "centered 34 1/2″ from left corner framing"
+          ],
+          [
+            "Shower drain",
+            "3",
+            "18 1/2″ off back framing · 18 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "2",
+            "10 1/2″ to 58 1/2″",
+            "Vanity and mirror backing"
+          ],
+          [
+            "3",
+            "1/2″ to 36 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "2",
+            "36 1/2″ to 72 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "34 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "57 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 4",
+            "35″ long for a 32″ door RO"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "fixture past the end of the wall and overlapping",
+      "state": {
+        "L": "60",
+        "W": "60",
+        "D": [
+          "3.5",
+          "3.5",
+          "3.5",
+          "3.5"
+        ],
+        "feats": [],
+        "items": [
+          {
+            "type": "vanity",
+            "st": "ex",
+            "w": 0,
+            "off": "40",
+            "wid": "30",
+            "dep": "21"
+          },
+          {
+            "type": "tub",
+            "st": "ex",
+            "w": 3,
+            "off": "0",
+            "len": "60",
+            "dep": "30",
+            "drain": "L"
+          },
+          {
+            "type": "toilet",
+            "st": "ex",
+            "w": 1,
+            "off": "30",
+            "ri": "12"
+          }
+        ]
+      },
+      "expected": [
+        {
+          "level": "bad",
+          "text": "Vanity (wall 1) runs past the end of the wall."
+        },
+        {
+          "level": "bad",
+          "text": "Vanity (wall 1) and Toilet (wall 2) overlap."
+        },
+        {
+          "level": "bad",
+          "text": "Vanity: 21″ clear in front of the sink — something sits in that space (0″ of 20″ width clear)."
+        },
+        {
+          "level": "bad",
+          "text": "Tub: 21″ clear in front, at least 30″ wide — something sits in that space (20″ of 30″ width clear)."
+        },
+        {
+          "level": "bad",
+          "text": "Toilet side room: 9″ left and 30″ right of center (15″ minimum each side)."
+        },
+        {
+          "level": "bad",
+          "text": "Toilet: 21″ clear in front — something sits in that space (0″ of 30″ width clear)."
+        }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 55 1/2″ from left corner framing"
+          ],
+          [
+            "Tub drain",
+            "4",
+            "left end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "15 1/2″ from the tub wall framing, on the drain centerline"
+          ],
+          [
+            "Toilet flange",
+            "2",
+            "12 1/2″ off back framing · 30 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "1",
+            "40 1/2″ to 60 1/2″",
+            "Vanity and mirror backing"
+          ],
+          [
+            "4",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "3",
+            "30 1/2″ to 60 1/2″",
+            "Grab bar blocking + valve"
+          ],
+          [
+            "1",
+            "1/2″ to 30 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "24 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "43 ft (bottom + single top)"
+          ]
+        ]
+      ]
+    }
+  ]
+}

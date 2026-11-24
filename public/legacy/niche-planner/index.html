@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Niche Rough-In Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one question group per screen, ending on a wall elevation with the rough-in sheet beside it. */
+:root{
+  --bg:#eceeed; --surface:#fafbfa; --ink:#1c2321; --muted:#5a6561; --line:#cdd4d1;
+  --accent:#c9541a; --accent-ink:#ffffff;
+  --good:#23755a; --warn:#a56a12; --bad:#b83227;
+  --tile:#ffffff; --tile-cut:#dbe5e8; --grout:#5f6a66; --recess:#3f4945; --border-tile:#a9c4d4;
+  --warn-fill:#f3cf8a; --bad-fill:#ee9a8f; --wall:#dfe4e2; --tub:#f7f8f8; --wood:#ebd7ad; --block:#cf8f45; --marble:#ebe8e1;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c;
+    --accent:#f08a4b; --accent-ink:#1a120c;
+    --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72;
+    --tile:#46534f; --tile-cut:#34474d; --grout:#131817; --recess:#0c100f; --border-tile:#2e5566;
+    --warn-fill:#8a6a22; --bad-fill:#96392f; --wall:#26302d; --tub:#3a4542; --wood:#6b5838; --block:#a5682a; --marble:#77736b;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c;
+  --accent:#f08a4b; --accent-ink:#1a120c;
+  --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72;
+  --tile:#46534f; --tile-cut:#34474d; --grout:#131817; --recess:#0c100f; --border-tile:#2e5566;
+  --warn-fill:#8a6a22; --bad-fill:#96392f; --wall:#26302d; --tub:#3a4542; --wood:#6b5838; --block:#a5682a; --marble:#77736b;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:22px;line-height:1.1}
+h2{font-size:17px;letter-spacing:.03em;text-transform:uppercase}
+.title{font-size:26px;letter-spacing:0;text-transform:none;line-height:1.1}
+p{margin:0}
+[hidden]{display:none!important}
+.page{max-width:1080px;margin:0 auto;padding:16px 16px 96px;display:flex;flex-direction:column;gap:14px}
+.top{display:flex;flex-direction:column;gap:8px}
+.prog{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);font-weight:500}
+.bar{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.step{max-width:640px;width:100%;margin:0 auto}
+.sub{color:var(--muted);margin-top:6px;max-width:60ch}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wide{grid-column:1/-1}
+.field label,.lab{font-size:14.5px;font-weight:600}
+.field small{color:var(--muted);font-size:12.5px;line-height:1.3}
+.stepper{display:grid;grid-template-columns:42px 1fr 42px}
+.stepper button{background:var(--bg);border:1px solid var(--line);font-size:20px;line-height:1;height:44px;color:var(--ink)}
+.stepper button:first-child{border-radius:8px 0 0 8px;border-right:0}
+.stepper button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.stepper input{width:100%;min-width:0;height:44px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:600;text-align:center;border-radius:0}
+.stepper input[aria-invalid="true"]{border-color:var(--bad);color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 13px;font:inherit;font-weight:500;cursor:pointer;min-height:42px}
+.chips button[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chips.big{flex-direction:column}
+.chips.big button{text-align:left;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.chips.big button b{font-family:var(--display);font-size:19px;font-weight:600}
+.chips.big button span{font-size:14.5px;opacity:.85}
+.chips button b{font-weight:inherit}
+.check{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14.5px}
+.check input{width:20px;height:20px;accent-color:var(--accent)}
+.note{color:var(--muted);font-size:14.5px;background:var(--bg);border-radius:8px;padding:10px 12px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:11px 18px;font-weight:600;min-height:44px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{min-height:34px;padding:5px 12px;font-size:14px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-content:center;z-index:10}
+.nav-in{max-width:640px;width:100%;display:flex;gap:10px;justify-content:space-between}
+.nav-in .btn{flex:1}
+#pv,#svg{display:block;width:100%;height:auto}
+#pv{max-height:300px;background:var(--bg);border-radius:8px}
+#svg{max-height:70vh}
+.results{display:flex;flex-direction:column;gap:14px}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:1fr auto;gap:2px 10px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:10px 12px}
+.opt[aria-pressed="true"]{border:2px solid var(--accent);padding:9px 11px}
+.opt small{grid-column:1;color:var(--muted);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.opt b{grid-column:1;font-family:var(--display);font-size:18px;font-weight:600}
+.opt span{grid-column:1;color:var(--muted);font-size:14px}
+.opt .dot{grid-column:2;grid-row:1/4;align-self:center}
+.dot{width:11px;height:11px;border-radius:50%;flex:none;background:var(--good);display:inline-block}
+.dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+.tune{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center}
+.tune .lab{grid-column:1/-1}
+.tune b{text-align:center;font-family:var(--display);font-size:17px}
+svg.mono{background:#fff;border-radius:8px}
+svg .pres{display:none}
+svg.mono .pres{display:inline}
+svg.mono .constr{display:none}
+svg.mono.hidein .inn{display:none}
+svg.mono rect[class^="p-"]{fill:#fff;stroke:#000}
+svg.mono [fill="var(--grout)"],svg.mono [fill="var(--recess)"],svg.mono [fill="var(--wall)"]{fill:#fff}
+svg.mono [fill="var(--accent)"]{fill:#222}
+svg.mono [stroke="var(--ink)"],svg.mono [stroke="var(--recess)"]{stroke:#000}
+svg.mono .tub{fill:#fff;stroke:#000}
+svg.mono .marble{fill:#fff;stroke:#000}
+svg.mono .dim{stroke:#000}
+svg.mono text,svg.mono .t-muted,svg.mono .t-bad,svg.mono .t-warn,svg.mono .t-out{fill:#000}
+svg.mono .t-halo{stroke:#fff}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:9px;font-weight:600;min-height:42px}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--surface)}
+.legend .ln.mut{border-top-color:var(--muted)}
+.wood{fill:var(--wood);stroke:var(--ink);stroke-width:1px;vector-effect:non-scaling-stroke}
+.block{fill:var(--block);stroke:var(--ink);stroke-width:1px;vector-effect:non-scaling-stroke}
+.filler{fill:var(--wood);fill-opacity:.5;stroke:var(--ink);stroke-width:1px;stroke-dasharray:3 2;vector-effect:non-scaling-stroke}
+.txt{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;padding:0 12px;width:100%}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.headline{font-family:var(--display);font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border:1px solid var(--grout);display:inline-block}
+.legend .ln{width:16px;height:0;border:0;border-top:2px dashed var(--ink)}
+.legend .ln.acc{border-top-color:var(--accent)}
+.sheet{margin:0;display:flex;flex-direction:column}
+.sheet div{display:grid;grid-template-columns:minmax(110px,38%) 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.sheet div:first-child{border-top:0}
+.sheet dt{color:var(--muted);font-size:14.5px}
+.sheet dd{margin:0;font-weight:600}
+.sheet .hl dd{font-family:var(--display);font-size:20px;color:var(--accent)}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+ul.res,ul.ans{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+ul.res li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+ul.res li:first-child,ul.ans li:first-child{border-top:0}
+.res-v{font-weight:600;text-align:right}
+.pill{font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:99px;border:1.5px solid currentColor;min-width:76px;text-align:center}
+.s-full .pill,.s-ok .pill{color:var(--good)} .s-warn .pill,.s-notch .pill{color:var(--warn)}
+.s-bad .pill{color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+ul.ans li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+ul.ans li div{display:flex;flex-direction:column;min-width:0}
+ul.ans span{color:var(--muted);font-size:14.5px}
+details summary{cursor:pointer;font-weight:600}
+details ul{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;display:flex;flex-direction:column;gap:4px;max-width:65ch}
+svg text{font-family:var(--display);font-weight:600;fill:var(--ink)}
+svg .t-halo{paint-order:stroke;stroke:var(--tile);stroke-linejoin:round}
+svg .t-out{stroke:none}
+svg .t-muted{fill:var(--muted);stroke:none}
+svg .t-bad{fill:var(--bad);stroke:none} svg .t-warn{fill:var(--warn);stroke:none}
+svg rect[class^="p-"]{stroke:var(--grout);stroke-width:1px;vector-effect:non-scaling-stroke}
+.p-full{fill:var(--tile)} .p-ok{fill:var(--tile-cut)} .p-warn{fill:var(--warn-fill)} .p-bad{fill:var(--bad-fill)} .p-border{fill:var(--border-tile)} .marble{fill:var(--marble);stroke:var(--ink);stroke-width:1px;vector-effect:non-scaling-stroke}
+.tub{fill:var(--tub);stroke:var(--ink);stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.dim{stroke:var(--accent)}
+@media (min-width:900px){
+  .results{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}
+  .results .col:first-child{position:sticky;top:12px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <h1>Niche Rough-In Planner</h1>
+    <div class="prog"><span id="stepLabel"></span><div class="bar"><i id="barFill"></i></div></div>
+  </header>
+  <main id="view"></main>
+</div>
+<nav class="nav"><div class="nav-in">
+  <button class="btn ghost" id="back" type="button">Back</button>
+  <button class="btn" id="next" type="button">Next</button>
+</div></nav>
+
+<script>
+/*LOGIC*/
+const EPS=1/64,TOL=0.04;
+const DEF={framed:'',wallW:60,ceilLevel:true,ceilL:96,ceilR:96,base:'tub',tubH:15,tubPos:'full',tubL:60,
+  tilePreset:'3x12',tileH:3,tileW:12,grout:0.125,pattern:'half',minFrac:0.5,
+  board:0.5,thinset:0.125,tileT:0.375,gap:0.125,
+  rW:14.5,rH:26,rSill:46,rLeft:22.75,
+  nPreset:'12x24',nW:12,nH:24,nSill:48,studs:'free',studOC:16,bayL:22.75,nPos:'wall',nLeft:22,
+  shelves:1,shelfT:0.5,frameOn:'no',frameW:2,center:'niche',edge:'none',slopeMode:'full',slopeRun:24,studD:3.5,wallType:'niche',widthRef:'framing',minReach:0.25,maxReach:0.5,tubSlide:'center',fitClear:0.125,furSplit:'even',framing:'new',studMode:'oc',stud1:16,exOC:16,studList:'',sillType:'tile',sillT:0.75,sillProj:1};
+const RANK={full:0,border:0,ok:1,notch:1,warn:2,bad:3};
+const worse=(a,b)=>RANK[a]>=RANK[b]?a:b;
+
+function parseIn(s){
+  s=String(s).trim().replace(/["″”]/g,'').replace(/\s*in\.?$/i,'').trim();
+  if(!s) return NaN; let m;
+  if((m=s.match(/^(\d+)[\s-]+(\d+)\s*\/\s*(\d+)$/))&&+m[3]) return +m[1]+m[2]/m[3];
+  if((m=s.match(/^(\d+)\s*\/\s*(\d+)$/))&&+m[2]) return m[1]/m[2];
+  if(/^(\d+\.?\d*|\.\d+)$/.test(s)) return parseFloat(s);
+  return NaN;
+}
+function fmt(v,mark){
+  const neg=v<0, s=Math.round(Math.abs(v)*16), w=Math.floor(s/16); let n=s%16,d=16;
+  while(n&&n%2===0){n/=2;d/=2;}
+  return (neg&&s?'−':'')+(n?(w?w+' ':'')+n+'/'+d:String(w))+(mark===false?'':'″');
+}
+function mod(a,m){let r=((a%m)+m)%m; if(m-r<1e-6) r=0; return r;}
+const bu=S=>S.board+S.thinset+S.tileT;
+const ext=S=>S.frameOn==='yes'?S.frameW+S.grout:0;
+const marble=S=>S.sillType==='marble';
+const furTot=S=>0;
+function tubFit(S){if(!(S.base==='tub'&&S.tubPos==='full'&&S.edge==='none'))return null;
+  const B=bu(S),base=S._tile?S._frW:S.wallW,FW=S.widthRef==='framing'?base:base+2*B,room=FW-S.tubL,narrow=room<-1e-6;
+  const gL=S.tubSlide==='left'?0:S.tubSlide==='right'?room:room/2,gR=room-gL;
+  const end=(side,gap)=>{const reach=B-gap;return {side,gap,reach,low:reach<S.minReach-1e-6,high:reach>S.maxReach+1e-6,
+    furMin:Math.max(0,gap-(B-S.minReach)),furMax:Math.max(0,gap-(B-S.maxReach))};};
+  const ends=[end('left',gL),end('right',gR)];
+  return {narrow,ends,ok:!narrow&&ends.every(e=>!e.low&&!e.high),low:ends.some(e=>e.low)};}
+function endText(e){const r=`${e.side==='left'?'Left':'Right'} end: tile laps ${e.reach>0?fmt(e.reach):'0″'} onto the lip (${fmt(e.gap)} tub to stud)`;
+  if(e.low) return `${r}. Furring required: fur ${fmt(e.furMin)} to ${fmt(e.furMax)}.`;
+  if(e.high) return `${r}, more than ${fmt(S.maxReach)}.`;
+  return r+'.';}
+function fitText(f){if(f.narrow) return 'The tub won’t fit: the studs are closer together than the tub is long.';return f.ends.map(endText).join(' ');}
+function fitItems(S){const f=tubFit(S);if(!f)return [];
+  if(f.narrow) return [['Tub fit','tub won’t fit','bad','Too narrow']];
+  return f.ends.map(e=>[`Tile onto tub lip, ${e.side} end`,e.reach>0?fmt(e.reach):'none',e.low?'bad':e.high?'warn':'full',e.low?'Furring req.':e.high?'Over '+fmt(S.maxReach):'OK']);}
+const furL=S=>S.furSplit==='right'?0:S.furSplit==='left'?furTot(S):furTot(S)/2;
+const furR=S=>furTot(S)-furL(S);
+const endAdj=(S,side)=>S.widthRef!=='framing'?0:(S.edge===side?0:bu(S)+(side==='left'?furL(S):furR(S)));
+const finW=S=>S.wallW-endAdj(S,'left')-endAdj(S,'right');
+function tileS(S){if(S._tile)return S;return Object.assign({},S,{wallW:finW(S),_tile:true,_frW:S.wallW,_offL:endAdj(S,'left'),_furL:furL(S),_furR:furR(S)});}
+function studCenters(S,W){const SW=1.5,cs=[];
+  if(S.framing==='existing'){
+    if(S.studMode==='list'){for(const t of String(S.studList).split(/[,;]+/)){const v=parseIn(t);if(!isNaN(v))cs.push(v);}}
+    else if(S.exOC>0){for(let c=S.stud1;c<W&&cs.length<200;c+=S.exOC)cs.push(c);}
+  } else {const bayMode=S.framed!=='yes'&&S.studs==='bay'&&!isPlain(S),OC=bayMode?S.studOC:16,c0=bayMode?S.bayL-SW/2:IN.studStart==='right'?W-OC:OC;for(let k=-60;k<=60;k++)cs.push(c0+k*OC);}
+  const ok=cs.filter(c=>c-SW/2>=SW-0.01&&c+SW/2<=W-SW+0.01);
+  return [0].concat(ok.map(c=>c-SW/2)).concat([W-SW]).sort((a,b)=>a-b).filter((x,i,a)=>i===0||x-a[i-1]>=SW-0.01);}
+const sillGap=S=>marble(S)?S.sillT+S.grout:ext(S);
+const sillDrop=S=>marble(S)?S.sillT+S.thinset+S.board:bu(S);
+const cRv=S=>S.ceilLevel?S.ceilL:S.ceilR;
+const slopeRun=S=>(!S.ceilLevel&&S.slopeMode==='part'&&S.ceilL!==S.ceilR)?Math.min(Math.max(S.slopeRun,0.5),S.wallW):S.wallW;
+const ceilAt=(S,x)=>{const L=S.ceilL,R=cRv(S),W=S.wallW,run=slopeRun(S);
+  if(run>=W-1e-9) return L+(R-L)*x/W;
+  if(L<R) return x<run?L+(R-L)*x/run:R;
+  return x>W-run?L+(R-L)*(x-(W-run))/run:L;};
+function ceilPts(S){const L=S.ceilL,R=cRv(S),W=S.wallW,run=slopeRun(S),pts=[[W,R]];
+  if(run<W-0.05) pts.push(L<R?[run,R]:[W-run,L]);
+  pts.push([0,L]);return pts;}
+function tubX(S){
+  if(S.base!=='tub') return null;
+  const W=S.wallW,L=Math.min(S.tubL,W);
+  if(S.tubPos==='full') return {a:0,b:W};
+  if(S.tubPos==='left') return {a:0,b:L};
+  if(S.tubPos==='right') return {a:W-L,b:W};
+  const a=(W-L)/2; return {a,b:a+L};
+}
+const baseY=S=>(S.base==='tub'?S.tubH:0)+S.gap;
+const fieldL=S=>S.edge==='left'?S.frameW+S.grout:S.gap;
+const fieldR=S=>S.edge==='right'?S.wallW-S.frameW-S.grout:S.wallW-S.gap;
+function edgeParts(S){
+  if(S.edge!=='left'&&S.edge!=='right') return null;
+  const W=S.wallW,bw=S.frameW,x0=S.edge==='left'?0:W-bw,x1=x0+bw,tb=tubX(S),t=S.tileW,g=S.grout;
+  const y0=tb&&tb.a<=x0+0.05&&tb.b>=x1-0.05?baseY(S):S.gap,y1=Math.min(ceilAt(S,x0),ceilAt(S,x1))-S.gap,ps=[];
+  let y=y0; for(let i=0;y<y1-0.05&&i<200;i++){const h=Math.min(t,y1-y);ps.push({y,h});y+=h+g;}
+  const top=ps.length?ps[ps.length-1].h:0;
+  return {x0,bw,y0,ps,top,st:top<t-EPS?stat(S,top,t):'full'};
+}
+function floorZone(S){const x=tubX(S);return !!x&&(x.a>0.05||x.b<S.wallW-0.05);}
+const tubCenter=S=>{const x=tubX(S);return x?(x.a+x.b)/2:S.wallW/2;};
+function grid(S,p){const t=S.tileH,g=S.grout,b=baseY(S);return {t,g,m:t+g,b,T0:b+p,p};}
+function shiftCount(S){return S.pattern==='stack'?1:S.pattern==='half'?2:3;}
+function rowShift(S,i){const c=shiftCount(S);return mod(i,c)*(S.tileW+S.grout)/c;}
+function rowPieces(S,x0,shift,L0,R0){
+  const w=S.tileW,mw=w+S.grout,L=L0==null?fieldL(S):L0,R=R0==null?fieldR(S):R0,out=[];
+  let x=L+mod(x0+shift-L,mw)-mw;
+  for(let i=0;x<R-0.05&&i<600;x+=mw,i++){const a=Math.max(x,L),b=Math.min(x+w,R);
+    if(b-a>0.05) out.push({x:a,w:b-a});}
+  return out;
+}
+function splitLen(a,b,L,g){
+  const tot=b-a; if(tot<=L+1e-6) return [{s:a,l:tot}];
+  const m=L+g,opt=x0=>{const r=[];let x=a+mod(x0-a,m)-m;for(let i=0;x<b-0.05&&i<200;x+=m,i++){const s=Math.max(x,a),e=Math.min(x+L,b);if(e-s>0.05)r.push({s,l:e-s});}return r;};
+  const c=(a+b)/2,A=opt(c-L/2),B=opt(c+g/2),mn=r=>Math.min(r[0].l,r[r.length-1].l);
+  return mn(A)>=mn(B)-1e-6?A:B;
+}
+function stat(S,h,dim){if(h>=dim-EPS) return 'full'; const r=h/dim; return r>=S.minFrac-1e-6?'ok':r>=S.minFrac/2?'warn':'bad';}
+function cutPen(S,h,dim){if(h>=dim-EPS) return 0; const r=Math.max(h,0)/dim; return r>=S.minFrac-1e-6?(1-r)*1.5:30+(S.minFrac-r)*80;}
+const nMin=(S,dim)=>Math.min(2,S.minFrac*dim);
+function legStat(S,l,dim){return l.aligned?'full':l.leg>=nMin(S,dim)-1e-6?'notch':'bad';}
+function legPen(S,l,dim){return l.aligned?0:l.leg>=nMin(S,dim)-1e-6?6:40+(nMin(S,dim)-l.leg)*10;}
+function edgeLeg(G,y,side){
+  const u=mod(y-G.T0,G.m);
+  if(u<=G.g+TOL||u>=G.m-TOL) return {aligned:true,leg:0};
+  return {aligned:false,leg:side==='below'?u-G.g:G.m-u};
+}
+function topCut(S,G,x){
+  const c=ceilAt(S,x)-S.gap,d=c-(G.T0+G.g);
+  if(d<=0.05) return Math.min(G.t,c-G.b);
+  const j=Math.floor((d-0.05)/G.m); return Math.min(G.t,c-(G.T0+G.g+j*G.m));
+}
+function floorCut(S,G){const f=S.gap,i=Math.floor((f+0.05-G.T0)/G.m)+1;return Math.min(G.t,G.T0+i*G.m-f);}
+
+function bayRun(S,hb){
+  const t=S.tileH,g=S.grout,slack=Math.max(0.3,2*g+0.05),out=[];
+  if(hb<0.3) return out;
+  out.push(Math.min(t,hb)); let y=out[0]+g;
+  while(hb-y>slack&&out.length<200){const h=Math.min(t,hb-y);out.push(h);y+=h+g;}
+  return out;
+}
+function shelfPlan(S,hF){
+  const n=S.shelves,s=S.shelfT,m=S.tileH+S.grout;
+  if(!n||n*s>hF-2) return {bays:[hF],shelves:[]};
+  const U=hF-n*s,J=Math.max(1,Math.floor(U/m)); let best=null;
+  if(n===1){for(let j=1;j<=J;j++){const a=j*m,b=U-a;if(b<1)continue;const sp=Math.abs(a-b);if(!best||sp<best.sp-1e-9)best={sp,bays:[a,b],shelves:[a]};}}
+  else{for(let j=1;j<=J;j++)for(let k=1;k<=J;k++){const a=j*m,b=k*m,c=U-a-b;if(c<1)continue;const sp=Math.max(a,b,c)-Math.min(a,b,c);if(!best||sp<best.sp-1e-9)best={sp,bays:[a,b,c],shelves:[a,a+s+b]};}}
+  return best||{bays:[hF],shelves:[]};
+}
+const bayPen=st=>st==='full'?0:st==='ok'?5:st==='warn'?20:35;
+function centeredShelves(S,hF){const n=(S.shelves&&S.shelves*S.shelfT<hF-2)?S.shelves:0,s=S.shelfT,c=(hF-n*s)/(n+1),out=[];for(let i=1;i<=n;i++)out.push(i*c+(i-1)*s);return out;}
+function interiorV(S,hF){
+  const pl=IN.shelfPos==='center'?{bays:[hF],shelves:centeredShelves(S,hF)}:shelfPlan(S,hF); let pen=0;
+  const bays=pl.bays.map(hb=>{const rows=bayRun(S,hb),top=rows.length?rows[rows.length-1]:0,st=rows.length?stat(S,top,S.tileH):'bad';pen+=bayPen(st);return {hb,rows,top,st};});
+  return {pen,bays,shelves:pl.shelves};
+}
+
+function solveV(S){
+  const t=S.tileH,g=S.grout,m=t+g,e=ext(S),B=bu(S),fz=floorZone(S),cMin=Math.min(S.ceilL,cRv(S))-S.gap,out=[];
+  const framed=S.framed==='yes'; let hs=[];
+  if(framed) hs=[S.rH-B-sillDrop(S)];
+  else{const R=Math.max(m,3);for(let h=Math.max(4,Math.round((S.nH-R)*16)/16);h<=S.nH+R+1e-9;h+=1/16)hs.push(Math.round(h*16)/16);}
+  if(!hs.length||hs[0]<1) return out;
+  const ints=hs.map(h=>interiorV(S,h));
+  for(let i=Math.round(t*16);i>=1;i--){
+    const p=i/16,G=grid(S,p);
+    const cl=topCut(S,G,0),cr=topCut(S,G,S.wallW),fc=fz?floorCut(S,G):t;
+    const bp=cutPen(S,p,t)+cutPen(S,cl,t)+(S.ceilLevel?0:cutPen(S,cr,t))+(fz?cutPen(S,fc,t):0);
+    let best=null;
+    if(framed){
+      const sF=S.rSill+sillDrop(S),hF=hs[0];
+      if(sF+hF+e>cMin) break;
+      const sl=edgeLeg(G,sF-sillGap(S),'below'),hl=edgeLeg(G,sF+hF+e,'above');
+      best={sc:bp+legPen(S,sl,t)+legPen(S,hl,t)+ints[0].pen,p,sF,hF,j:0,sill:sl,head:hl};
+    } else {
+      const i0=Math.round((S.nSill-sillGap(S)-G.T0)/m);
+      for(let k=Math.max(0,i0-1);k<=Math.max(0,i0+1);k++){
+        const sF=G.T0+k*m+sillGap(S);
+        for(let j=0;j<hs.length;j++){
+          const hF=hs[j],e2=sF+hF+e; if(e2>cMin-1) break;
+          const hl=edgeLeg(G,e2,'above'),sc=bp+legPen(S,hl,t)+ints[j].pen+1.5*Math.abs(hF-S.nH)+0.8*Math.abs(sF-S.nSill);
+          if(!best||sc<best.sc-1e-9) best={sc,p,sF,hF,j,sill:{aligned:true,leg:0},head:hl};
+        }
+      }
+    }
+    if(best) out.push(Object.assign(best,{cl,cr,fc,fz,G,int:ints[best.j]}));
+  }
+  return out;
+}
+function pickOptions(S,list){
+  const s=list.slice().sort((a,b)=>a.sc-b.sc),out=[],dp=Math.max(0.5,S.tileH/4);
+  for(const c of s){ if(out.length>=3) break;
+    if(out.every(o=>Math.abs(o.p-c.p)>=dp||Math.abs(o.sF-c.sF)>=0.5||Math.abs(o.hF-c.hF)>=0.5)) out.push(c); }
+  if(!out.some(o=>o.p>=S.tileH-EPS)){const full=s.find(c=>c.p>=S.tileH-EPS); if(full) out.push(Object.assign({},full,{pinned:true}));}
+  return out;
+}
+function solveH(S,o){
+  const W=S.wallW,tw=S.tileW,g=S.grout,mw=tw+g,e=ext(S),B=bu(S),c=shiftCount(S),G=o.G;
+  let widths,leftOf;
+  if(S.framed==='yes'){widths=[S.rW-2*B];leftOf=()=>S.rLeft+B-(S._offL||0);}
+  else if(S.studs==='bay'){widths=[S.studOC-1.5-2*B];leftOf=()=>S.bayL+B-(S._offL||0);}
+  else{widths=[];for(let w=Math.max(3,S.nW-2);w<=S.nW+2+1e-9;w+=1/16)widths.push(Math.round(w*16)/16);
+    const ref=S.nPos==='tub'?tubCenter(S):(fieldL(S)+fieldR(S))/2;leftOf=w=>S.nPos==='custom'?S.nLeft+B-(S._offL||0):ref-w/2;}
+  const y1=o.sF-sillGap(S),y2=o.sF+o.hF+e,ks=[];
+  for(let i=Math.floor((y1-G.T0)/G.m)-1;i<=Math.ceil((y2-G.T0)/G.m)+1;i++){const Ti=G.T0+i*G.m;if(Ti>y1+TOL&&Ti-G.t<y2-TOL)ks.push(i);}
+  let best=null;
+  for(const w of widths){
+    if(w<1) continue;
+    const L=leftOf(w);
+    if(L-e<fieldL(S)+0.25||L+w+e>fieldR(S)-0.25) continue;
+    const xc=S.center==='niche'?L+w/2:S.center==='wall'?(fieldL(S)+fieldR(S))/2:S.center==='tub'?tubCenter(S):null;
+    const x0s=xc==null?[S.center==='right'?fieldR(S)-tw:fieldL(S)]:[xc-tw/2,xc+g/2];
+    let inB=null;
+    const ixs=[L+w/2-tw/2,L+w/2+g/2]; for(let s=0;s<mw;s+=1/16) ixs.push(L+s);
+    for(const ix of ixs){
+      let mn=Infinity;
+      for(let k=0;k<c;k++){const ps=rowPieces(S,ix,k*mw/c,L,L+w);if(ps.length>1)for(const q of [ps[0],ps[ps.length-1]])if(q.w<tw-EPS)mn=Math.min(mn,q.w);}
+      if(!inB||mn>inB.mn+0.25) inB={ix,mn};
+    }
+    const inPen=inB.mn===Infinity?0:cutPen(S,inB.mn,tw);
+    let frMin=Infinity;
+    if(e){
+      for(const s of splitLen(L-S.frameW,L+w+S.frameW,tw,g)) if(s.l<tw-EPS) frMin=Math.min(frMin,s.l);
+      if(o.hF>2*g+0.1) for(const s of splitLen(o.sF+g,o.sF+o.hF-g,tw,g)) if(s.l<tw-EPS) frMin=Math.min(frMin,s.l);
+    }
+    const frPen=frMin===Infinity?0:cutPen(S,frMin,tw);
+    for(const x0 of x0s){
+      let cL=Infinity,cR=Infinity;
+      for(let k=0;k<c;k++){const ps=rowPieces(S,x0,k*mw/c);if(!ps.length)continue;if(ps[0].w<tw-EPS)cL=Math.min(cL,ps[0].w);const l=ps[ps.length-1];if(l.w<tw-EPS)cR=Math.min(cR,l.w);}
+      let mL=Infinity,mR=Infinity; const q1=L-e,q2=L+w+e;
+      for(const i of ks) for(const pc of rowPieces(S,x0,rowShift(S,i))){const a=pc.x,b=pc.x+pc.w;
+        if(q1>a+TOL&&q1<b-TOL) mL=Math.min(mL,q1-a);
+        if(q2>a+TOL&&q2<b-TOL) mR=Math.min(mR,b-q2);}
+      const lL=mL<Infinity?{aligned:false,leg:mL}:{aligned:true,leg:0},lR=mR<Infinity?{aligned:false,leg:mR}:{aligned:true,leg:0};
+      const sc=(cL<Infinity?cutPen(S,cL,tw):0)+(cR<Infinity?cutPen(S,cR,tw):0)+legPen(S,lL,tw)+legPen(S,lR,tw)+inPen+frPen+(widths.length>1?1.5*Math.abs(w-S.nW):0);
+      if(!best||sc<best.sc-1e-9) best={sc,w,L,x0,xc,cL,cR,lL,lR,ix:inB.ix,inMin:inB.mn,frMin};
+    }
+  }
+  return best;
+}
+/* ---------- plain tile wall ---------- */
+const isPlain=S=>S.wallType==='plain';
+function solveHPlain(S){
+  const tw=S.tileW,g=S.grout,mw=tw+g,c=shiftCount(S),mid=(fieldL(S)+fieldR(S))/2;
+  const xc=S.center==='tub'?tubCenter(S):(S.center==='left'||S.center==='right')?null:mid;
+  const x0s=xc==null?[S.center==='right'?fieldR(S)-tw:fieldL(S)]:[xc-tw/2,xc+g/2];
+  let best=null;
+  for(const x0 of x0s){let cL=Infinity,cR=Infinity;
+    for(let k=0;k<c;k++){const ps=rowPieces(S,x0,k*mw/c);if(!ps.length)continue;if(ps[0].w<tw-EPS)cL=Math.min(cL,ps[0].w);const l=ps[ps.length-1];if(l.w<tw-EPS)cR=Math.min(cR,l.w);}
+    const sc=(cL<Infinity?cutPen(S,cL,tw):0)+(cR<Infinity?cutPen(S,cR,tw):0);
+    if(!best||sc<best.sc-1e-9)best={sc,x0,xc,cL,cR};}
+  return best;
+}
+function solvePlain(S){
+  const t=S.tileH,fz=floorZone(S),list=[];
+  for(let i=Math.round(t*16);i>=1;i--){const p=i/16,G=grid(S,p),cl=topCut(S,G,0),cr=topCut(S,G,S.wallW),fc=fz?floorCut(S,G):t;
+    list.push({sc:cutPen(S,p,t)+cutPen(S,cl,t)+(S.ceilLevel?0:cutPen(S,cr,t))+(fz?cutPen(S,fc,t):0),p,G,cl,cr,fc,fz,plain:true});}
+  const h=solveHPlain(S);
+  return pickOptions(S,list).map(o=>Object.assign({},o,{h,tot:o.sc+h.sc})).sort((a,b)=>((a.pinned?1:0)-(b.pinned?1:0))||a.tot-b.tot);
+}
+function cutsPlain(S,r){
+  const t=S.tileH,tw=S.tileW,h=r.h,items=[],c=(v,dim,unit)=>v<dim-EPS?fmt(v)+' '+unit:'';
+  items.push([S.base==='tub'?'Bottom course on tub':'Bottom course',c(r.p,t,'tall'),stat(S,r.p,t)]);
+  if(S.ceilLevel) items.push(['Top course at ceiling',c(r.cl,t,'tall'),stat(S,r.cl,t)]);
+  else{items.push(['Top course, left end',c(r.cl,t,'tall'),stat(S,r.cl,t)]);items.push(['Top course, right end',c(r.cr,t,'tall'),stat(S,r.cr,t)]);}
+  if(r.fz) items.push(['Bottom course beside tub',c(r.fc,t,'tall'),stat(S,r.fc,t)]);
+  const ep=edgeParts(S);
+  if(ep) items.push(['Bullnose edge',ep.top<tw-EPS?'top piece '+fmt(ep.top):'',ep.st,ep.st==='full'?'Full pieces':null]);
+  items.push(...fitItems(S));
+  items.push([S.edge==='left'?'Beside bullnose':'Left corner',h.cL<Infinity?fmt(h.cL)+' wide':'',h.cL<Infinity?stat(S,h.cL,tw):'full']);
+  items.push([S.edge==='right'?'Beside bullnose':'Right corner',h.cR<Infinity?fmt(h.cR)+' wide':'',h.cR<Infinity?stat(S,h.cR,tw):'full']);
+  return items;
+}
+function sheetPlainRows(S,r){
+  const h=r.h,tub=S.base==='tub',rows=[],G=r.G;
+  rows.push(...furRows(S));
+  rows.push(['First course',(r.p<S.tileH-EPS?'Cut to '+fmt(r.p):'Full tile')+(tub?', on the tub':', on the floor'),true]);
+  rows.push(['Ledger line',(tub?`${fmt(G.T0+G.g-S.tubH)} above tub (${fmt(G.T0+G.g)} above floor)`:fmt(G.T0+G.g)+' above floor')+', bottom of 2nd course',true]);
+  rows.push(['Top course',S.ceilLevel?(r.cl<S.tileH-EPS?'Cut to '+fmt(r.cl):'Full tile'):`${r.cl<S.tileH-EPS?fmt(r.cl):'Full'} at left, ${r.cr<S.tileH-EPS?fmt(r.cr):'full'} at right`]);
+  rows.push(['Vertical line',h.xc==null?`Full tile at the ${S.center==='right'?'right':'left'} corner`:(Math.abs(h.x0-(h.xc-S.tileW/2))<1e-6?'Center of a tile':'Grout joint')+' at '+fmt(h.xc)+' from left corner'+(S.widthRef==='framing'?` (${fmt(h.xc+(S._offL||0))} from the left stud)`:'')]);
+  const ep=edgeParts(S);
+  if(ep) rows.push(['Bullnose edge',`${fmt(S.frameW)} bullnose up the ${S.edge} corner`+(ep.top<S.tileW-EPS?`, top piece ${fmt(ep.top)}`:'')]);
+  return rows;
+}
+function framingPlain(S){
+  const W=S._frW||S.wallW,SW=1.5,OC=16,studs=studCenters(S,W);
+  return {plain:true,W,SW,OC,bt:1.5,studs,cripples:[],sides:[],fillers:[],replaced:[]};
+}
+function furRows(S){const f=tubFit(S);if(f)return [['Tub fit',fitText(f),!f.ok]];return [];
+}
+function furRowsOld(S){const t=S._furL+S._furR;if(!(t>0.01))return [];return [['Furring',`${S._furL>0.01?fmt(S._furL)+' at left end':''}${S._furL>0.01&&S._furR>0.01?', ':''}${S._furR>0.01?fmt(S._furR)+' at right end':''}, to fit the ${fmt(S.tubL)} tub`,true]];}
+function framingRowsPlain(S,fr){
+  const cMin=Math.min(S.ceilL,cRv(S)),cMax=Math.max(S.ceilL,cRv(S)),sl=cMax-cMin<1/16?fmt(cMin-3):fmt(cMin-3)+' to '+fmt(cMax-3);
+  return [['Stud layout',(S.framing==='existing'?(S.studMode==='list'?'Existing studs, as entered':`Existing studs, ${fmt(S.exOC)} on center from the first at ${fmt(S.stud1)}`):`${fmt(fr.OC)} on center from the ${IN.studStart==='right'?'right':'left'} corner`)],...furRows(S),
+    ['Cut list',`${fr.studs.length} studs at ${sl}<br>Bottom plate and top plate at ${fmt(S._frW||S.wallW)}`]];
+}
+function sheetPlain(S,r,fr){
+  const W=S.wallW,FW=S._frW||W,cL=S.ceilL,cR=cRv(S),H=Math.max(cL,cR),tub=S.base==='tub',G=r.G;
+  const nest=(cap,x,y,w,hh,cls)=>`<svg class="el ${cls}" x="${x}" y="${y}" width="${w}" height="${hh}" viewBox="${cap.vb}" preserveAspectRatio="xMidYMid meet">${cap.h}</svg>`;
+  const ffs=Math.max(W,H)*0.034,c={H,fs:ffs},sr=slopeRun(S),xb=S.ceilL<cR?sr:W-sr;
+  const fc=capture(o=>drawFraming(o,S,r,fr));
+  fc.h+=dimsH(c,[0,FW],-ffs*2.9)+dimsV(c,[0,cR],FW+ffs*1.5)+(S.ceilLevel?'':dimsV(c,[0,cL],-ffs*1.5))+(sr<W-0.05?dimsH(c,[0,xb,W],H+ffs*1.2):'');
+  const tc=capture(o=>draw(o,S,r));
+  const hs=[0];if(tub)hs.push(S.tubH);hs.push(G.T0+G.g,cR);
+  tc.h+=dimsH(c,[0,W],-ffs*2.9)+dimsV(c,hs,W+ffs*1.5)+(S.ceilLevel?'':dimsV(c,[0,cL],-ffs*1.5))+(sr<W-0.05?dimsH(c,[0,xb,W],H+ffs*1.2):'');
+  const T=(x,y,s,sz,ex)=>`<text x="${x}" y="${y}" font-size="${sz}"${ex?' '+ex:''}>${s}</text>`;
+  const title=(n,x,y,t,sub)=>`<circle cx="${x+16}" cy="${y-6}" r="16" class="hair" fill="none"/>`+T(x+16,y,n,17,'text-anchor="middle"')+`<line x1="${x+40}" y1="${y+6}" x2="${x+400}" y2="${y+6}" class="hair"/>`+T(x+42,y,t,19)+T(x+42,y+26,sub,13,'style="font-weight:500"');
+  const notes=['Dimensions are from the finished floor and the left inside corner unless noted. Verify in field before cutting.',
+    tub?`Set a ledger with its top ${fmt(G.T0+G.g-S.tubH)} above the tub (bottom of 2nd course). First course ${r.p<S.tileH-EPS?'cut to '+fmt(r.p):'full tile'}.`:`Set a ledger with its top at ${fmt(G.T0+G.g)} above floor. First course ${r.p<S.tileH-EPS?'cut to '+fmt(r.p):'full tile'}.`,
+    `Field tile ${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout<0.05?'butted joint':fmt(S.grout)+' joint'}, ${PATN[S.pattern]}.`,
+    `Build-up ${fmt(bu(S))}: ${fmt(S.board)} board, ${fmt(S.thinset)} thinset, ${fmt(S.tileT)} tile.`];
+  if(S.edge!=='none') notes.push(`${fmt(S.frameW)} bullnose on the ${S.edge} outside corner.`);
+  notes.push('Check tub for level and walls for plumb before layout.');
+  let ny=78,nt='';
+  notes.forEach((n,i)=>{wrapLines(n,58).forEach((l,j)=>{nt+=T(1218,ny,(j?'    ':(i+1)+'. ')+esc(l),13,'style="font-weight:500"');ny+=17;});ny+=4;});
+  const jobName=esc(curJob?curJob.name:'Tile wall'),d=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  let tbs=`<rect x="1200" y="880" width="460" height="180" class="heavy" fill="none"/><line x1="1580" y1="880" x2="1580" y2="1060" class="hair"/>`;
+  [['PROJECT',jobName],['SHEET','Tile wall: framing and tile'],['DATE',d],['DRAWN','Niche Rough-In Planner']].forEach(([k,v],i)=>{const y=880+i*36;if(i)tbs+=`<line x1="1200" y1="${y}" x2="1580" y2="${y}" class="hair"/>`;tbs+=T(1210,y+14,k,10,'style="font-weight:500"')+T(1210,y+31,v,15);});
+  tbs+=`<line x1="1200" y1="1024" x2="1580" y2="1024" class="hair"/>`+T(1210,1046,'Dimensions govern. Do not scale.',12,'style="font-weight:500"');
+  tbs+=T(1620,940,'SHEET',10,'text-anchor="middle" style="font-weight:500"')+T(1620,990,'A-1',34,'text-anchor="middle"');
+  return `<style>${SHEET_CSS}</style><rect x="0" y="0" width="1700" height="1100" fill="#fff"/><rect x="20" y="20" width="1660" height="1060" class="heavy" fill="none"/>`+
+    nest(fc,40,40,560,800,'frameel')+title('1',60,880,'FRAMING ELEVATION',`${fmt(fr.OC)} o.c. studs · single top plate`)+
+    nest(tc,620,40,560,800,'tileel')+title('2',640,880,'TILE ELEVATION','Layout line dimensions')+
+    T(1210,56,'NOTES',15)+nt+tbs;
+}
+function solve(S){
+  S=tileS(S);
+  if(isPlain(S)) return solvePlain(S);
+  return pickOptions(S,solveV(S)).map(o=>{const h=solveH(S,o);return h?Object.assign({},o,{h,tot:o.sc+h.sc}):null;})
+    .filter(Boolean).sort((a,b)=>((a.pinned?1:0)-(b.pinned?1:0))||a.tot-b.tot);
+}
+function adjustOpt(S,r,dh,ds,hi,si){
+  if(hi==null)hi=adjHin; if(si==null)si=adjSin;
+  if(!dh&&!ds&&!hi&&!si) return r;
+  const m=r.G.m,e=ext(S),sF=r.sF+ds*m+si,hF=r.hF+dh*m+hi-si;
+  if(hF<3) return null;
+  const o=Object.assign({},r,{sF,hF,int:interiorV(S,hF),sill:edgeLeg(r.G,sF-sillGap(S),'below'),head:edgeLeg(r.G,sF+hF+e,'above')});
+  const h=solveH(S,o); if(!h) return null; o.h=h; return o;
+}
+let IN={start:'bottom',shelfPos:'center',shelf1:6,shelf2:12,pat:'wall',side:'auto',view:'tile',studStart:'left',block:'flat',sides:'full',presIn:'hide',shelfV:2,sheet:'a1'};
+function framingFor(S,r){
+  const B=bu(S),W=S._frW||S.wallW,off=S._offL||0,SW=1.5,bayMode=S.framed!=='yes'&&S.studs==='bay',OC=bayMode?S.studOC:16,bt=IN.block==='edge'?3.5:1.5,full=IN.sides!=='block';
+  const xL=r.h.L-B+off,xR=r.h.L+r.h.w+B+off,ys=r.sF-sillDrop(S),yh=r.sF+r.hF+B;
+  const reg=studCenters(S,W);
+  const near=(a,b)=>Math.abs(a-b)<TOL,over=(x,s)=>x<s+SW-TOL&&x+SW>s+TOL;
+  const studs=[],cripples=[],replaced=[],sides=[],fillers=[]; let bx1,bx2;
+  if(full){
+    const sl=xL-SW,sr=xR; bx1=xL; bx2=xR;
+    for(const x of reg){
+      if(near(x,sl)||near(x,sr)) continue;
+      if(over(x,sl)||over(x,sr)){replaced.push(x);continue;}
+      if(x>=xL-TOL&&x+SW<=xR+TOL){cripples.push(x);continue;}
+      studs.push(x);
+    }
+    sides.push({x:sl,full:true},{x:sr,full:true});
+  } else {
+    const ls=reg.filter(x=>x+SW<=xL+TOL),rs=reg.filter(x=>x>=xR-TOL);
+    bx1=ls.length?Math.max(...ls)+SW:0; bx2=rs.length?Math.min(...rs):W;
+    for(const x of reg){ if(x>=bx1-TOL&&x+SW<=bx2+TOL) cripples.push(x); else studs.push(x); }
+    const gl=xL-bx1,gr=bx2-xR;
+    if(gl>=SW-TOL) sides.push({x:xL-SW,full:false}); else if(gl>1/16) fillers.push({x:bx1,w:gl});
+    if(gr>=SW-TOL) sides.push({x:xR,full:false}); else if(gr>1/16) fillers.push({x:xR,w:gr});
+  }
+  return {W,SW,OC,bt,bayMode,full,xL,xR,ys,yh,studs,cripples,replaced,sides,fillers,bx1,bx2};
+}
+function framingRows(S,fr){
+  const rows=[],tub=S.base==='tub',SW=fr.SW,cMin=Math.min(S.ceilL,cRv(S)),cMax=Math.max(S.ceilL,cRv(S));
+  const sl=cMax-cMin<1/16?fmt(cMin-2*SW):fmt(cMin-2*SW)+' to '+fmt(cMax-2*SW);
+  const cb=fr.ys-fr.bt-SW,ca=cMin-SW-(fr.yh+fr.bt);
+  rows.push(['Stud layout',(S.framing==='existing'?(S.studMode==='list'?'Existing studs, as entered':`Existing studs, ${fmt(S.exOC)} on center from the first at ${fmt(S.stud1)}`):`${fmt(fr.OC)} on center from ${fr.bayMode?'your stud bay':IN.studStart==='right'?'the right corner':'the left corner'}`)]);
+  rows.push(...furRows(S));
+  rows.push(['Niche sides',`Inside faces at ${fmt(fr.xL)} and ${fmt(fr.xR)} from left corner`,true]);
+  rows.push(['Sill block',`Top at ${fmt(fr.ys)} above floor`+(tub?` · ${fmt(fr.ys-S.tubH)} above tub`:''),true]);
+  rows.push(['Head block',`Bottom at ${fmt(fr.yh)}, top at ${fmt(fr.yh+fr.bt)} above floor`,true]);
+  rows.push(['Framed opening',`${fmt(fr.xR-fr.xL)} wide × ${fmt(fr.yh-fr.ys)} tall`]);
+  const cut=[`2 blocks at ${fmt(fr.bx2-fr.bx1)}, laid ${IN.block==='edge'?'on edge':'flat'}`];
+  if(fr.full) cut.push(`2 full-height side studs at ${sl}`);
+  else if(fr.sides.length) cut.push(`${fr.sides.length} side block${fr.sides.length>1?'s':''} at ${fmt(fr.yh-fr.ys)}`);
+  if(fr.fillers.length) cut.push(`${fr.fillers.map(x=>fmt(x.w)).join(' and ')} rip${fr.fillers.length>1?'s':''} beside the opening`);
+  if(fr.cripples.length) cut.push(`${fr.cripples.length} cripple${fr.cripples.length>1?'s':''} at ${fmt(cb)} below`+(ca>0.25?` and ${fmt(ca)} above`:''));
+  cut.push(`${fr.studs.length} studs at ${sl}`);
+  cut.push(`Bottom plate and top plate at ${fmt(S._frW||S.wallW)}`);
+  rows.push(['Cut list',cut.join('<br>')]);
+  if(fr.replaced.length) rows.push(['Layout note',`The side stud${fr.replaced.length>1?'s replace':' replaces'} the layout stud at ${fr.replaced.map(x=>fmt(x+SW/2)).join(', ')} on center. Check that drywall seams still land on framing.`]);
+  return rows;
+}
+const IN0=Object.assign({},IN);
+const shiftIn=(S,k)=>IN.pat==='stack'?0:rowShift(S,k);
+function bayD(S,hb,y0,G){
+  const t=S.tileH,g=S.grout,m=t+g,slack=Math.max(0.3,2*g+0.05),rows=[];
+  if(hb<0.3) return {hb,rows,st:'bad',top:0,desc:'too short'};
+  let p=t;
+  if(IN.start==='match'&&G&&y0!=null){p=G.T0+Math.ceil((y0+0.05-G.T0)/G.m)*G.m-y0;if(p>t)p=t;p=Math.min(p,hb);}
+  else if(hb>t+slack){
+    if(IN.start==='top'){p=mod(hb,m);if(p<slack||p>t)p=t;}
+    else if(IN.start==='balance'){const k=Math.max(0,Math.ceil((hb-g-2*t)/m-1e-9));p=(hb-g-k*m)/2;if(p<=0.05)p=t;p=Math.min(p,t);}
+  }
+  let h=Math.min(p,hb);rows.push(h);let y=h+g;
+  while(hb-y>slack&&rows.length<200){const hh=Math.min(t,hb-y);rows.push(hh);y+=hh+g;}
+  const f=rows[0],l=rows[rows.length-1],parts=[];let st='full';
+  if(f<t-EPS){st=worse(st,stat(S,f,t));parts.push(fmt(f)+(rows.length>1?' bottom':''));}
+  if(rows.length>1&&l<t-EPS){st=worse(st,stat(S,l,t));parts.push(fmt(l)+' top');}
+  return {hb,rows,st,top:l,desc:parts.join(', ')};
+}
+function interiorD(S,hF,sF,G){
+  const n=(S.shelves&&S.shelves*S.shelfT<hF-2)?S.shelves:0,s=S.shelfT; let sh=[];
+  if(n&&IN.shelfPos==='center'){const cs=centeredShelves(S,hF);return {shelves:cs,bays:[bayD(S,hF,sF,G)],over:true};}
+  if(n){
+    if(IN.shelfPos==='even'){const c=(hF-n*s)/(n+1);for(let i=1;i<=n;i++)sh.push(i*c+(i-1)*s);}
+    else if(IN.shelfPos==='custom'){const a=Math.min(Math.max(IN.shelf1,0.5),hF-s-0.5);sh.push(a);
+      if(n>1){const b=Math.min(Math.max(IN.shelf2,a+s+0.5),hF-s-0.5);if(b>=a+s+0.5)sh.push(b);}}
+    else sh=shelfPlan(S,hF).shelves;
+  }
+  const hbs=[];let b0=0;for(const y of sh){hbs.push(y-b0);b0=y+s;}hbs.push(hF-b0);
+  const starts=[sF];for(const y of sh)starts.push(sF+y+s);
+  return {shelves:sh,bays:hbs.map((hb,i)=>bayD(S,hb,sF==null?null:starts[i],G))};
+}
+function interiorX(S,L,w){
+  const tw=S.tileW,g=S.grout,mw=tw+g,c=IN.pat==='stack'?1:shiftCount(S);
+  const cands=IN.side==='tile'?[L+w/2-tw/2]:IN.side==='joint'?[L+w/2+g/2]:[L+w/2-tw/2,L+w/2+g/2];
+  if(IN.side==='auto') for(let s=0;s<mw;s+=1/16) cands.push(L+s);
+  let best=null;
+  for(const ix of cands){let mn=Infinity;
+    for(let k=0;k<c;k++){const ps=rowPieces(S,ix,k*mw/c,L,L+w);if(ps.length>1)for(const q of [ps[0],ps[ps.length-1]])if(q.w<tw-EPS)mn=Math.min(mn,q.w);}
+    if(!best||mn>best.mn+0.25) best={ix,mn};}
+  return best;
+}
+function courseRoom(S,r){
+  const G=r.G,e=ext(S),e1=r.sF-sillGap(S),e2=r.sF+r.hF+e,top=Math.min(S.ceilL,cRv(S))-S.gap; let below=0,above=0;
+  for(let i=0;i<600;i++){const Ti=G.T0+i*G.m; if(Ti-G.t>top) break;
+    if(Ti<=e1+TOL&&Ti-G.t>=G.b-TOL) below++;
+    if(Ti-G.t>=e2-TOL&&Ti<=top+TOL) above++;}
+  return {below,above};
+}
+function cutsFor(S,r){
+  const t=S.tileH,tw=S.tileW,h=r.h,items=[],c=(v,dim,unit)=>v<dim-EPS?fmt(v)+' '+unit:'';
+  items.push([S.base==='tub'?'Bottom course on tub':'Bottom course',c(r.p,t,'tall'),stat(S,r.p,t)]);
+  if(S.ceilLevel) items.push(['Top course at ceiling',c(r.cl,t,'tall'),stat(S,r.cl,t)]);
+  else{items.push(['Top course, left end',c(r.cl,t,'tall'),stat(S,r.cl,t)]);items.push(['Top course, right end',c(r.cr,t,'tall'),stat(S,r.cr,t)]);}
+  if(r.fz) items.push(['Bottom course beside tub',c(r.fc,t,'tall'),stat(S,r.fc,t)]);
+  const ep=edgeParts(S);
+  if(ep) items.push(['Bullnose edge',ep.top<tw-EPS?'top piece '+fmt(ep.top):'',ep.st,ep.st==='full'?'Full pieces':null]);
+  items.push(...fitItems(S));
+  items.push([S.edge==='left'?'Beside bullnose':'Left corner',h.cL<Infinity?fmt(h.cL)+' wide':'',h.cL<Infinity?stat(S,h.cL,tw):'full']);
+  items.push([S.edge==='right'?'Beside bullnose':'Right corner',h.cR<Infinity?fmt(h.cR)+' wide':'',h.cR<Infinity?stat(S,h.cR,tw):'full']);
+  const nm=ext(S)?'border':'niche',lg=(lab,l,dim,word)=>[lab,l.aligned?'':fmt(l.leg)+' '+word,legStat(S,l,dim),l.aligned?'On joint':null];
+  items.push(lg('Below '+nm,r.sill,t,'strip'),lg('Above '+nm,r.head,t,'strip'),lg('Left of '+nm,h.lL,tw,'leg'),lg('Right of '+nm,h.lR,tw,'leg'));
+  const B=r.int.bays,names=B.length===1?['Inside niche']:B.length===2?['Inside, lower bay','Inside, upper bay']:['Inside, lower bay','Inside, middle bay','Inside, upper bay'];
+  B.forEach((b,i)=>items.push([names[i],b.desc!=null?b.desc:(b.top<t-EPS?'top piece '+fmt(b.top):''),b.st,b.st==='full'?'Full tiles':null]));
+  if(r.int.over&&r.int.shelves.length) items.push([r.int.shelves.length>1?'Tile behind shelves':'Tile behind shelf','trim in field','ok','Field cut']);
+  if(h.inMin<Infinity) items.push(['Inside, side pieces',fmt(h.inMin)+' wide',stat(S,h.inMin,tw)]);
+  if(ext(S)) items.push(['Border pieces',h.frMin<Infinity?'shortest '+fmt(h.frMin):'',h.frMin<Infinity?stat(S,h.frMin,tw):'full',h.frMin<Infinity?null:'Full pieces']);
+  return items;
+}
+function sheetFor(S,r){
+  const B=bu(S),h=r.h,W=S.wallW,tub=S.base==='tub',rows=[];
+  const rs=r.sF-sillDrop(S),rh=r.hF+B+sillDrop(S),rw=h.w+2*B,rl=h.L-B+(S._offL||0),FW=S._frW||W;
+  rows.push([S.framed==='yes'?'Your rough opening':'Frame the rough opening',fmt(rw)+' wide × '+fmt(rh)+' tall',true]);
+  rows.push(['Rough sill',fmt(rs)+' above floor'+(tub?' · '+fmt(rs-S.tubH)+' above tub':''),true]);
+  rows.push(['Rough head',fmt(rs+rh)+' above floor']);
+  rows.push(...furRows(S));
+  rows.push(['Left side',fmt(rl)+' from left corner'+(S.widthRef==='framing'?' (stud)':'')]);
+  rows.push(['Right side',fmt(FW-rl-rw)+' from right corner']);
+  rows.push(['Finished opening',fmt(h.w)+' wide × '+fmt(r.hF)+' tall']);
+  if(r.int.shelves.length) rows.push([r.int.shelves.length>1?'Shelves':'Shelf',r.int.shelves.map(s=>fmt(s)).join(' and ')+' above finished sill, to underside']);
+  const ep=edgeParts(S);
+  if(ep) rows.push(['Bullnose edge',`${fmt(S.frameW)} bullnose up the ${S.edge} corner, ${S.tileW}″ pieces from the ${ep.y0>S.gap+0.01?'tub':'floor'} up`+(ep.top<S.tileW-EPS?`, top piece ${fmt(ep.top)}`:'')]);
+  if(marble(S)) rows.push(['Marble sill',`${fmt(S.sillT)} thick, projects ${fmt(S.sillProj)}; underside at ${fmt(r.sF-S.sillT)} above floor`]);
+  if(ext(S)) rows.push(['Border',fmt(S.frameW)+' bullnose frame, outside '+fmt(h.w+2*S.frameW)+' × '+fmt(r.hF+2*S.frameW)]);
+  rows.push(['First course',(r.p<S.tileH-EPS?'Cut to '+fmt(r.p):'Full tile')+', top at '+fmt(r.G.T0)+' above floor']);
+  rows.push(['Ledger line',(tub?`${fmt(r.G.T0+r.G.g-S.tubH)} above tub (${fmt(r.G.T0+r.G.g)} above floor)`:fmt(r.G.T0+r.G.g)+' above floor')+', bottom of 2nd course']);
+  rows.push(['Vertical line',h.xc==null?`Full tile at the ${S.center==='right'?'right':'left'} corner`:(Math.abs(h.x0-(h.xc-S.tileW/2))<1e-6?'Center of a tile':'Grout joint')+' at '+fmt(h.xc)+' from left corner'+(S.widthRef==='framing'?` (${fmt(h.xc+(S._offL||0))} from the left stud)`:'')]);
+  return rows;
+}
+function optTitle(S,r){
+  const t=S.tileH,top=Math.min(r.cl,r.cr);
+  if(r.p>=t-EPS) return 'Full tile on the '+(S.base==='tub'?'tub':'floor');
+  if(top>=t-EPS) return 'Full tile at the ceiling';
+  if(Math.abs(r.p-top)<=0.25) return 'Even cuts top and bottom';
+  return 'Start with a '+fmt(r.p)+' course';
+}
+/*END*/
+
+/* ---------- questions ---------- */
+const PATN={half:'running bond 1/2',third:'1/3 offset',stack:'stacked'};
+const isTub=S=>S.base==='tub';
+const STEPS=[
+  {id:'start',title:'Start a wall',sub:'This decides what the planner works out for you.',fields:[
+    {t:'choice',id:'wallType',big:true,label:'What’s on this wall?',opts:[['niche','A niche','Lay out the tile and find the niche rough-in'],['plain','Just tile','Lay out the courses, cuts and framing']]},
+    {t:'choice',id:'framed',big:true,label:'Is the niche framed yet?',show:S=>S.wallType!=='plain',opts:[['no','Not framed yet','Tell me where to frame the rough opening'],['yes','Already framed','Find the tile layout that suits the opening']]}]},
+  {id:'wall',title:'Wall and tub',sub:'Measure the wall the niche goes in. The sketch updates as you type.',preview:true,fields:[
+    {t:'choice',id:'widthRef',label:'Measure the wall width at',opts:[['framing','The studs'],['finished','The finished tile']]},
+    {t:'num',id:'wallW',label:S=>S.widthRef==='framing'?'Wall width, stud to stud':'Wall width, finished',hint:S=>S.widthRef==='framing'?'After demo, framing to framing':'Tile face to tile face',step:0.125,min:12,max:240},
+    {t:'check',id:'ceilLevel',label:'Ceiling is level'},
+    {t:'num',id:'ceilL',label:S=>S.ceilLevel?'Floor to ceiling':'Floor to ceiling, left end',step:0.125,min:24,max:240},
+    {t:'num',id:'ceilR',label:'Floor to ceiling, right end',step:0.125,min:24,max:240,show:S=>!S.ceilLevel},
+    {t:'choice',id:'slopeMode',label:'The slope runs',opts:[['full','Corner to corner'],['part','Partway, then goes flat']],show:S=>!S.ceilLevel},
+    {t:'num',id:'slopeRun',label:'Slope length, from the low end',hint:'Measured level along the floor',step:0.25,min:0.5,max:240,show:S=>!S.ceilLevel&&S.slopeMode==='part'},
+    {t:'info',key:'slope',text:S=>{const rise=Math.abs(cRv(S)-S.ceilL),run=slopeRun(S),a=Math.atan2(rise,run)*180/Math.PI;return rise<0.01?'Both ends are the same height.':`The ceiling rises ${fmt(rise)} over ${fmt(run)}: about ${Math.round(a)}° from level.`+(run<S.wallW-0.05?` Flat at ${fmt(Math.max(S.ceilL,cRv(S)))} after that.`:'');},show:S=>!S.ceilLevel},
+    {t:'choice',id:'base',label:'Tile starts on',opts:[['tub','A tub'],['floor','The floor or shower pan']]},
+    {t:'num',id:'tubH',label:'Floor to top of tub',hint:'Where the tile sits',step:0.125,min:4,max:40,show:isTub},
+    {t:'choice',id:'edge',label:'Outside corner with a bullnose edge',hint:S=>S.edge==='none'?'':'The niche and tile center on the field inside the bullnose.',opts:[['none','None, both ends are inside corners'],['left','Left end'],['right','Right end']]},
+    {t:'choice',id:'tubPos',label:'Tub placement',hint:S=>S.tubPos==='full'?'Then set where the tub sits between the studs below.':'Tile runs down to the floor beside the tub. If the tub fills the alcove, even pushed to one side, pick Wall to wall.',opts:[['full','Wall to wall (alcove)'],['left','Left end, open floor at right'],['right','Right end, open floor at left'],['center','Middle, open floor both sides']],show:isTub},
+    {t:'num',id:'tubL',label:'Tub length',step:0.125,min:12,max:240,show:S=>isTub(S)&&(S.tubPos!=='full'||S.edge==='none')},
+    {t:'choice',id:'tubSlide',label:'The tub sits',opts:[['center','Centered between studs'],['left','Against the left studs'],['right','Against the right studs']],show:S=>isTub(S)&&S.tubPos==='full'&&S.edge==='none'},
+    {t:'num',id:'minReach',label:'Tile onto the tub lip, at least',step:0.0625,min:0,max:1,show:S=>isTub(S)&&S.tubPos==='full'&&S.edge==='none'},
+    {t:'num',id:'maxReach',label:'Tile onto the tub lip, at most',step:0.0625,min:0,max:2,show:S=>isTub(S)&&S.tubPos==='full'&&S.edge==='none'},
+    {t:'info',key:'fur',text:S=>{const f=tubFit(S);return (f?fitText(f)+' ':'')+(f&&f.low?'Fur out in the field, then enter the new stud-to-stud width. ':'')+(f&&!f.narrow?'':`Finished tile width now: ${fmt(finW(S))}.`);},show:S=>S.widthRef==='framing'||!!tubFit(S)}]},
+  {id:'tile',title:'Tile',sub:'Sizes are height × length, laid horizontally.',fields:[
+    {t:'choice',id:'tilePreset',label:'Field tile',opts:[['3x6','3 × 6'],['3x12','3 × 12'],['4x12','4 × 12'],['4x16','4 × 16'],['6x24','6 × 24'],['12x24','12 × 24'],['custom','Custom']],
+      on:v=>{if(v!=='custom'){const [a,b]=v.split('x').map(Number);S.tileH=a;S.tileW=b;}}},
+    {t:'num',id:'tileH',label:'Tile height',step:0.125,min:0.5,max:48,show:S=>S.tilePreset==='custom'},
+    {t:'num',id:'tileW',label:'Tile length',step:0.125,min:0.5,max:96,show:S=>S.tilePreset==='custom'},
+    {t:'choice',id:'grout',label:'Grout joint',opts:[[0.03125,'Butted, no spacers'],[0.0625,'1/16″'],[0.125,'1/8″'],[0.1875,'3/16″']],hint:S=>S.grout<0.05?'Planned as a 1/32″ joint, about what stacked tile leaves with no spacers. Over many courses it adds up, so it still counts.':''},
+    {t:'choice',id:'pattern',label:'Pattern',opts:[['half','Running bond 1/2'],['third','1/3 offset'],['stack','Stacked']]},
+    {t:'choice',id:'minFrac',label:'Smallest cut you accept',opts:[[0.5,'Half a tile'],[0.3333,'A third'],[0.25,'A quarter']]}]},
+  {id:'build',title:'Wall build-up',sub:'Every face of the niche gets board, thinset and tile, so the finished opening is smaller than the framing.',fields:[
+    {t:'choice',id:'board',label:'Backer board',opts:[[0.5,'1/2″'],[0.25,'1/4″'],[0.625,'5/8″']]},
+    {t:'choice',id:'thinset',label:'Thinset',opts:[[0.125,'1/8″'],[0.1875,'3/16″']]},
+    {t:'choice',id:'framing',label:'Studs in this wall',opts:[['new','New framing'],['existing','Existing studs']]},
+    {t:'choice',id:'studMode',label:'Existing studs',opts:[['oc','Regular spacing'],['list','List each stud']],show:S=>S.framing==='existing'},
+    {t:'num',id:'stud1',label:'First stud center',hint:'From the left corner framing',step:0.125,min:0,max:240,show:S=>S.framing==='existing'&&S.studMode==='oc'},
+    {t:'choice',id:'exOC',label:'Spacing',opts:[[16,'16″'],[24,'24″'],[12,'12″']],show:S=>S.framing==='existing'&&S.studMode==='oc'},
+    {t:'text',id:'studList',label:'Stud centers from the left corner',hint:'Separate with commas, like 15 3/4, 31 1/2, 47 1/4',show:S=>S.framing==='existing'&&S.studMode==='list'},
+    {t:'choice',id:'studD',label:'Wall framing',opts:[[3.5,'2×4 studs (3 1/2″ deep)'],[5.5,'2×6 studs (5 1/2″ deep)']]},
+    {t:'choice',id:'tileT',label:'Tile thickness',opts:[[0.25,'1/4″'],[0.3125,'5/16″'],[0.375,'3/8″'],[0.5,'1/2″']]},
+    {t:'info',key:'bu',text:S=>`Each face builds up ${fmt(bu(S))}, so the finished opening is ${fmt(2*bu(S))} smaller than the framing in width and height.`},
+    {t:'num',id:'gap',label:'Gap at tub, ceiling and corners',hint:'Caulk joint',step:0.0625,min:0,max:0.5}]},
+  {id:'niche',skip:isPlain,title:S=>S.framed==='yes'?'The framed opening':'The niche you want',
+   sub:S=>S.framed==='yes'?'Measure the framing as it is now.':'Give rough targets. The planner nudges them to land on grout lines and whole tiles.',fields:[
+    {t:'num',id:'rW',label:'Rough opening width',step:0.125,min:2,max:96,show:S=>S.framed==='yes'},
+    {t:'num',id:'rH',label:'Rough opening height',step:0.125,min:2,max:120,show:S=>S.framed==='yes'},
+    {t:'num',id:'rSill',label:'Floor to rough sill',step:0.125,min:0,max:200,show:S=>S.framed==='yes'},
+    {t:'num',id:'rLeft',label:'Left corner to opening',hint:'To the left side of the framing',step:0.125,min:0,max:240,show:S=>S.framed==='yes'},
+    {t:'choice',id:'studs',label:'Framing',opts:[['free','I can add blocking anywhere'],['bay','It must fit an existing stud bay']],show:S=>S.framed!=='yes'},
+    {t:'choice',id:'studOC',label:'Stud spacing',opts:[[16,'16″ on center'],[24,'24″ on center']],show:S=>S.framed!=='yes'&&S.studs==='bay'},
+    {t:'num',id:'bayL',label:'Left corner to the bay',hint:'To the face of the stud on the bay’s left side',step:0.125,min:0,max:240,show:S=>S.framed!=='yes'&&S.studs==='bay'},
+    {t:'info',key:'bay',text:S=>`The bay is ${fmt(S.studOC-1.5)} wide between studs, so the finished width will be ${fmt(S.studOC-1.5-2*bu(S))}.`,show:S=>S.framed!=='yes'&&S.studs==='bay'},
+    {t:'choice',id:'nPreset',label:'Finished size, about',hint:'Width × height inside the tile',opts:[['12x12','12 × 12'],['12x24','12 × 24'],['14x24','14 × 24'],['24x12','24 wide × 12'],['custom','Custom']],
+      on:v=>{if(v!=='custom'){const [a,b]=v.split('x').map(Number);S.nW=a;S.nH=b;}},show:S=>S.framed!=='yes'},
+    {t:'num',id:'nW',label:'Finished width',step:0.25,min:4,max:72,show:S=>S.framed!=='yes'&&S.nPreset==='custom'&&S.studs!=='bay'},
+    {t:'num',id:'nH',label:'Finished height',step:0.25,min:4,max:72,show:S=>S.framed!=='yes'&&S.nPreset==='custom'},
+    {t:'num',id:'nSill',label:'Floor to bottom of niche, about',hint:'Finished height. It moves to the nearest grout line.',step:0.5,min:6,max:200,show:S=>S.framed!=='yes'},
+    {t:'choice',id:'nPos',label:'Center the niche on',opts:[['wall','The wall'],['tub','The tub',null,S=>isTub(S)&&S.tubPos!=='full'],['custom','Set the left side']],show:S=>S.framed!=='yes'&&S.studs!=='bay'},
+    {t:'num',id:'nLeft',label:'Left corner to opening',hint:'To the left side of the rough framing',step:0.125,min:0,max:240,show:S=>S.framed!=='yes'&&S.studs!=='bay'&&S.nPos==='custom'}]},
+  {id:'extras',skip:S=>isPlain(S)&&S.edge==='none',title:S=>isPlain(S)?'Bullnose edge':'Shelf and bullnose',sub:S=>isPlain(S)?'Size of the bullnose tile on the outside corner.':'Inside the niche, tile is laid out on its own, centered side to side and starting full on the sill.',fields:[
+    {t:'choice',id:'shelves',nicheOnly:true,label:'Shelves',opts:[[0,'None'],[1,'1 shelf'],[2,'2 shelves']]},
+    {t:'choice',id:'sillType',nicheOnly:true,label:'Niche sill',opts:[['tile','Tile, same as the walls'],['marble','Marble or stone piece']]},
+    {t:'num',id:'sillT',nicheOnly:true,label:'Sill thickness',step:0.0625,min:0.25,max:2,show:S=>S.sillType==='marble'},
+    {t:'num',id:'sillProj',nicheOnly:true,label:'Projects past field tile',step:0.125,min:0,max:3,show:S=>S.sillType==='marble'},
+    {t:'info',key:'sill',nicheOnly:true,text:S=>`The field tile stops one grout joint below the sill so the joint lines up${S.shelves>0?'. Shelves use the same marble and thickness':''}.`,show:S=>S.sillType==='marble'},
+    {t:'num',id:'shelfT',nicheOnly:true,label:'Shelf thickness',step:0.0625,min:0.125,max:3,show:S=>S.shelves>0&&S.sillType!=='marble'},
+    {t:'choice',id:'frameOn',nicheOnly:true,label:'Bullnose border around the niche',opts:[['no','No'],['yes','Yes']]},
+    {t:'num',id:'frameW',label:'Bullnose tile height',hint:S=>(S.frameOn==='yes'&&S.edge!=='none'?'Used for the niche border and the corner edge. ':'')+'Length matches the field tile.',step:0.125,min:0.25,max:12,show:S=>S.frameOn==='yes'||S.edge!=='none'}]},
+  {id:'results',title:'Your layout',fields:[]}
+];
+const ADJ=[
+  {t:'choice',id:'center',label:'Center the field tile on',opts:[['niche','The niche',null,S=>!isPlain(S)],['wall','The wall'],['tub','The tub',null,S=>isTub(S)&&S.tubPos!=='full'],['left','Full tile at left corner'],['right','Full tile at right corner']]},
+  STEPS[2].fields[5],STEPS[2].fields[4],STEPS[1].fields.find(f=>f.id==='edge'),STEPS[5].fields.find(f=>f.id==='frameW')];
+const FM={},INFO={};
+for(const st of STEPS) for(const fd of st.fields){ if(fd.id) FM[fd.id]=fd; if(fd.key) INFO[fd.key]=fd; }
+FM.center=ADJ[0];
+
+/* ---------- state ---------- */
+const $=id=>document.getElementById(id);
+let S=Object.assign({},DEF),cur=0,ret=false,optIdx=0,adjH=0,adjS=0,adjHin=0,adjSin=0,lastR=null,cache={k:null,res:[]},lastSheet=[];
+try{const s=JSON.parse(localStorage.getItem('nichePlanner1')||'null');
+  if(s&&s.S){for(const k in DEF) if(typeof s.S[k]===typeof DEF[k]) S[k]=s.S[k]; if(s.cur>=0&&s.cur<STEPS.length) cur=s.cur|0;}
+  if(s&&s.S&&s.S.widthRef===undefined) S.widthRef='finished';
+  if(s&&s.IN) for(const k in IN0) if(typeof s.IN[k]===typeof IN0[k]) IN[k]=s.IN[k];
+  if(!s||!s.IN||s.IN.shelfV!==2) IN.shelfPos='center';}catch(e){}
+if(!isPlain(S)&&!S.framed) cur=0;
+while(cur>0&&STEPS[cur].skip&&STEPS[cur].skip(S)) cur--;
+function save(){try{localStorage.setItem('nichePlanner1',JSON.stringify({S,cur,IN}));}catch(e){}}
+const lab=x=>typeof x==='function'?x(S):x;
+
+function fieldHTML(fd){
+  if(fd.nicheOnly&&isPlain(S)) return '';
+  if(fd.show&&!fd.show(S)) return '';
+  if(fd.t==='num') return `<div class="field"><label for="${fd.id}">${lab(fd.label)}</label><div class="stepper">`+
+    `<button type="button" data-nudge="${fd.id}" data-dir="-1" aria-label="Decrease ${lab(fd.label)}">&minus;</button>`+
+    `<input id="${fd.id}" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="${fmt(S[fd.id],false)}">`+
+    `<button type="button" data-nudge="${fd.id}" data-dir="1" aria-label="Increase ${lab(fd.label)}">+</button></div>`+
+    (fd.hint?`<small>${lab(fd.hint)}</small>`:'')+`</div>`;
+  if(fd.t==='choice') return `<div class="field wide">${fd.label?`<span class="lab" id="l-${fd.id}">${lab(fd.label)}</span>`:''}`+
+    `<div class="chips${fd.big?' big':''}" role="radiogroup"${fd.label?` aria-labelledby="l-${fd.id}"`:''}>`+
+    fd.opts.map((o,i)=>(o[3]&&!o[3](S))?'':`<button type="button" role="radio" aria-checked="${S[fd.id]===o[0]}" data-choice="${fd.id}" data-i="${i}"><b>${o[1]}</b>${o[2]?`<span>${o[2]}</span>`:''}</button>`).join('')+
+    `</div>${fd.hint?`<small>${lab(fd.hint)}</small>`:''}</div>`;
+  if(fd.t==='text') return `<div class="field wide"><label for="${fd.id}">${lab(fd.label)}</label><input class="txt" id="${fd.id}" type="text" autocomplete="off" value="${esc(S[fd.id]||'')}">${fd.hint?`<small>${lab(fd.hint)}</small>`:''}</div>`;
+  if(fd.t==='check') return `<label class="check wide"><input type="checkbox" id="${fd.id}"${S[fd.id]?' checked':''}> ${lab(fd.label)}</label>`;
+  if(fd.t==='info') return `<p class="note wide" data-info="${fd.key}">${fd.text(S)}</p>`;
+  return '';
+}
+
+function render(){
+  if(S.sillType==='marble') S.shelfT=S.sillT;
+  const st=STEPS[cur],last=STEPS.length-1;
+  $('stepLabel').textContent=cur<last?`Step ${cur+1} of ${last}`:'Your layout';
+  $('barFill').style.width=(cur/last*100)+'%';
+  if(st.id==='results') renderResults(false);
+  else{
+    $('view').innerHTML=`<section class="card step"><div><h2 class="title">${lab(st.title)}</h2>${st.sub?`<p class="sub">${lab(st.sub)}</p>`:''}</div>`+
+      (st.preview?'<svg id="pv" role="img" aria-label="Sketch of the wall and tub"></svg>':'')+
+      `<div class="fields">${st.fields.map(fieldHTML).join('')}</div>`+
+      (st.id==='start'?`<div data-jobs data-mode="open">${jobsHTML('open')}</div>`:'')+`</section>`;
+    if(st.preview) draw($('pv'),S,null);
+  }
+  $('back').hidden=cur===0;
+  const nx=$('next');
+  nx.hidden=st.id==='results';
+  nx.disabled=st.id==='start'&&!isPlain(S)&&!S.framed;
+  nx.textContent=(ret||cur===last-1)?'See layout':'Next';
+  save();
+}
+function live(){
+  if(S.sillType==='marble') S.shelfT=S.sillT;
+  if($('pv')) draw($('pv'),S,null);
+  document.querySelectorAll('[data-info]').forEach(n=>{n.textContent=INFO[n.dataset.info].text(S);});
+  save();
+}
+
+/* ---------- results ---------- */
+const PILL={full:'Full tile',ok:'OK',warn:'Small',notch:'Notched',bad:'Sliver'};
+function worstOf(items){let w='full';for(const i of items) w=worse(w,i[2]==='notch'?'ok':i[2]);return w;}
+function renderResults(keep){const S0=S;S=tileS(S0);try{return renderResultsIn(keep);}finally{S=S0;}}
+function renderResultsIn(keep){
+  const k=JSON.stringify(S);
+  if(cache.k!==k){cache={k,res:solve(S)}; adjH=0; adjS=0; adjHin=0; adjSin=0; if(!keep) optIdx=0;}
+  const res=cache.res; if(optIdx>=res.length) optIdx=0;
+  if(!res.length){
+    $('view').innerHTML=`<div class="results"><div class="col"><section class="card"><h2>No layout fits</h2><p>The niche doesn’t fit on this wall with these sizes. Check the wall height, the niche size and where it sits, then try again.</p></section></div><div class="col">${answersHTML()}</div></div>`;
+    return;
+  }
+  const r0=res[optIdx]; let r=r0;
+  if(!r0.plain){r=adjustOpt(S,r0,adjH,adjS); if(!r){adjH=0;adjS=0;adjHin=0;adjSin=0;r=r0;}
+  const ixb=interiorX(S,r.h.L,r.h.w);
+  r=Object.assign({},r,{int:interiorD(S,r.hF,r.sF,r.G),h:Object.assign({},r.h,{ix:ixb.ix,inMin:ixb.mn})});} lastR=r;
+  const PL=!!r.plain; if(PL&&IN.sheet==='a2') IN.sheet='a1';
+  const items=PL?cutsPlain(S,r):cutsFor(S,r),sheet=PL?sheetPlainRows(S,r):sheetFor(S,r),fr=PL?framingPlain(S):framingFor(S,r),frRows=PL?framingRowsPlain(S,fr):framingRows(S,fr); lastSheet=sheet.concat([['FRAMING','']],frRows);
+  const isF=IN.view==='frame',isP=IN.view==='present',isD=IN.view==='draw';
+  const fHead=PL?`Wall framing · ${fr.studs.length} studs`:`Niche blocked on all four sides${fr.cripples.length?` · ${fr.cripples.length} cripple${fr.cripples.length>1?'s':''}`:''}`;
+  const fChips=(k,label,opts)=>`<div class="field wide"><span class="lab" id="lf-${k}">${label}</span><div class="chips" role="radiogroup" aria-labelledby="lf-${k}">`+
+    opts.map(([v,l])=>`<button type="button" role="radio" aria-checked="${IN[k]===v}" data-in="${k}" data-v="${v}">${l}</button>`).join('')+`</div></div>`;
+  const frameExtra=isF?`<dl class="sheet">${frRows.map(([a,b,hl])=>`<div${hl?' class="hl"':''}><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`+
+    `<div class="fields">${PL?'':fChips('sides','Niche sides',[['full','Full-height studs'],['block','Blocks between sill and head']])}${fr.bayMode?'':fChips('studStart','Stud layout starts at',[['left','Left corner'],['right','Right corner']])}${PL?'':fChips('block','Blocking',[['flat','Flat, 1 1/2″'],['edge','On edge, 3 1/2″']])}</div>`:'';
+  let tune='';if(!PL){const room=courseRoom(S,r),ok=(dh,ds)=>{const a=adjustOpt(S,r0,adjH+dh,adjS+ds);if(!a)return false;const q=courseRoom(S,a);return q.below>=1&&q.above>=1;};
+  const dis=(dh,ds)=>ok(dh,ds)?'':' disabled',nm=ext(S)?'border':'niche';
+  const G=r.G,eE=ext(S),uh=mod(r.sF+r.hF+eE-G.T0,G.m),us=mod(r.sF-sillGap(S)-G.T0,G.m),hOn=uh<=G.g+TOL||uh>=G.m-TOL,sOn=us<=G.g+TOL||us>=G.m-TOL;
+  const okIn=(hi,si)=>{const a=adjustOpt(S,r0,adjH,adjS,adjHin+hi,adjSin+si);if(!a)return false;const q=courseRoom(S,a);return q.below>=1&&q.above>=1;};
+  const sb=(lab,hi,si)=>`<button class="btn sm" type="button" data-snap="${hi},${si}"${okIn(hi,si)?'':' disabled'}>${lab}</button>`;
+  const hd=uh-G.g,hu=G.m-uh+G.g,sd=us,su=G.m-us;
+  const snapHTML=(hOn&&sOn)?`<p class="note">The ${nm} sill and head both land on grout lines.</p>`:
+    `<div class="snap">${hOn?'':`<div class="tune"><span class="lab">Head is ${fmt(Math.min(hd,hu))} off a grout line</span>${sb('Lower head '+fmt(hd),-hd,0)}<b></b>${sb('Raise head '+fmt(hu),hu,0)}</div>`}`+
+    `${sOn?'':`<div class="tune"><span class="lab">Sill is ${fmt(Math.min(sd,su))} off a grout line</span>${sb('Lower sill '+fmt(sd),0,-sd)}<b></b>${sb('Raise sill '+fmt(su),0,su)}</div>`}</div>`;
+  tune=`<section class="card"><div class="row-between"><h2>Fine-tune the niche</h2>${adjH||adjS||adjHin||adjSin?'<button class="btn ghost sm" type="button" data-adj="reset">Reset</button>':''}</div>${snapHTML}
+    <div class="tune"><span class="lab">Height</span><button class="btn ghost sm" type="button" data-adj="h,-1"${dis(-1,0)}>− 1 course</button><b>${fmt(r.hF)} finished</b><button class="btn ghost sm" type="button" data-adj="h,1"${dis(1,0)}>+ 1 course</button></div>
+    <div class="tune"><span class="lab">Position</span><button class="btn ghost sm" type="button" data-adj="s,-1"${dis(0,-1)}>Down 1 course</button><b>Rough sill ${fmt(r.sF-bu(S))}</b><button class="btn ghost sm" type="button" data-adj="s,1"${dis(0,1)}>Up 1 course</button></div>
+    <p class="note">Full courses below the ${nm}: ${room.below} · above: ${room.above}. Each step moves the edges a whole course so they stay on grout lines, and keeps at least one full course above and below.</p></section>`;}
+  const nBad=items.filter(i=>i[2]==='bad').length,nWarn=items.filter(i=>i[2]==='warn').length;
+  const head=nBad||nWarn?[nBad?nBad+(nBad>1?' slivers':' sliver'):'',nWarn?nWarn+(nWarn>1?' small cuts':' small cut'):''].filter(Boolean).join(', '):'No slivers anywhere';
+  const B=bu(S);
+  const opts=res.map((o,i)=>{const w=worstOf(o.plain?cutsPlain(S,o):cutsFor(S,o));
+    return `<button type="button" class="opt" data-opt="${i}" aria-pressed="${i===optIdx}"><small>Option ${i+1}</small><b>${optTitle(S,o)}</b>`+
+      `<span>${o.plain?`First course ${o.p<S.tileH-EPS?fmt(o.p):'full'} · top ${Math.min(o.cl,o.cr)<S.tileH-EPS?fmt(Math.min(o.cl,o.cr)):'full'}`:`Finished ${fmt(o.h.w)} × ${fmt(o.hF)} · rough sill ${fmt(o.sF-B)}`}</span><i class="dot ${w==='bad'?'bad':w==='warn'?'warn':''}" aria-label="${w==='bad'?'Has slivers':w==='warn'?'Has small cuts':'Clean'}"></i></button>`;}).join('');
+  $('view').innerHTML=`<div class="results">
+    <div class="col">
+      <section class="card"><h2>${res.length>1?'Best options':'Best option'}</h2><div class="opts">${opts}</div></section>
+      <section class="card">
+        <div class="seg" role="radiogroup" aria-label="Drawing">
+          <button type="button" role="radio" aria-checked="${!isF&&!isP&&!isD}" data-in="view" data-v="tile">Tile</button>
+          <button type="button" role="radio" aria-checked="${isP}" data-in="view" data-v="present">Presentation</button>
+          <button type="button" role="radio" aria-checked="${isF}" data-in="view" data-v="frame">Framing</button>
+          <button type="button" role="radio" aria-checked="${isD}" data-in="view" data-v="draw">Drawings</button></div>
+        <div class="headline">${isD?`<span>${IN.sheet==='a2'?'Sheet A-2 · Niche section':'Sheet A-1 · Construction drawings'}</span>`:isP?`<span>Presentation view</span>`:isF?`<i class="dot"></i><span>${fHead}</span>`:`<i class="dot ${nBad?'bad':nWarn?'warn':''}"></i><span>${head}</span>`}</div>
+        <svg id="svg" role="img" aria-label="${isD?'Construction sheet with framing and tile elevations':isF?'Framing elevation with studs, plates and niche blocking':'Wall elevation with tile layout and niche'}"></svg>
+        ${isD?`<div class="fields">${PL?'':fChips('sheet','Sheet',[['a1','A-1 Elevations'],['a2','A-2 Niche section']])}</div><div class="acts"><button class="btn" type="button" id="dlSheet">Download sheet (SVG)</button></div><p class="note" id="dlMsg">The download opens in any browser full size, to zoom or print at 11×17.</p>`:isP?`<p class="note">Black and white for sharing with clients. Cut colors, the rough opening and the ledger line are hidden.</p><div class="fields">${fChips('presIn','Inside the niche',[['hide','Blank back wall'],['show','Show tile']])}</div>`:isF?`<div class="legend"><span><i style="background:var(--wood)"></i>Studs and plates</span><span><i style="background:var(--block)"></i>Niche blocking</span>
+          ${PL?'':'<span><i class="ln"></i>Rough opening</span>'}${S.base==='tub'?'<span><i class="ln mut"></i>Tub</span>':''}</div>${frameExtra}`
+        :`<div class="legend"><span><i style="background:var(--tile)"></i>Full</span><span><i style="background:var(--tile-cut)"></i>Cut</span>
+          <span><i style="background:var(--warn-fill)"></i>Small cut</span><span><i style="background:var(--bad-fill)"></i>Sliver</span>
+          ${ext(S)||S.edge!=='none'?'<span><i style="background:var(--border-tile)"></i>Bullnose</span>':''}
+          ${PL?'':'<span><i class="ln"></i>Niche center line</span>'}<span><i class="ln acc"></i>Ledger line</span></div>`}
+      </section>
+      ${tune}
+      ${PL?'':inPanel(r)}
+    </div>
+    <div class="col">
+      <section class="card"><div class="row-between"><h2>${PL?'Layout sheet':'Rough-in sheet'}</h2><button class="btn ghost sm" id="copy" type="button">Copy</button></div>
+        <dl class="sheet">${sheet.map(([a,b,hl])=>`<div${hl?' class="hl"':''}><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl></section>
+      <section class="card"><h2>Cuts</h2><ul class="res">${items.map(([l,v,st,pl])=>`<li class="s-${st}"><span>${l}</span><span class="res-v">${v}</span><span class="pill">${pl||PILL[st]}</span></li>`).join('')}</ul></section>
+      <section class="card"><h2>Adjust</h2><div class="fields">${ADJ.map(fieldHTML).join('')}</div></section>
+      ${savedHTML()}
+      ${answersHTML()}
+      <section class="card"><details><summary>How this works</summary><ul>
+        <li>It tries every starting height for the first course in 1/16″ steps, sets the niche sill on a grout line, then sizes the niche so the head and the inside land on whole tiles where it can.</li>
+        <li>Rough numbers are framing. Finished numbers are inside the tile, smaller by the build-up on each face.</li>
+        <li>The ledger line is the bottom of the 2nd course. Set the first course last, cut to fit the tub.</li>
+        <li>A small leftover inside a niche bay, up to about two grout joints, is treated as caulk joint.</li>
+        <li>Check the tub and ceiling with a level before cutting. Enter both ceiling heights if they differ.</li></ul></details></section>
+    </div></div>`;
+  if(isD) drawSheet($('svg'),S,r,fr); else if(isF) drawFraming($('svg'),S,r,fr); else draw($('svg'),S,r);
+  $('svg').classList.toggle('mono',isP);
+  $('svg').classList.toggle('hidein',isP&&IN.presIn!=='show');
+}
+/* ---------- construction sheet ---------- */
+function capture(fn){const o={vb:'',h:'',setAttribute(k,v){if(k==='viewBox')this.vb=v;},set innerHTML(v){this.h=v;}};fn(o);return o;}
+const f3=n=>Math.round(n*1000)/1000;
+function dimsH(c,xs,y){
+  const Y=v=>c.H-v,fs=c.fs,tk=fs*0.3,sz=fs*0.8,sw=f3(fs*0.05);let o=`<line class="dl" x1="${f3(xs[0])}" y1="${f3(Y(y))}" x2="${f3(xs[xs.length-1])}" y2="${f3(Y(y))}" stroke-width="${sw}"/>`;
+  for(const x of xs) o+=`<line class="dl" x1="${f3(x)}" y1="${f3(Y(y)-tk*1.6)}" x2="${f3(x)}" y2="${f3(Y(y)+tk*0.8)}" stroke-width="${sw}"/><line class="dl" x1="${f3(x-tk)}" y1="${f3(Y(y)+tk)}" x2="${f3(x+tk)}" y2="${f3(Y(y)-tk)}" stroke-width="${f3(fs*0.09)}"/>`;
+  let flip=0;
+  for(let i=0;i<xs.length-1;i++){const s=xs[i+1]-xs[i];if(s<0.05)continue;const lab=fmt(s),fits=s>lab.length*sz*0.5+fs*0.3;
+    const ty=fits?y+fs*0.25:y+fs*0.25+(flip++%2?0:sz*1.1);
+    o+=`<text class="dt" x="${f3((xs[i]+xs[i+1])/2)}" y="${f3(Y(ty))}" font-size="${f3(sz)}" text-anchor="middle">${lab}</text>`;}
+  return o;
+}
+function dimsV(c,ys,x){
+  const Y=v=>c.H-v,fs=c.fs,tk=fs*0.3,sz=fs*0.8,sw=f3(fs*0.05);let o=`<line class="dl" x1="${f3(x)}" y1="${f3(Y(ys[0]))}" x2="${f3(x)}" y2="${f3(Y(ys[ys.length-1]))}" stroke-width="${sw}"/>`;
+  for(const y of ys) o+=`<line class="dl" x1="${f3(x-tk*0.8)}" y1="${f3(Y(y))}" x2="${f3(x+tk*1.6)}" y2="${f3(Y(y))}" stroke-width="${sw}"/><line class="dl" x1="${f3(x-tk)}" y1="${f3(Y(y)+tk)}" x2="${f3(x+tk)}" y2="${f3(Y(y)-tk)}" stroke-width="${f3(fs*0.09)}"/>`;
+  let flip=0;
+  for(let i=0;i<ys.length-1;i++){const s=ys[i+1]-ys[i];if(s<0.05)continue;const lab=fmt(s),fits=s>lab.length*sz*0.5+fs*0.3;
+    const tx=fits?x-fs*0.3:x-fs*0.3-(flip++%2?0:sz*1.1),ty=Y((ys[i]+ys[i+1])/2);
+    o+=`<text class="dt" x="${f3(tx)}" y="${f3(ty)}" font-size="${f3(sz)}" text-anchor="middle" transform="rotate(-90 ${f3(tx)} ${f3(ty)})">${lab}</text>`;}
+  return o;
+}
+function wrapLines(t,n){const out=[];let line='';for(const w of t.split(' ')){if((line+' '+w).trim().length>n){out.push(line.trim());line=w;}else line+=' '+w;}if(line.trim())out.push(line.trim());return out;}
+const SHEET_CSS=`.sheet{font-family:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;background:#fff}
+.sheet text{fill:#000;stroke:none;font-weight:600}
+.sheet .el text:not(.dt){display:none}
+.sheet .el .dim,.sheet .el .dimx,.sheet .tileel rect.constr{display:none}
+.sheet [fill^="var("]{fill:#fff}
+.sheet [stroke^="var("]{stroke:#000}
+.sheet [fill="var(--accent)"]{fill:#333}
+.sheet [fill="var(--bad-fill)"]{fill:#fff}
+.sheet rect[class^="p-"]{fill:#fff;stroke:#000;stroke-width:.6px;vector-effect:non-scaling-stroke}
+.sheet .wood,.sheet .filler{fill:#fff;stroke:#000;stroke-width:.8px;vector-effect:non-scaling-stroke}
+.sheet .block{fill:#c8c8c8;stroke:#000;stroke-width:.8px;vector-effect:non-scaling-stroke}
+.sheet .marble{fill:#f3f3f3;stroke:#000;stroke-width:.8px;vector-effect:non-scaling-stroke}
+.sheet .tub{fill:#fff;stroke:#000;stroke-width:1.2px;vector-effect:non-scaling-stroke}
+.sheet line.constr{stroke:#000}
+.sheet .dl{stroke:#000}
+.sheet .hair{stroke:#000;stroke-width:1px;fill:none}
+.sheet .heavy{stroke:#000;stroke-width:2.5px;fill:none}`;
+function sheetSVG(S,r,fr){
+  const B=bu(S),h=r.h,W=S.wallW,FW=S._frW||W,cL=S.ceilL,cR=cRv(S),H=Math.max(cL,cR),SW=fr.SW,bt=fr.bt,tub=S.base==='tub';
+  const nest=(cap,x,y,w,hh,cls)=>`<svg class="el ${cls}" x="${x}" y="${y}" width="${w}" height="${hh}" viewBox="${cap.vb}" preserveAspectRatio="xMidYMid meet">${cap.h}</svg>`;
+  // 1 framing
+  const fc=capture(o=>drawFraming(o,S,r,fr)),ffs=Math.max(W,H)*0.034,cF={H,fs:ffs};
+  let fx=dimsH(cF,[0,fr.xL,fr.xR,FW],-ffs*1.4)+dimsH(cF,[0,FW],-ffs*2.9);
+  fx+=dimsV(cF,[0,fr.ys,fr.yh,cR],FW+ffs*1.5)+dimsV(cF,[0,cR],FW+ffs*3.1);
+  if(!S.ceilLevel){fx+=dimsV(cF,[0,cL],-ffs*1.5);}
+  const sr=slopeRun(S);if(sr<W-0.05){const xb=S.ceilL<cR?sr:FW-sr,top=H+ffs*1.2;fx+=dimsH(cF,[0,xb,FW],top);}
+  fc.h+=fx;
+  // 2 tile
+  const tc=capture(o=>draw(o,S,r)),cT={H,fs:ffs},G=r.G;
+  const hs=[0];if(tub)hs.push(S.tubH);hs.push(G.T0+G.g,r.sF,r.sF+r.hF,cR);
+  let tx=dimsH(cT,[0,h.L,h.L+h.w,W],-ffs*1.4)+dimsH(cT,[0,W],-ffs*2.9)+dimsV(cT,hs.sort((a,b)=>a-b),W+ffs*1.5)+dimsV(cT,[0,cR],W+ffs*3.1);
+  if(!S.ceilLevel){tx+=dimsV(cT,[0,cL],-ffs*1.5);}
+  if(sr<W-0.05){const xb=S.ceilL<cR?sr:W-sr;tx+=dimsH(cT,[0,xb,W],H+ffs*1.2);}
+  tc.h+=tx;
+  // 3 niche detail
+  const pad=7,x0=fr.xL-SW-pad,x1=fr.xR+SW+pad,y0=fr.ys-bt-pad,y1=fr.yh+bt+pad,dw=x1-x0,dh=y1-y0,dfs=Math.max(dw,dh)*0.045,Yd=v=>y1-v;
+  const R=(x,y,w,hh,cls,ex)=>`<rect${cls?` class="${cls}"`:''} x="${f3(x)}" y="${f3(Yd(y+hh))}" width="${f3(Math.max(w,0))}" height="${f3(Math.max(hh,0))}"${ex?' '+ex:''}/>`;
+  let nd='';
+  for(const sd of fr.sides) nd+=sd.full?R(sd.x,y0,SW,dh,'wood'):R(sd.x,fr.ys,SW,fr.yh-fr.ys,'block');
+  nd+=R(fr.bx1,fr.ys-bt,fr.bx2-fr.bx1,bt,'block')+R(fr.bx1,fr.yh,fr.bx2-fr.bx1,bt,'block');
+  nd+=R(fr.xL,fr.ys,fr.xR-fr.xL,fr.yh-fr.ys,null,`fill="none" stroke="#000" stroke-width="${f3(dfs*0.06)}" stroke-dasharray="${f3(dfs*0.3)} ${f3(dfs*0.2)}"`);
+  const e=ext(S),L=h.L,fw=h.w,sF=r.sF,hF=r.hF;
+  if(e){const bw=S.frameW;nd+=R(L-bw,sF-bw,fw+2*bw,hF+2*bw,null,`fill="#fff" stroke="#000" stroke-width="${f3(dfs*0.05)}"`);}
+  nd+=R(L,sF,fw,hF,null,`fill="#fff" stroke="#000" stroke-width="${f3(dfs*0.1)}"`);
+  for(const s of r.int.shelves) nd+=R(L,sF+s,fw,S.shelfT,null,marble(S)?'fill="#eee" stroke="#000" stroke-width="'+f3(dfs*0.04)+'"':'fill="#333"');
+  if(marble(S)) nd+=R(L,sF-S.sillT,fw,S.sillT,null,'fill="#eee" stroke="#000" stroke-width="'+f3(dfs*0.05)+'"');
+  const cD={H:y1,fs:dfs};
+  nd+=dimsH(cD,[fr.xL,fr.xR],fr.ys-bt-dfs*1.6)+dimsH(cD,[L,L+fw],fr.yh+bt+dfs*1.2);
+  nd+=dimsV(cD,[fr.ys,fr.yh],fr.xL-SW-dfs*1.2);
+  const sy=[sF];for(const s of r.int.shelves){sy.push(sF+s,sF+s+S.shelfT);}sy.push(sF+hF);
+  nd+=dimsV(cD,sy,fr.xR+SW+dfs*1.6);
+  const dvb=`${f3(x0-dfs*1.5)} ${f3(-dfs*1.5)} ${f3(dw+dfs*4)} ${f3(dh+dfs*3)}`;
+  // sheet frame
+  const T=(x,y,s,sz,ex)=>`<text x="${x}" y="${y}" font-size="${sz}"${ex?' '+ex:''}>${s}</text>`;
+  const title=(n,x,y,t,sub)=>`<circle cx="${x+16}" cy="${y-6}" r="16" class="hair" fill="none"/>`+T(x+16,y,n,17,'text-anchor="middle"')+`<line x1="${x+40}" y1="${y+6}" x2="${x+400}" y2="${y+6}" class="hair"/>`+T(x+42,y,t,19)+T(x+42,y+26,sub,13,'style="font-weight:500"');
+  const jobName=esc(curJob?curJob.name:'Tub wall with niche'),d=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  const notes=[
+    'Dimensions are from the finished floor and the left inside corner unless noted. Verify in field before cutting.',
+    `Rough opening is framing. Finished opening is smaller by ${fmt(B)} per face (board, thinset, tile).`,
+    `Set a ledger with its top at ${fmt(G.T0+G.g)} above floor (bottom of 2nd course). First course ${r.p<S.tileH-EPS?'cut to '+fmt(r.p):'full tile'}.`,
+    `Field tile ${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout<0.05?'butted joint':fmt(S.grout)+' joint'}, ${PATN[S.pattern]}.`,
+    `Niche sides: ${fr.full?'full-height studs':'blocks between sill and head'}. Blocking 2×4 laid ${IN.block==='edge'?'on edge':'flat'}.`,
+  ];
+  if(r.int.over&&r.int.shelves.length) notes.push(`Shelf ${r.int.shelves.length>1?'positions are evenly spaced':'is centered'} in the niche. Tile runs behind it; trim in the field.`);
+  if(marble(S)) notes.push(`${fmt(S.sillT)} marble sill projecting ${fmt(S.sillProj)} past the field tile; field tile stops one joint below it.${r.int.shelves.length?' Shelf is matching marble.':''}`);
+  if(ext(S)) notes.push(`${fmt(S.frameW)} bullnose border around the niche${marble(S)?', sides and head':''}.`);
+  if(S.edge!=='none') notes.push(`${fmt(S.frameW)} bullnose on the ${S.edge} outside corner.`);
+  notes.push('Check tub for level and walls for plumb before layout.');
+  let ny=578,nt='';
+  notes.forEach((n,i)=>{const ls=wrapLines(n,58);ls.forEach((l,j)=>{nt+=T(1218,ny,(j?'    ':(i+1)+'. ')+esc(l),13,'style="font-weight:500"');ny+=17;});ny+=4;});
+  const tb=[['PROJECT',jobName],['SHEET','Tub wall: niche framing and tile'],['DATE',d],['DRAWN','Niche Rough-In Planner']];
+  let tbs=`<rect x="1200" y="880" width="460" height="180" class="heavy" fill="none"/><line x1="1580" y1="880" x2="1580" y2="1060" class="hair"/>`;
+  tb.forEach(([k,v],i)=>{const y=880+i*36;if(i)tbs+=`<line x1="1200" y1="${y}" x2="1580" y2="${y}" class="hair"/>`;tbs+=T(1210,y+14,k,10,'style="font-weight:500"')+T(1210,y+31,v,15);});
+  tbs+=`<line x1="1200" y1="1024" x2="1580" y2="1024" class="hair"/>`+T(1210,1046,'Dimensions govern. Do not scale.',12,'style="font-weight:500"');
+  tbs+=T(1620,940,'SHEET',10,'text-anchor="middle" style="font-weight:500"')+T(1620,990,'A-1',34,'text-anchor="middle"');
+  return `<style>${SHEET_CSS}</style><rect x="0" y="0" width="1700" height="1100" fill="#fff"/><rect x="20" y="20" width="1660" height="1060" class="heavy" fill="none"/>`+
+    nest(fc,40,40,560,800,'frameel')+title('1',60,880,'FRAMING ELEVATION',`${fmt(fr.OC)} o.c. studs · single top plate · niche blocking`)+
+    nest(tc,620,40,560,800,'tileel')+title('2',640,880,'TILE ELEVATION','Finished niche and layout line dimensions')+
+    `<svg class="el" x="1200" y="40" width="460" height="420" viewBox="${dvb}" preserveAspectRatio="xMidYMid meet">${nd}</svg>`+
+    title('3',1210,500,'NICHE DETAIL',`Rough ${fmt(fr.xR-fr.xL)} × ${fmt(fr.yh-fr.ys)} · finished ${fmt(fw)} × ${fmt(hF)}`)+
+    T(1210,556,'NOTES',15)+nt+tbs;
+}
+/* ---------- niche section (sheet A-2) ---------- */
+function sectionSVG(S,r,fr){
+  const D=S.studD||3.5,b=S.board,t=S.thinset,k=S.tileT,B=b+t+k,bt=fr.bt,tub=S.base==='tub',g=S.grout,th=S.tileH;
+  const ys=fr.ys,yh=fr.yh,sF=r.sF,fh=r.sF+r.hF,e=ext(S),fw=S.frameW,G=r.G,shel=r.int.shelves,sT=S.shelfT;
+  const ceil=Math.min(S.ceilL,cRv(S));
+  // vertical zones kept at full scale; the rest is broken out
+  let segs=[];
+  if(tub) segs.push([S.tubH-1.3,S.tubH+2]);
+  segs.push([ys-bt-2.6,sF+1.8]);
+  for(const s of shel) segs.push([sF+s-1.5,sF+s+sT+1.5]);
+  segs.push([fh-1.8,Math.min(yh+bt+1.5,ceil)]);
+  segs.sort((a,b2)=>a[0]-b2[0]);
+  const m=[];for(const sg of segs){const l=m[m.length-1];if(l&&sg[0]<=l[1]+2)l[1]=Math.max(l[1],sg[1]);else m.push(sg.slice());}
+  segs=m;
+  const GAP=1.0,desc=segs.slice().reverse(),off=[];let acc=0;
+  desc.forEach(sg=>{off.push(acc);acc+=sg[1]-sg[0]+GAP;});
+  const Ht=acc-GAP;
+  const mapY=y=>{for(let i=0;i<desc.length;i++){const sg=desc[i];if(y>=sg[0]-1e-6&&y<=sg[1]+1e-6)return off[i]+(sg[1]-y);}
+    for(let i=0;i<desc.length-1;i++){if(y<desc[i][0]&&y>desc[i+1][1])return off[i]+(desc[i][1]-desc[i][0])+GAP/2;}
+    return y>desc[0][1]?0:Ht;};
+  const R=(x0,x1,y0,y1,ex)=>{let o='';for(const sg of segs){const lo=Math.max(y0,sg[0]),hi=Math.min(y1,sg[1]);if(hi-lo>1e-4&&x1-x0>1e-4)o+=`<rect x="${f3(x0)}" y="${f3(mapY(hi))}" width="${f3(x1-x0)}" height="${f3(hi-lo)}" ${ex}/>`;}return o;};
+  const VL=(x,y0,y1,ex)=>{let o='';for(const sg of segs){const lo=Math.max(y0,sg[0]),hi=Math.min(y1,sg[1]);if(hi-lo>1e-4)o+=`<line x1="${f3(x)}" y1="${f3(mapY(hi))}" x2="${f3(x)}" y2="${f3(mapY(lo))}" ${ex}/>`;}return o;};
+  const HAT='fill="url(#secBoard)" stroke="#000" stroke-width="0.02"',THN='fill="#8a8a8a" stroke="none"',TIL='fill="#e4e4e4" stroke="#000" stroke-width="0.02"',BLK='fill="#fff" stroke="#000" stroke-width="0.03"';
+  const yLo=segs[0][0],yTop=segs[segs.length-1][1];
+  let o=`<defs><pattern id="secBoard" patternUnits="userSpaceOnUse" width="0.22" height="0.22" patternTransform="rotate(45)"><rect width="0.22" height="0.22" fill="#fff"/><line x1="0" y1="0" x2="0" y2="0.22" stroke="#000" stroke-width="0.025"/></pattern></defs>`;
+  // studs beyond (outline of the bay)
+  o+=VL(0,yLo,yTop,'stroke="#777" stroke-width="0.025"')+VL(D,yLo,ys-bt,'stroke="#777" stroke-width="0.025"')+VL(D,yh+bt,yTop,'stroke="#777" stroke-width="0.025"');
+  // blocking with an X
+  const blk=(y0,y1)=>{o+=R(0,D,y0,y1,BLK);o+=`<line x1="0" y1="${f3(mapY(y1))}" x2="${f3(D)}" y2="${f3(mapY(y0))}" stroke="#000" stroke-width="0.02"/><line x1="0" y1="${f3(mapY(y0))}" x2="${f3(D)}" y2="${f3(mapY(y1))}" stroke="#000" stroke-width="0.02"/>`;};
+  blk(ys-bt,ys); if(yh+bt<=yTop+1e-6) blk(yh,yh+bt);
+  const fBot=tub?S.tubH+0.25:yLo;
+  // tub
+  if(tub){o+=R(D,D+B+5,S.tubH-1.2,S.tubH,'fill="#fff" stroke="#000" stroke-width="0.04"')+R(D-0.12,D,S.tubH-1.2,S.tubH+1,'fill="#fff" stroke="#000" stroke-width="0.03"');}
+  // face build-up below and above the opening
+  o+=R(D,D+b,fBot,ys,HAT)+R(D,D+b,yh,yTop,HAT);
+  o+=R(D+b,D+b+t,tub?S.tubH+S.gap:yLo,ys+b,THN)+R(D+b,D+b+t,yh-b,yTop,THN);
+  // niche lining: sill, head, back
+  o+=R(0,D+b,ys,ys+b,HAT)+R(0,D+b,yh-b,yh,HAT)+R(0,b,ys+b,yh-b,HAT);
+  o+=R(b,D+b+t,ys+b,ys+b+t,THN)+R(b,D+b+t,yh-b-t,yh-b,THN)+R(b,b+t,ys+b+t,yh-b-t,THN);
+  const MAR='fill="#f3f3f3" stroke="#000" stroke-width="0.04"';
+  o+=(marble(S)?R(b+t,D+B+S.sillProj,ys+b+t,sF,MAR):R(b+t,D+b+t,ys+b+t,sF,TIL))+R(b+t,D+b+t,fh,yh-b-t,TIL);
+  // back wall tile inside the niche
+  let yb=sF; for(const bay of r.int.bays){let y=yb;bay.rows.forEach(hh=>{o+=R(b+t,B,y,y+hh,TIL);y+=hh+g;});yb+=bay.hb+(r.int.over?0:sT);}
+  // face tile courses, stopping at the bullnose border if there is one
+  const fBelow=sF-sillGap(S),fAbove=e?fh+fw+g:fh,fStart=tub?S.tubH+S.gap:yLo;
+  const i0=Math.floor((fStart-G.T0)/G.m),i1=Math.ceil((yTop+th-G.T0)/G.m);
+  for(let i=i0;i<=i1;i++){const Ti=G.T0+i*G.m,lo=Math.max(Ti-th,fStart),hi=Ti;
+    const a=[lo,Math.min(hi,fBelow)],c=[Math.max(lo,fAbove),hi];
+    if(a[1]-a[0]>0.02)o+=R(D+b+t,D+B,a[0],a[1],TIL);
+    if(c[1]-c[0]>0.02&&c[0]<yTop)o+=R(D+b+t,D+B,c[0],Math.min(c[1],yTop),TIL);}
+  if(e){o+=(marble(S)?'':R(D+b+t,D+B,sF-fw,sF,'fill="#cfcfcf" stroke="#000" stroke-width="0.03"'))+R(D+b+t,D+B,fh,fh+fw,'fill="#cfcfcf" stroke="#000" stroke-width="0.03"');}
+  // shelves
+  for(const s of shel) o+=R(b+t,D+B,sF+s,sF+s+sT,marble(S)?MAR:'fill="#bdbdbd" stroke="#000" stroke-width="0.04"');
+  // break lines
+  for(let i=0;i<desc.length-1;i++){const yc=off[i]+(desc[i][1]-desc[i][0])+GAP/2,x0=-0.6,x1=D+B+0.6,w=x1-x0;
+    o+=`<polyline points="${f3(x0)},${f3(yc)} ${f3(x0+w*0.42)},${f3(yc)} ${f3(x0+w*0.47)},${f3(yc-0.45)} ${f3(x0+w*0.53)},${f3(yc+0.45)} ${f3(x0+w*0.58)},${f3(yc)} ${f3(x1)},${f3(yc)}" fill="none" stroke="#000" stroke-width="0.03"/>`;}
+  // dimension chains on the back side
+  const fz=0.36,tk=0.16,dl='stroke="#000" stroke-width="0.025"';
+  const chain=(pts,x)=>{pts=pts.filter((v,i,a)=>i===0||v-a[i-1]>0.01);let s=`<line x1="${f3(x)}" y1="${f3(mapY(pts[0]))}" x2="${f3(x)}" y2="${f3(mapY(pts[pts.length-1]))}" ${dl}/>`;let flip=0;
+    for(const p of pts){const yy=mapY(p);s+=`<line x1="${f3(x-tk)}" y1="${f3(yy+tk)}" x2="${f3(x+tk)}" y2="${f3(yy-tk)}" stroke="#000" stroke-width="0.04"/><line x1="${f3(x)}" y1="${f3(yy)}" x2="${f3(x+0.5)}" y2="${f3(yy)}" stroke="#000" stroke-width="0.015"/>`;}
+    for(let i=0;i<pts.length-1;i++){const d=pts[i+1]-pts[i],y0=mapY(pts[i+1]),y1=mapY(pts[i]),lab=fmt(d),room=y1-y0>lab.length*fz*0.5+0.2;
+      const tx=room?x-0.18:x-0.18-(flip++%2?0:fz*1.15),ty=(y0+y1)/2;
+      s+=`<text x="${f3(tx)}" y="${f3(ty)}" font-size="${fz}" text-anchor="middle" transform="rotate(-90 ${f3(tx)} ${f3(ty)})">${lab}</text>`;}
+    return s;};
+  const pts=[];if(tub)pts.push(S.tubH);pts.push(ys);if(marble(S))pts.push(sF-S.sillT);pts.push(sF);for(const s of shel)pts.push(sF+s,sF+s+sT);pts.push(fh,yh);
+  o+=chain(pts,-1.4)+chain([ys,yh],-2.9);
+  // depth dims across the top
+  const yT=-0.9,hd=(x0,x1,y,lab)=>`<line x1="${f3(x0)}" y1="${f3(y)}" x2="${f3(x1)}" y2="${f3(y)}" ${dl}/>`+[x0,x1].map(x=>`<line x1="${f3(x-tk)}" y1="${f3(y+tk)}" x2="${f3(x+tk)}" y2="${f3(y-tk)}" stroke="#000" stroke-width="0.04"/><line x1="${f3(x)}" y1="${f3(y-0.15)}" x2="${f3(x)}" y2="${f3(0)}" stroke="#000" stroke-width="0.015"/>`).join('')+`<text x="${f3((x0+x1)/2)}" y="${f3(y-0.15)}" font-size="${fz}" text-anchor="middle">${lab}</text>`;
+  o+=hd(0,D,yT-0.9,'stud '+fmt(D))+hd(B,D+B,yT,'finished depth '+fmt(D));
+  // callouts on the face side
+  const lx=D+B+6,callouts=[];
+  const lowY=(y)=>mapY(y);
+  callouts.push([`${fmt(b)} tile board`,D+b/2,ys-1.2]);
+  callouts.push([`${fmt(t)} thinset`,D+b+t/2,ys-1.7]);
+  callouts.push([`${fmt(k)} tile`,D+b+t+k/2,ys-2.2]);
+  callouts.push([`2×4 sill block, ${IN.block==='edge'?'on edge':'flat'}`,D/2,ys-bt/2]);
+  callouts.push(marble(S)?[`${fmt(S.sillT)} marble sill, ${fmt(S.sillProj)} past tile`,D+B+S.sillProj*0.6,sF-S.sillT/2]:[`Sill: board, thinset, tile`,D*0.6,ys+b+t/2]);
+  if(marble(S)) callouts.push([`Board and thinset under sill`,D*0.4,ys+b/2]);
+  if(yh+bt<=yTop+1e-6) callouts.push([`2×4 head block`,D/2,yh+bt/2]);
+  callouts.push([`Back: board, thinset, tile`,B/2,fh-1]);
+  shel.forEach((s,i)=>callouts.push([`${fmt(sT)} ${marble(S)?'marble ':''}shelf`+(shel.length>1?` ${i+1}`:''),D*0.7,sF+s+sT/2]));
+  if(e) callouts.push([`${fmt(fw)} bullnose`,D+b+t+k/2,sF-fw/2]);
+  if(tub) callouts.push(['Tub',D+B+3,S.tubH-0.6]);
+  callouts.sort((a,b2)=>lowY(a[2])-lowY(b2[2]));
+  let lastY=-99;
+  for(const [lab,px,py] of callouts){const yy=lowY(py);let ty=Math.max(yy,lastY+fz*1.5);lastY=ty;
+    o+=`<polyline points="${f3(px)},${f3(yy)} ${f3(lx-0.6)},${f3(ty)} ${f3(lx-0.15)},${f3(ty)}" fill="none" stroke="#000" stroke-width="0.018"/><circle cx="${f3(px)}" cy="${f3(yy)}" r="0.06" fill="#000"/>`;
+    o+=`<text x="${f3(lx)}" y="${f3(ty+fz*0.35)}" font-size="${fz}">${esc(lab)}</text>`;}
+  const vb=`${f3(-4.2)} ${f3(-3)} ${f3(D+B+6+10.5)} ${f3(Ht+3.5)}`;
+  return {vb,h:o};
+}
+function sheetA2(S,r,fr){
+  const B=bu(S),D=S.studD||3.5,h=r.h,tub=S.base==='tub',sec=sectionSVG(S,r,fr);
+  const T=(x,y,s,sz,ex)=>`<text x="${x}" y="${y}" font-size="${sz}"${ex?' '+ex:''}>${s}</text>`;
+  const title=(n,x,y,t,sub)=>`<circle cx="${x+16}" cy="${y-6}" r="16" class="hair" fill="none"/>`+T(x+16,y,n,17,'text-anchor="middle"')+`<line x1="${x+40}" y1="${y+6}" x2="${x+460}" y2="${y+6}" class="hair"/>`+T(x+42,y,t,19)+T(x+42,y+26,sub,13,'style="font-weight:500"');
+  const rows=(y0,head,list)=>{let s=T(1210,y0,head,15);list.forEach(([a,v],i)=>{const y=y0+24+i*21;s+=T(1214,y,esc(a),13,'style="font-weight:500"')+T(1650,y,esc(v),13,'text-anchor="end"');});return s;};
+  const hts=[];if(tub)hts.push(['Top of tub',fmt(S.tubH)]);
+  hts.push(['Top of sill block (rough sill)',fmt(fr.ys)]);if(marble(S))hts.push(['Underside of marble sill',fmt(r.sF-S.sillT)]);hts.push(['Finished sill',fmt(r.sF)]);
+  r.int.shelves.forEach((s,i)=>hts.push([`Underside of shelf${r.int.shelves.length>1?' '+(i+1):''}`,fmt(r.sF+s)]));
+  hts.push(['Finished head',fmt(r.sF+r.hF)],['Bottom of head block (rough head)',fmt(fr.yh)],['Top of head block',fmt(fr.yh+fr.bt)]);
+  const jobName=esc(curJob?curJob.name:'Tub wall with niche'),d=new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  let tbs=`<rect x="1200" y="880" width="460" height="180" class="heavy" fill="none"/><line x1="1580" y1="880" x2="1580" y2="1060" class="hair"/>`;
+  [['PROJECT',jobName],['SHEET','Niche section'],['DATE',d],['DRAWN','Niche Rough-In Planner']].forEach(([k2,v],i)=>{const y=880+i*36;if(i)tbs+=`<line x1="1200" y1="${y}" x2="1580" y2="${y}" class="hair"/>`;tbs+=T(1210,y+14,k2,10,'style="font-weight:500"')+T(1210,y+31,v,15);});
+  tbs+=`<line x1="1200" y1="1024" x2="1580" y2="1024" class="hair"/>`+T(1210,1046,'Dimensions govern. Do not scale.',12,'style="font-weight:500"');
+  tbs+=T(1620,940,'SHEET',10,'text-anchor="middle" style="font-weight:500"')+T(1620,990,'A-2',34,'text-anchor="middle"');
+  return `<style>${SHEET_CSS}</style><rect x="0" y="0" width="1700" height="1100" fill="#fff"/><rect x="20" y="20" width="1660" height="1060" class="heavy" fill="none"/>`+
+    `<svg class="secel" x="60" y="40" width="1100" height="800" viewBox="${sec.vb}" preserveAspectRatio="xMidYMid meet">${sec.h}</svg>`+
+    title('4',80,880,'NICHE SECTION','Cut at the center of the niche. Breaks remove plain wall; heights are dimensioned, not to scale.')+
+    rows(70,'BUILD-UP, EACH FACE',[['Tile board',fmt(S.board)],['Thinset',fmt(S.thinset)],['Tile',fmt(S.tileT)],['Total',fmt(B)]])+
+    rows(205,'NICHE',[['Rough opening',`${fmt(fr.xR-fr.xL)} × ${fmt(fr.yh-fr.ys)}`],['Finished opening',`${fmt(h.w)} × ${fmt(r.hF)}`],['Stud depth',fmt(D)],['Finished depth',fmt(D)],...(marble(S)?[['Marble sill',`${fmt(S.sillT)}, projects ${fmt(S.sillProj)}`]]:[]),...(r.int.shelves.length?[['Shelf thickness',fmt(S.shelfT)+(marble(S)?' marble':'')]]:[])])+
+    rows(360,'KEY HEIGHTS ABOVE FLOOR',hts)+
+    (marble(S)?T(1210,350+hts.length*21+80,'Field tile stops one grout joint below the marble sill,',12,'style="font-weight:500"')+T(1210,350+hts.length*21+96,'which caps it. The head tile tucks behind the field tile.',12,'style="font-weight:500"'):
+    T(1210,350+hts.length*21+80,'Planner assumes field tile ends flush with the finished',12,'style="font-weight:500"')+
+    T(1210,350+hts.length*21+96,'sill and head, with sill and head tile tucked behind it.',12,'style="font-weight:500"'))+tbs;
+}
+function drawSheet(svg,S,r,fr){
+  svg.setAttribute('viewBox','0 0 1700 1100');
+  svg.innerHTML='<g class="sheet">'+(r.plain?sheetPlain(S,r,fr):IN.sheet==='a2'?sheetA2(S,r,fr):sheetSVG(S,r,fr))+'</g>';
+}
+async function downloadSheet(btn){
+  const msg=$('dlMsg');
+  try{
+    const dl=window.claude&&typeof window.claude.use==='function'?await window.claude.use('downloads'):null;
+    if(!dl){msg.textContent='Downloads aren’t available in this view.';return;}
+    const svg=$('svg');
+    const s='<?xml version="1.0" encoding="UTF-8"?>\n'+svg.outerHTML.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="17in" height="11in" ');
+    const name=((curJob&&curJob.name)||'niche-layout').replace(/[^A-Za-z0-9 _-]+/g,'').trim().replace(/\s+/g,'-')||'niche-layout';
+    btn.disabled=true;
+    await dl.save({filename:name+(IN.sheet==='a2'?'-A2.svg':'-A1.svg'),data:s});
+    msg.textContent='Saved. Open it in a browser to zoom or print at 11×17.';
+  }catch(e){msg.textContent=e&&e.code==='declined'?'Download cancelled.':'Couldn’t save the file. Try again.';}
+  finally{btn.disabled=false;}
+}
+function drawFraming(svg,S0,r,fr){
+  const S=Object.assign({},S0,{wallW:S0._frW||S0.wallW});
+  const W=S.wallW,cL=S.ceilL,cR=cRv(S),H=Math.max(cL,cR),fs=Math.max(W,H)*0.034,SW=fr.SW,bt=fr.bt;
+  const tb=(()=>{const t0=tubX(S0);if(!t0)return null;const off=S0._offL||0;return S0.tubPos==='full'?{a:S0._furL||0,b:W-(S0._furR||0)}:{a:t0.a+off,b:t0.b+off};})();
+  const ml=fs*4.4,mr=fs*5.4,mt=fs*3.6,mb=fs*4.4,Y=y=>H-y,f=n=>Math.round(n*1000)/1000;
+  const R=(x,y,w,h,cls,extra)=>`<rect${cls?` class="${cls}"`:''} x="${f(x)}" y="${f(Y(y+h))}" width="${f(Math.max(w,0))}" height="${f(Math.max(h,0))}"${extra?' '+extra:''}/>`;
+  const T=(x,y,s,a,size,cls)=>`<text class="${cls||'t-halo'}" x="${f(x)}" y="${f(Y(y))}" font-size="${f(size)}" text-anchor="${a}" stroke-width="${f(size*0.3)}">${s}</text>`;
+  const Ln=(x1,y1,x2,y2,extra)=>`<line x1="${f(x1)}" y1="${f(Y(y1))}" x2="${f(x2)}" y2="${f(Y(y2))}" ${extra}/>`;
+  const P=pts=>`<polygon points="${pts.map(([x,y])=>f(x)+','+f(Y(y))).join(' ')}" class="wood"/>`;
+  const dimA=`class="dim" stroke-width="${f(fs*0.08)}"`,tk=fs*0.35,dash=`fill="none" stroke="var(--ink)" stroke-width="${f(fs*0.08)}" stroke-dasharray="${f(fs*0.3)} ${f(fs*0.2)}"`;
+  const cp=ceilPts(S);
+  let o=`<polygon points="0,${f(Y(0))} ${f(W)},${f(Y(0))} ${cp.map(([x,y])=>f(x)+','+f(Y(y))).join(' ')}" fill="var(--bg)"/>`;
+  if(tb){o+=R(tb.a,0,tb.b-tb.a,S.tubH,null,`fill="none" stroke="var(--muted)" stroke-width="${f(fs*0.08)}" stroke-dasharray="${f(fs*0.5)} ${f(fs*0.3)}"`);
+  }
+  // plates and end-wall furring
+  o+=R(0,0,W,SW,'wood');
+  if(S0._furL>0.01)o+=R(0,0,S0._furL,cL,'filler');if(S0._furR>0.01)o+=R(W-S0._furR,0,S0._furR,cR,'filler');
+  o+=P(cp.slice().reverse().map(([x,y])=>[x,y-SW]).concat(cp));
+  // studs, cripples, niche framing
+  const ct=x=>Math.min(ceilAt(S,x),ceilAt(S,x+SW))-SW;
+  for(const x of fr.studs) o+=R(x,SW,SW,ct(x)-SW,'wood');
+  if(!fr.plain){
+  for(const x of fr.cripples){o+=R(x,SW,SW,fr.ys-bt-SW,'wood');const t2=ct(x);if(t2-(fr.yh+bt)>0.05)o+=R(x,fr.yh+bt,SW,t2-fr.yh-bt,'wood');}
+  for(const sd of fr.sides) o+=sd.full?R(sd.x,SW,SW,ct(sd.x)-SW,'block'):R(sd.x,fr.ys,SW,fr.yh-fr.ys,'block');
+  for(const fl of fr.fillers) o+=R(fl.x,fr.ys,fl.w,fr.yh-fr.ys,'filler');
+  o+=R(fr.bx1,fr.ys-bt,fr.bx2-fr.bx1,bt,'block')+R(fr.bx1,fr.yh,fr.bx2-fr.bx1,bt,'block');
+  o+=R(fr.xL,fr.ys,fr.xR-fr.xL,fr.yh-fr.ys,null,dash);
+  }
+  if(tb){const tx2=(tb.a+tb.b)/2+(fr.studs.some(x=>Math.abs(x+SW/2-(tb.a+tb.b)/2)<fs*2)?8:0);o+=T(tx2,S.tubH/2-fs*0.35,'TUB '+fmt(S.tubH),'middle',fs*0.85);}
+  if(!fr.plain){
+  // heights, outside the wall on the right, with dashed extension lines
+  const ext2=`class="dimx" stroke="var(--muted)" stroke-width="${f(fs*0.05)}" stroke-dasharray="${f(fs*0.3)} ${f(fs*0.2)}"`,TK=fs*0.45,px=W+fs*1.6;
+  const slash=(x,y)=>Ln(x-TK*0.7,y-TK*0.7,x+TK*0.7,y+TK*0.7,`class="dim" stroke-width="${f(fs*0.12)}"`);
+  const xe=Math.max(fr.xR+(fr.full?SW:0),fr.bx2);
+  o+=Ln(px,0,px,fr.yh,dimA)+slash(px,0)+slash(px,fr.ys)+slash(px,fr.yh);
+  o+=Ln(xe,fr.ys,px+TK,fr.ys,ext2)+Ln(xe,fr.yh,px+TK,fr.yh,ext2);
+  o+=T(px+fs*0.55,fr.ys-fs*0.35,fmt(fr.ys),'start',fs*0.9,'t-out')+T(px+fs*0.55,fr.yh-fs*0.35,fmt(fr.yh),'start',fs*0.9,'t-out');
+  o+=T(px+fs*0.55,fr.ys-fs*1.35,'sill','start',fs*0.65,'t-muted')+T(px+fs*0.55,fr.yh+fs*0.75,'head','start',fs*0.65,'t-muted');
+  // corner to RO and RO width, above the wall with dashed extension lines
+  const cTop=Math.max(cL,cR),dyT=cTop+fs*1.7;
+  o+=Ln(0,dyT,W,dyT,dimA);for(const x of [0,fr.xL,fr.xR,W]) o+=slash(x,dyT);
+  o+=Ln(fr.xL,fr.yh+bt,fr.xL,dyT+TK,ext2)+Ln(fr.xR,fr.yh+bt,fr.xR,dyT+TK,ext2);
+  [[0,fr.xL],[fr.xL,fr.xR],[fr.xR,W]].forEach(([x0,x1])=>{if(x1-x0>0.05)o+=T((x0+x1)/2,dyT+fs*0.35,fmt(x1-x0),'middle',fs*0.85,'t-out');});
+  // inside framing size
+  const fw=fr.xR-fr.xL,fh=fr.yh-fr.ys,a=fmt(fw)+' × '+fmt(fh),ns=Math.min(fs*0.85,fw/(a.length*0.5)),cx=(fr.xL+fr.xR)/2,my=(fr.ys+fr.yh)/2;
+  o+=T(cx,my+ns*0.3,a,'middle',ns)+T(cx,my-ns*0.9,'RO','middle',ns*0.8);
+  }
+  // stud centers along the floor
+  for(const x of fr.studs.concat(fr.cripples)) if(x>0.01&&x<W-SW-0.01) o+=T(x+SW/2,-fs*1.1,fmt(x+SW/2,false),'middle',fs*0.62,'t-muted');
+  o+=Ln(0,-fs*2.1,W,-fs*2.1,dimA)+Ln(0,-fs*2.1-tk,0,-fs*2.1+tk,dimA)+Ln(W,-fs*2.1-tk,W,-fs*2.1+tk,dimA);
+  o+=T(W/2,-fs*3.4,fmt(W)+' wide · stud centers from left','middle',fs*0.85,'t-out');
+  if(S.ceilLevel) o+=T(W/2,H+fs*0.7,fmt(cL)+' floor to ceiling','middle',fs*0.85,'t-muted');
+  else{o+=T(0,H+fs*0.7,fmt(cL),'start',fs*0.85,'t-muted');o+=T(W,H+fs*0.7,fmt(cR),'end',fs*0.85,'t-muted');}
+  svg.setAttribute('viewBox',`${f(-ml)} ${f(-mt)} ${f(W+ml+mr)} ${f(H+mt+mb)}`);
+  svg.innerHTML=o;
+}
+function inPanel(r){
+  const ch=(k,label,opts)=>`<div class="field wide"><span class="lab" id="li-${k}">${label}</span><div class="chips" role="radiogroup" aria-labelledby="li-${k}">`+
+    opts.map(([v,l])=>`<button type="button" role="radio" aria-checked="${IN[k]===v}" data-in="${k}" data-v="${v}">${l}</button>`).join('')+`</div></div>`;
+  const num=(k,label)=>`<div class="field"><label for="in_${k}">${label}</label><div class="stepper">`+
+    `<button type="button" data-innudge="${k}" data-dir="-1" aria-label="Lower ${label}">&minus;</button>`+
+    `<input id="in_${k}" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="${fmt(IN[k],false)}">`+
+    `<button type="button" data-innudge="${k}" data-dir="1" aria-label="Raise ${label}">+</button></div><small>Finished sill to underside</small></div>`;
+  const sh=S.shelves>0&&r.int.shelves.length>0;
+  return `<section class="card"><h2>Inside the niche</h2><div class="fields">`+
+    ch('start','Courses start',[['bottom',sh&&!r.int.over?'Full tile on sill and shelf':'Full tile on sill'],['top',sh&&!r.int.over?'Full tile under shelf and head':'Full tile under head'],['balance','Equal cuts top and bottom'],['match','Match field grout lines']])+
+    (sh?ch('shelfPos','Shelf position',[['center',S.shelves>1?'Evenly spaced':'Centered'],['auto','On whole courses'],['custom','Custom height']]):'')+
+    (sh&&r.int.over?`<p class="note wide">Tile runs straight up behind the shelf. Which pieces get trimmed around it is a field call.</p>`:'')+
+    (sh&&IN.shelfPos==='custom'?num('shelf1','Shelf 1 height')+(S.shelves>1?num('shelf2','Shelf 2 height'):''):'')+
+    ch('pat','Pattern inside',[['wall','Same as wall'],['stack','Stacked']])+
+    ch('side','Side to side',[['auto','Cleanest side cuts'],['tile','Centered tile'],['joint','Centered joint']])+
+    `</div></section>`;
+}
+/* ---------- saved jobs (private to each signed-in person) ---------- */
+let db=null,uid=null,jobs=null,jobsErr='',curJob=null,pendingDel=null;
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const jobsCol=()=>db.collection('data/users/'+uid);
+const defaultName=()=>`${fmt(S.wallW)} wall, ${fmt(S.tileH)}×${fmt(S.tileW)} tile`;
+function listHTML(){
+  return `<ul class="ans">${jobs.map(j=>`<li><div><b>${esc(j.name||'Untitled')}</b><span>Saved ${new Date(j.savedAt||0).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}${curJob&&curJob.id===j.id?' · open now':''}</span></div>`+
+    `<div class="acts"><button class="btn ghost sm" type="button" data-open="${esc(j.id)}">Open</button><button class="btn ghost sm" type="button" data-del="${esc(j.id)}">${pendingDel===j.id?'Confirm delete':'Delete'}</button></div></li>`).join('')}</ul>`;
+}
+function jobsHTML(mode){
+  if(mode==='open') return jobs&&jobs.length?`<div class="field"><span class="lab">Or open a saved job</span>${listHTML()}</div>`:'';
+  if(jobsErr==='off') return '<p class="note">Saving jobs needs the planner open while you’re signed in to Claude. This browser still remembers your last layout.</p>';
+  if(jobsErr==='err') return '<p class="note">Your saved jobs couldn’t load. Reopen the planner to try again.</p>';
+  if(jobs===null) return `<p class="note">${jobsErr==='slow'?'Can’t reach your saved jobs yet.':'Loading saved jobs…'}</p>`;
+  if(!jobs.length) return '<p class="note">No saved jobs yet. Name this layout and save it to open it again later, on any device.</p>';
+  return listHTML();
+}
+function paintJobs(){
+  document.querySelectorAll('[data-jobs]').forEach(el=>{el.innerHTML=jobsHTML(el.dataset.mode);});
+  for(const id of ['saveJob','saveNew']){const b=$(id);if(b)b.disabled=!db;}
+}
+function savedHTML(){
+  return `<section class="card"><h2>Saved jobs</h2>
+    <div class="field"><label for="jobName">Job name</label><input id="jobName" class="txt" type="text" maxlength="80" autocomplete="off" value="${esc(curJob?curJob.name:defaultName())}"></div>
+    <div class="acts"><button class="btn" id="saveJob" type="button"${db?'':' disabled'}>${curJob?'Save changes':'Save job'}</button>${curJob?`<button class="btn ghost" id="saveNew" type="button"${db?'':' disabled'}>Save as new</button>`:''}</div>
+    <p class="note" id="saveMsg" role="status" hidden></p>
+    <div data-jobs data-mode="list">${jobsHTML('list')}</div></section>`;
+}
+async function saveJob(asNew,btn){
+  if(!db||!uid) return;
+  const name=(($('jobName')||{}).value||'').trim().slice(0,80)||defaultName();
+  const body={name,S:Object.assign({},S),IN:Object.assign({},IN),adjH,adjS,adjHin,adjSin,optIdx,savedAt:Date.now()};
+  const ref=(!asNew&&curJob)?jobsCol().doc(curJob.id):jobsCol().doc();
+  btn.disabled=true;
+  try{await ref.set(body);curJob={id:ref.id,name};renderResults(true);const m=$('saveMsg');if(m){m.hidden=false;m.textContent='Saved “'+name+'”.';}}
+  catch(e){btn.disabled=false;const m=$('saveMsg');if(m){m.hidden=false;m.textContent=e&&e.code==='quota_exceeded'?'Storage is full. Delete an old job and save again.':'Couldn’t save. Try again in a moment.';}}
+}
+function openJob(id){
+  const j=(jobs||[]).find(x=>x.id===id); if(!j||!j.S) return;
+  S=Object.assign({},DEF); for(const k in DEF) if(typeof j.S[k]===typeof DEF[k]) S[k]=j.S[k];
+  if(j.S.widthRef===undefined) S.widthRef='finished';
+  IN=Object.assign({},IN0); if(j.IN) for(const k in IN0) if(typeof j.IN[k]===typeof IN0[k]) IN[k]=j.IN[k];
+  curJob={id:j.id,name:String(j.name||'Untitled')}; pendingDel=null;
+  cache.k=null; cur=STEPS.length-1; ret=false; render();
+  optIdx=Math.max(0,Math.min((j.optIdx|0),cache.res.length-1)); adjH=j.adjH|0; adjS=j.adjS|0; adjHin=+j.adjHin||0; adjSin=+j.adjSin||0;
+  renderResults(true); window.scrollTo(0,0);
+}
+async function deleteJob(id){
+  if(pendingDel!==id){pendingDel=id;paintJobs();return;}
+  pendingDel=null;
+  try{await jobsCol().doc(id).delete(); if(curJob&&curJob.id===id){curJob=null; if(STEPS[cur].id==='results') renderResults(true);}}
+  catch(e){const m=$('saveMsg');if(m){m.hidden=false;m.textContent='Couldn’t delete. Try again in a moment.';}}
+}
+(async()=>{
+  try{
+    if(!window.claude||typeof window.claude.use!=='function'){jobsErr='off';paintJobs();return;}
+    const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
+    uid=u?await u.id():null;
+    if(!d||!uid){jobsErr='off';paintJobs();return;}
+    db=d; paintJobs();
+    const timer=setTimeout(()=>{if(jobs===null){jobsErr='slow';paintJobs();}},10000);
+    jobsCol().onSnapshot(s=>{if(!s.metadata.fromCache)clearTimeout(timer);jobsErr='';
+      jobs=s.docs.filter(x=>x.exists).map(x=>Object.assign({},x.data(),{id:x.id})).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));paintJobs();},
+      e=>{clearTimeout(timer);jobsErr=e&&e.code==='revoked'?'off':'err';paintJobs();});
+  }catch(e){jobsErr='off';paintJobs();}
+})();
+function answersHTML(){
+  const tub=isTub(S),rows=[
+    [0,'Wall type',isPlain(S)?'Just tile':S.framed==='yes'?'Niche, already framed':'Niche, not framed yet'],
+    [1,'Wall',`${fmt(S.wallW)} wide, ${S.ceilLevel?fmt(S.ceilL):fmt(S.ceilL)+' to '+fmt(S.ceilR)} to ceiling, `+(tub?`${S.tubPos==='full'?'wall-to-wall':fmt(S.tubL)} tub ${fmt(S.tubH)} high`:'no tub')+(S.edge!=='none'?`, bullnose on the ${S.edge} outside corner`:'')],
+    [2,'Tile',`${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout<0.05?'butted joint':fmt(S.grout)+' joint'}, ${PATN[S.pattern]}`],
+    [3,'Build-up',`${fmt(bu(S))} per face`],
+    ...(isPlain(S)?[]:[[4,'Niche',S.framed==='yes'?`Framed ${fmt(S.rW)} × ${fmt(S.rH)}, sill ${fmt(S.rSill)} up`:`About ${S.studs==='bay'?'bay width':fmt(S.nW)} × ${fmt(S.nH)} finished, sill near ${fmt(S.nSill)}`]]),
+    ...(isPlain(S)?[]:[[5,'Shelf and border',`${S.shelves?S.shelves+(S.shelves>1?' shelves':' shelf')+' '+fmt(S.shelfT):'No shelf'}, ${S.frameOn==='yes'?fmt(S.frameW)+' border':'no border'}${S.sillType==='marble'?`, ${fmt(S.sillT)} marble sill`:''}`]])];
+  return `<section class="card"><div class="row-between"><h2>Your answers</h2><button class="btn ghost sm" id="restart" type="button">Start over</button></div>`+
+    `<ul class="ans">${rows.map(([i,a,b])=>`<li><div><b>${a}</b><span>${b}</span></div><button class="btn ghost sm" type="button" data-edit="${i}" aria-label="Edit ${a}">Edit</button></li>`).join('')}</ul></section>`;
+}
+
+/* ---------- drawing ---------- */
+function draw(svg,S,r){
+  const W=S.wallW,cL=S.ceilL,cR=cRv(S),H=Math.max(cL,cR),fs=Math.max(W,H)*0.034,tb=tubX(S);
+  const ml=fs*(r?6.4:4.4),mr=fs*(r?5:4.4),mt=fs*2.7,mb=fs*3.4;
+  const Y=y=>H-y,f=n=>Math.round(n*1000)/1000;
+  const poly=`0,${f(Y(0))} ${f(W)},${f(Y(0))} `+ceilPts(S).map(([x,y])=>f(x)+','+f(Y(y))).join(' ');
+  const R=(x,y,w,h,cls,extra)=>`<rect${cls?` class="${cls}"`:''} x="${f(x)}" y="${f(Y(y+h))}" width="${f(Math.max(w,0))}" height="${f(Math.max(h,0))}"${extra?' '+extra:''}/>`;
+  const T=(x,y,s,a,size,cls)=>`<text class="${cls||'t-halo'}" x="${f(x)}" y="${f(Y(y))}" font-size="${f(size)}" text-anchor="${a}" stroke-width="${f(size*0.3)}">${s}</text>`;
+  const Ln=(x1,y1,x2,y2,extra)=>`<line x1="${f(x1)}" y1="${f(Y(y1))}" x2="${f(x2)}" y2="${f(Y(y2))}" ${extra}/>`;
+  const dimA=`class="dim" stroke-width="${f(fs*0.08)}"`,tk=fs*0.35;
+  let o=`<defs><clipPath id="wc"><polygon points="${poly}"/></clipPath></defs><polygon points="${poly}" fill="${r?'var(--grout)':'var(--wall)'}"/>`;
+  if(r){
+    const G=r.G,h=r.h,t=S.tileH,tw=S.tileW; let g2='';
+    const iLo=Math.floor((S.gap-G.T0)/G.m)+1,iHi=Math.ceil((H+t-G.T0)/G.m);
+    for(let i=iLo;i<=iHi;i++){
+      const Ti=G.T0+i*G.m;
+      for(const pc of rowPieces(S,h.x0,rowShift(S,i))){
+        const ov=!!tb&&pc.x<tb.b-0.05&&pc.x+pc.w>tb.a+0.05,inside=ov&&pc.x>=tb.a-0.01&&pc.x+pc.w<=tb.b+0.01;
+        if(inside&&Ti<=G.b+0.05) continue;
+        const cMax=Math.max(ceilAt(S,pc.x),ceilAt(S,pc.x+pc.w));
+        if(Ti-t>=cMax-S.gap) continue;
+        const vb=Math.max(Ti-t,(ov&&Ti>G.b+0.05)?G.b:S.gap),ct=Math.min(ceilAt(S,pc.x),ceilAt(S,pc.x+pc.w))-S.gap,vh=Math.min(Ti,ct)-vb;
+        let st=vh>=t-EPS?'full':stat(S,vh,t);
+        if(pc.w<tw-EPS){const edge=pc.x<=fieldL(S)+0.01||pc.x+pc.w>=fieldR(S)-0.01;st=worse(st,edge?stat(S,pc.w,tw):'ok');}
+        const yb=Math.max(Ti-t,0);
+        g2+=R(pc.x,yb,pc.w,Ti-yb,'p-'+st);
+      }
+    }
+    const ep=edgeParts(S);
+    if(ep) for(const q of ep.ps){const st=q.h<tw-EPS?stat(S,q.h,tw):'full';g2+=R(ep.x0,q.y,ep.bw,q.h,'p-'+(RANK[st]>=2?st:'border'));}
+    o+=`<g clip-path="url(#wc)">${g2}</g>`;
+    o+=Ln(0,G.T0+G.g,W,G.T0+G.g,`class="constr" stroke="var(--accent)" stroke-width="${f(fs*0.09)}" stroke-dasharray="${f(fs*0.4)} ${f(fs*0.25)}"`);
+  }
+  if(tb){
+    o+=R(tb.a,0,tb.b-tb.a,S.tubH,'tub');
+    o+=T((tb.a+tb.b)/2,S.tubH/2-fs*0.35,r?'TUB':`${fmt(tb.b-tb.a)} tub`,'middle',fs*0.9,'t-muted');
+  }
+  if(r&&!r.plain){
+    const G=r.G,h=r.h,t=S.tileH,tw=S.tileW,g=S.grout,e=ext(S),B=bu(S),x1=h.L,x2=h.L+h.w,y1=r.sF,y2=r.sF+r.hF;
+    if(marble(S)&&!e) o+=R(x1,y1-sillGap(S),h.w,sillGap(S),null,'fill="var(--grout)"');
+    if(e){
+      o+=R(x1-e,y1-sillGap(S),h.w+2*e,r.hF+e+sillGap(S),null,'fill="var(--grout)"');
+      const fw=S.frameW,ps=[];
+      for(const s of splitLen(x1-fw,x2+fw,tw,g)){if(!marble(S))ps.push([s.s,y1-fw,s.l,fw,s.l]);ps.push([s.s,y2,s.l,fw,s.l]);}
+      if(r.hF>2*g+0.1) for(const s of splitLen(y1+g,y2-g,tw,g)){ps.push([x1-fw,s.s,fw,s.l,s.l]);ps.push([x2,s.s,fw,s.l,s.l]);}
+      for(const [x,y,w,hh,len] of ps){const s=len<tw-EPS?stat(S,len,tw):'full';o+=R(x,y,w,hh,'p-'+(RANK[s]>=2?s:'border'));}
+    }
+    o+=R(x1,y1,h.w,r.hF,null,'fill="var(--recess)"');
+    let yb=y1;
+    r.int.bays.forEach((b,bi)=>{
+      let y=yb;
+      b.rows.forEach((rh,k)=>{
+        const ps=rowPieces(S,h.ix,shiftIn(S,k),x1,x2),edge=k===0||k===b.rows.length-1;
+        for(const pc of ps){
+          let st=rh<t-EPS?(edge?stat(S,rh,t):'ok'):'full';
+          if(pc.w<tw-EPS) st=worse(st,ps.length>1?stat(S,pc.w,tw):'ok');
+          o+=R(pc.x,y,pc.w,rh,'p-'+st+' inn');
+        }
+        y+=rh+g;
+      });
+      yb+=b.hb+S.shelfT;
+    });
+    for(const s of r.int.shelves) o+=marble(S)?R(x1,y1+s,h.w,S.shelfT,'marble'):R(x1,y1+s,h.w,S.shelfT,null,'fill="var(--accent)"');
+    if(marble(S)) o+=R(x1,y1-S.sillT,h.w,S.sillT,'marble');
+    o+=R(x1,y1,h.w,r.hF,null,`fill="none" stroke="var(--recess)" stroke-width="${f(fs*0.16)}"`);
+    // niche dimensions
+    o+='<g class="constr">';
+    const cx=(x1+x2)/2,useTub=S.framed!=='yes'&&S.studs!=='bay'&&S.nPos==='tub'&&tb,x0=useTub?tb.a:0;
+    o+=Ln(cx,0,cx,Math.min(ceilAt(S,cx),H),`stroke="var(--accent)" stroke-width="${f(fs*0.06)}" stroke-dasharray="${f(fs*0.9)} ${f(fs*0.25)} ${f(fs*0.15)} ${f(fs*0.25)}"`);
+    o+=T(cx,H+fs*0.6,'℄ niche','middle',fs*0.8,'t-out');
+    const dy=Math.max(fs*2.2,y1-sillGap(S)-fs*1.6);
+    if(cx-x0>fs*2){o+=Ln(x0,dy,cx,dy,dimA)+Ln(x0,dy-tk,x0,dy+tk,dimA)+Ln(cx,dy-tk,cx,dy+tk,dimA);
+      o+=T((x0+cx)/2,dy+fs*0.3,fmt(cx-x0)+(useTub&&x0>0.01?' from tub':''),'middle',fs*0.9);}
+    const a=fmt(h.w)+' × '+fmt(r.hF),ns=Math.min(fs*0.85,h.w/(a.length*0.5));
+    o+=T(cx,y2-ns*1.4,a,'middle',ns)+T(cx,y2-ns*2.5,'finished','middle',ns*0.8);
+    o+='</g>';
+    {const fa=fmt(h.w)+' × '+fmt(r.hF),fsz=Math.min(fs*0.85,h.w/(fa.length*0.5));o+='<g class="pres">'+T(cx,y2-fsz*1.4,fa,'middle',fsz)+'</g>';}
+  }
+  if(r){const G=r.G,t=S.tileH;
+    // edge labels
+    const cls=s=>s==='bad'?'t-bad':s==='warn'?'t-warn':'t-out';
+    o+='<g class="constr">';
+    o+=T(W+fs*0.5,G.b+r.p/2-fs*0.35,r.p<t-EPS?fmt(r.p):'full','start',fs*0.95,cls(stat(S,r.p,t)));
+    o+=T(W+fs*0.5,cR-S.gap-r.cr/2-fs*0.35,r.cr<t-EPS?fmt(r.cr):'full','start',fs*0.95,cls(stat(S,r.cr,t)));
+    if(!S.ceilLevel) o+=T(-fs*0.5,cL-S.gap-r.cl/2-fs*0.35,r.cl<t-EPS?fmt(r.cl):'full','end',fs*0.95,cls(stat(S,r.cl,t)));
+    o+='</g>';
+    o+=T(-fs*0.5,G.T0+G.g+fs*0.15,S.base==='tub'?'ledger, above tub':'ledger','end',fs*0.7,'constr t-muted')+T(-fs*0.5,G.T0+G.g-fs*0.9,fmt(G.T0+G.g-(S.base==='tub'?S.tubH:0)),'end',fs*0.85,'constr t-out');
+  }
+  o+=`<polygon points="${poly}" fill="none" stroke="var(--ink)" stroke-width="${f(fs*0.1)}"/>`;
+  // overall dimensions
+  o+=Ln(0,-fs*1.2,W,-fs*1.2,dimA)+Ln(0,-fs*1.2-tk,0,-fs*1.2+tk,dimA)+Ln(W,-fs*1.2-tk,W,-fs*1.2+tk,dimA);
+  o+=T(W/2,-fs*2.6,fmt(W)+(r&&S.widthRef==='framing'?' finished':' wide'),'middle',fs*0.95,'t-out');
+  if(r){
+    const vch=(pts,x,side)=>{let q=Ln(x,pts[0],x,pts[pts.length-1],dimA);for(const p of pts)q+=Ln(x-tk,p,x+tk,p,dimA);
+      for(let i=0;i<pts.length-1;i++){const tx=x+(side<0?-fs*0.3:fs*0.95),ty=Y((pts[i]+pts[i+1])/2);
+        q+=`<text class="t-out" x="${f(tx)}" y="${f(ty)}" font-size="${f(fs*0.85)}" text-anchor="middle" transform="rotate(-90 ${f(tx)} ${f(ty)})">${fmt(pts[i+1]-pts[i])}</text>`;}return q;};
+    o+='<g class="constr">'+(tb&&tb.a<0.05?vch([0,S.tubH,cL],-fs*3.5,-1)+vch([0,cL],-fs*4.9,-1):vch([0,cL],-fs*3.5,-1))+(S.ceilLevel?'':vch([0,cR],W+fs*3.7,1))+'</g>';
+  } else {
+  if(S.ceilLevel) o+=T(W/2,H+fs*0.7,fmt(cL)+' floor to ceiling','middle',fs*0.85,'t-muted');
+  else{o+=T(0,H+fs*0.7,fmt(cL),'start',fs*0.85,'t-muted');o+=T(W,H+fs*0.7,fmt(cR),'end',fs*0.85,'t-muted');}
+  }
+  if(tb&&r&&tb.a>=0.05){o+='<g class="constr">'+Ln(tb.a-fs*1.2,0,tb.a-fs*1.2,S.tubH,dimA)+Ln(tb.a-fs*1.2-tk,S.tubH,tb.a-fs*1.2+tk,S.tubH,dimA)+T(tb.a-fs*1.6,S.tubH/2-fs*0.35,fmt(S.tubH),'end',fs*0.9)+'</g>';}
+  if(tb&&!r){o+=Ln(-fs*0.9,0,-fs*0.9,S.tubH,dimA)+Ln(-fs*0.9-tk,S.tubH,-fs*0.9+tk,S.tubH,dimA);o+=T(-fs*1.3,S.tubH/2-fs*0.35,fmt(S.tubH),'end',fs*0.95,'t-out');}
+  svg.setAttribute('viewBox',`${f(-ml)} ${f(-mt)} ${f(W+ml+mr)} ${f(H+mt+mb)}`);
+  svg.innerHTML=o;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.choice){const fd=FM[b.dataset.choice],o=fd.opts[+b.dataset.i];S[fd.id]=o[0];if(fd.on)fd.on(o[0]);render();return;}
+  if(b.dataset.nudge){const fd=FM[b.dataset.nudge],v=Math.round((S[fd.id]+fd.step*b.dataset.dir)*16)/16;
+    if(v>=fd.min&&v<=fd.max){S[fd.id]=v;const el=$(fd.id);el.value=fmt(v,false);el.setAttribute('aria-invalid','false');if(STEPS[cur].id==='results')render();else live();}return;}
+  if(b.dataset.opt!=null){optIdx=+b.dataset.opt;adjH=0;adjS=0;adjHin=0;adjSin=0;renderResults(true);return;}
+  if(b.dataset.open){openJob(b.dataset.open);return;}
+  if(b.dataset.del){deleteJob(b.dataset.del);return;}
+  if(b.id==='saveJob'||b.id==='saveNew'){saveJob(b.id==='saveNew',b);return;}
+  if(b.id==='dlSheet'){downloadSheet(b);return;}
+  if(b.id==='fitBay'){S.studs='bay';S.studOC=+b.dataset.oc;S.bayL=Math.round(+b.dataset.l*16)/16;render();return;}
+  if(b.dataset.in){const k=b.dataset.in,v=b.dataset.v;
+    if(k==='shelfPos'&&v==='custom'&&lastR){const s=lastR.int.shelves;if(s[0]!=null)IN.shelf1=Math.round(s[0]*16)/16;if(s[1]!=null)IN.shelf2=Math.round(s[1]*16)/16;}
+    IN[k]=v;save();renderResults(true);return;}
+  if(b.dataset.innudge){const k=b.dataset.innudge;IN[k]=Math.max(0,Math.round((IN[k]+0.125*b.dataset.dir)*16)/16);save();renderResults(true);return;}
+  if(b.dataset.snap){const [hi,si]=b.dataset.snap.split(',').map(Number);adjHin+=hi;adjSin+=si;renderResults(true);return;}
+  if(b.dataset.adj){if(b.dataset.adj==='reset'){adjH=0;adjS=0;adjHin=0;adjSin=0;}else{const [k,v]=b.dataset.adj.split(',');if(k==='h')adjH+=+v;else adjS+=+v;}renderResults(true);return;}
+  if(b.dataset.edit!=null){cur=+b.dataset.edit;ret=true;render();window.scrollTo(0,0);return;}
+  const last=STEPS.length-1;
+  if(b.id==='next'){cur=ret?last:Math.min(cur+1,last);while(cur<last&&STEPS[cur].skip&&STEPS[cur].skip(S))cur++;if(cur===last)ret=false;render();window.scrollTo(0,0);}
+  else if(b.id==='back'){cur=Math.max(0,cur-1);while(cur>0&&STEPS[cur].skip&&STEPS[cur].skip(S))cur--;ret=false;render();window.scrollTo(0,0);}
+  else if(b.id==='restart'){curJob=null;S=Object.assign({},DEF);IN=Object.assign({},IN0);cur=0;ret=false;render();window.scrollTo(0,0);}
+  else if(b.id==='copy'){
+    const txt=['Niche rough-in'].concat(lastSheet.map(([a,v])=>v?a+': '+String(v).replace(/<br>/g,'; '):a)).join('\n');
+    try{navigator.clipboard.writeText(txt).then(()=>{b.textContent='Copied';},()=>{b.textContent='Copy failed';});}catch(err){b.textContent='Copy failed';}
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target,fd=FM[el.id]; if(fd&&fd.t==='text'){S[fd.id]=el.value;live();return;} if(!fd||fd.t!=='num') return;
+  const v=parseIn(el.value),ok=!isNaN(v)&&v>=fd.min&&v<=fd.max;
+  el.setAttribute('aria-invalid',ok?'false':'true'); if(ok){S[fd.id]=v;live();}
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id&&el.id.startsWith('in_')){const v=parseIn(el.value);if(!isNaN(v)&&v>=0&&v<=120){IN[el.id.slice(3)]=v;save();}renderResults(true);return;}
+  const fd=FM[el.id]; if(!fd) return;
+  if(fd.t==='check'){S[fd.id]=el.checked;render();}
+  else if(fd.t==='num'){el.value=fmt(S[fd.id],false);el.setAttribute('aria-invalid','false');if(STEPS[cur].id==='results')render();}
+});
+render();
+</script>
+</body>
+</html>

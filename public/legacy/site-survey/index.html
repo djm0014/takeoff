@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bathroom Site Survey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one long field form in collapsible sections, with a live summary card pinned on top. */
+:root{
+  --bg:#eceeed; --surface:#fafbfa; --ink:#1c2321; --muted:#5a6561; --line:#cdd4d1;
+  --accent:#c9541a; --accent-ink:#ffffff; --good:#23755a; --warn:#a56a12; --bad:#b83227;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){color-scheme:dark;
+    --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c;
+    --accent:#f08a4b; --accent-ink:#1a120c; --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72;}
+}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#131817; --surface:#1c2321; --ink:#e7ecea; --muted:#9ba7a3; --line:#33403c;
+  --accent:#f08a4b; --accent-ink:#1a120c; --good:#5fc49f; --warn:#e3ad4e; --bad:#f07f72;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:24px}
+h2{font-size:17px;letter-spacing:.03em;text-transform:uppercase}
+p{margin:0}
+[hidden]{display:none!important}
+.page{max-width:760px;margin:0 auto;padding:16px 16px 64px;display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.sub{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{border-left:3px solid var(--accent);padding:2px 0 2px 10px}
+.stat small{display:block;color:var(--muted);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat b{font-family:var(--display);font-size:24px;font-weight:600}
+.flags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.flags li{display:flex;gap:8px;align-items:flex-start;font-size:15px}
+.flags i{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none;background:var(--warn)}
+.flags i.bad{background:var(--bad)} .flags i.good{background:var(--good)}
+details.sec{background:var(--surface);border:1px solid var(--line);border-radius:10px}
+details.sec>summary{cursor:pointer;list-style:none;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--display);font-size:22px;color:var(--muted)}
+details.sec[open]>summary::after{content:"−"}
+.count{color:var(--muted);font-size:13px;font-weight:600;margin-left:auto}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;padding:0 16px 16px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wide{grid-column:1/-1}
+.field label,.lab{font-size:14.5px;font-weight:600}
+.field small{color:var(--muted);font-size:12.5px;line-height:1.3}
+.txt{height:44px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;padding:0 12px;width:100%}
+textarea.txt{height:84px;padding:10px 12px;resize:vertical}
+.txt[aria-invalid="true"]{border-color:var(--bad);color:var(--bad)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;font-weight:500;cursor:pointer;min-height:40px}
+.chips button[aria-checked="true"],.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:600;min-height:44px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{min-height:34px;padding:5px 12px;font-size:14px}
+.btn:disabled{opacity:.4}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{color:var(--muted);font-size:14px;background:var(--bg);border-radius:8px;padding:9px 12px}
+pre.report{white-space:pre-wrap;font-family:var(--body);font-size:14.5px;margin:0;background:var(--bg);border-radius:8px;padding:12px;max-height:420px;overflow:auto}
+ul.jobs{list-style:none;margin:0;padding:0}
+ul.jobs li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+ul.jobs li:first-child{border-top:0}
+ul.jobs span{color:var(--muted);font-size:14px;display:block}
+</style>
+</head>
+<body>
+<div class="page">
+  <header><h1>Bathroom Site Survey</h1><p class="sub">Pre-bid measurements and conditions. Lengths in inches; fractions like 59 1/2 work.</p></header>
+  <section class="card" aria-label="Summary">
+    <div class="stats" id="stats"></div>
+    <ul class="flags" id="flags"></ul>
+  </section>
+  <div id="sections"></div>
+  <section class="card">
+    <div class="acts" style="justify-content:space-between;align-items:center"><h2>Report</h2>
+      <div class="acts"><button class="btn ghost sm" id="copy" type="button">Copy</button><button class="btn ghost sm" id="clear" type="button">New survey</button></div></div>
+    <pre class="report" id="report"></pre>
+  </section>
+  <section class="card">
+    <h2>Saved surveys</h2>
+    <div class="field"><label for="jobName">Survey name</label><input class="txt" id="jobName" type="text" maxlength="80" autocomplete="off"></div>
+    <div class="acts"><button class="btn" id="save" type="button" disabled>Save survey</button><button class="btn ghost" id="saveNew" type="button" hidden>Save as new</button></div>
+    <p class="note" id="saveMsg" role="status" hidden></p>
+    <div id="jobs"></div>
+  </section>
+</div>
+<script>
+/* ---------- helpers ---------- */
+function parseIn(s){s=String(s).trim().replace(/["″”]/g,'').trim();if(!s)return NaN;let m;
+  if((m=s.match(/^(\d+)[\s-]+(\d+)\s*\/\s*(\d+)$/))&&+m[3])return +m[1]+m[2]/m[3];
+  if((m=s.match(/^(\d+)\s*\/\s*(\d+)$/))&&+m[2])return m[1]/m[2];
+  if(/^(\d+\.?\d*|\.\d+)$/.test(s))return parseFloat(s);return NaN;}
+function fmt(v){const s=Math.round(Math.abs(v)*16),w=Math.floor(s/16);let n=s%16,d=16;while(n&&n%2===0){n/=2;d/=2;}return (n?(w?w+' ':'')+n+'/'+d:String(w))+'″';}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const $=id=>document.getElementById(id);
+
+/* ---------- the survey ---------- */
+const N=(id,label,hint)=>({t:'num',id,label,hint}), X=(id,label,hint,wide)=>({t:'text',id,label,hint,wide}),
+      C=(id,label,opts)=>({t:'choice',id,label,opts}), M=(id,label,opts)=>({t:'multi',id,label,opts}), A=(id,label)=>({t:'area',id,label});
+const YN=[['yes','Yes'],['no','No'],['unknown','Not sure']];
+const SECTIONS=[
+  {title:'Job',fields:[X('contractor','Contractor'),X('homeowner','Homeowner'),X('address','Address','',true),N('year','Year house was built'),X('date','Survey date')]},
+  {title:'Room size',fields:[N('len','Length','Wall to wall, finished'),N('wid','Width'),N('ceil','Ceiling height'),N('door','Bathroom door opening','Clear width'),
+    C('window','Window',[['none','None'],['shower','In the shower'],['other','Elsewhere']])]},
+  {title:'Level, plumb, square',fields:[N('floorOff','Floor out of level','Over the length below'),N('floorRun','…measured over','Length of the level or straightedge'),
+    N('plumbOff','Worst wall out of plumb','Over 8 ft'),N('diag1','Diagonal 1','Corner to corner'),N('diag2','Diagonal 2')]},
+  {title:'Fixtures',fields:[C('bath','Bathing',[['tub','Tub'],['tubshower','Tub/shower'],['shower','Shower'],['jetted','Jetted tub']]),N('tubLen','Tub or shower length'),
+    C('drain','Drain side',[['left','Left'],['right','Right'],['center','Center']]),C('toilet','Toilet rough-in',[['10','10″'],['12','12″'],['14','14″'],['none','No toilet']]),
+    N('vanity','Vanity width'),X('valve','Valve brand and type','e.g. Moen Posi-Temp'),C('shutoffs','Shutoffs',[['good','Good'],['stiff','Stiff or leaking'],['none','None']])]},
+  {title:'Plumbing',fields:[M('supply','Supply pipe',[['copper','Copper'],['pex','PEX'],['galv','Galvanized'],['cpvc','CPVC'],['poly','Polybutylene']]),
+    M('drainPipe','Drain pipe',[['pvc','PVC/ABS'],['cast','Cast iron'],['galv','Galvanized']]),N('whGal','Water heater size','Gallons'),N('whAge','Water heater age','Years')]},
+  {title:'Electrical and fan',fields:[C('gfci','GFCI protected',YN),C('circuit','Dedicated 20A circuit',YN),
+    C('fan','Exhaust fan',[['none','None'],['yes','Yes']]),C('fanVent','Fan vents to',[['outside','Outside'],['attic','Attic'],['unknown','Not sure']]),N('fanCfm','Existing fan CFM','From the label'),
+    X('lights','Lights and switches','',true)]},
+  {title:'Structure and moisture',fields:[X('joists','Joists','Size, spacing, span, direction'),N('subfloor','Subfloor thickness'),
+    N('mTub','Moisture at tub','% reading'),N('mToilet','Moisture at toilet','% reading'),N('mWindow','Moisture at window','% reading'),A('damage','Damage or staining')]},
+  {title:'Hazards',fields:[M('suspect','Suspect materials',[['vinyl','Old vinyl floor'],['mastic','Black mastic'],['joint','Old joint compound'],['popcorn','Popcorn ceiling'],['plaster','Plaster walls']]),A('hazNotes','Notes')]},
+  {title:'Access and logistics',fields:[N('path','Narrowest door on the path','From street to bathroom'),C('stairs','Stairs on the path',YN),C('onlyBath','Only bathroom in the house',YN),
+    X('parking','Parking and dumpster spot','',true)]},
+  {title:'Photos taken',fields:[M('photos','Checklist',[['walls','Each wall'],['fixtures','Fixtures'],['sink','Under the sink'],['above','Ceiling / attic above'],['below','Floor / basement below'],['panel','Electrical panel'],['wh','Water heater']])]},
+  {title:'Notes',fields:[A('notes','Anything else')]}
+];
+const FIELDS={};SECTIONS.forEach(s=>s.fields.forEach(f=>FIELDS[f.id]=f));
+
+let D={};
+try{D=JSON.parse(localStorage.getItem('survey1')||'{}')||{};}catch(e){}
+function saveLocal(){try{localStorage.setItem('survey1',JSON.stringify(D));}catch(e){}}
+const num=id=>{const v=parseIn(D[id]);return isNaN(v)?null:v;};
+
+function fieldHTML(f){
+  const v=D[f.id];
+  if(f.t==='num'||f.t==='text') return `<div class="field${f.wide?' wide':''}"><label for="${f.id}">${f.label}</label><input class="txt" id="${f.id}" data-f type="text" ${f.t==='num'?'inputmode="decimal"':''} autocomplete="off" value="${esc(v||'')}">${f.hint?`<small>${f.hint}</small>`:''}</div>`;
+  if(f.t==='area') return `<div class="field wide"><label for="${f.id}">${f.label}</label><textarea class="txt" id="${f.id}" data-f>${esc(v||'')}</textarea></div>`;
+  const multi=f.t==='multi',sel=multi?(Array.isArray(v)?v:[]):v;
+  return `<div class="field wide"><span class="lab" id="l-${f.id}">${f.label}</span><div class="chips" role="${multi?'group':'radiogroup'}" aria-labelledby="l-${f.id}">`+
+    f.opts.map(([k,l])=>`<button type="button" ${multi?`aria-pressed="${sel.includes(k)}"`:`role="radio" aria-checked="${sel===k}"`} data-c="${f.id}" data-k="${k}">${l}</button>`).join('')+`</div></div>`;
+}
+function filled(s){return s.fields.filter(f=>{const v=D[f.id];return Array.isArray(v)?v.length:v!=null&&v!=='';}).length;}
+function renderForm(){
+  const open=[...document.querySelectorAll('details.sec')].map(d=>d.open);
+  $('sections').innerHTML=SECTIONS.map((s,i)=>`<details class="sec" ${open.length?(open[i]?'open':''):(i<2?'open':'')}><summary><h2>${s.title}</h2><span class="count" data-count="${i}">${filled(s)}/${s.fields.length}</span></summary><div class="fields">${s.fields.map(fieldHTML).join('')}</div></details>`).join('');
+}
+
+/* ---------- calculations ---------- */
+const FAN_SIZES=[50,70,80,90,100,110,130,150,200];
+function calc(){
+  const L=num('len'),W=num('wid'),H=num('ceil'),r={};
+  if(L&&W){r.area=L*W/144;}
+  if(r.area&&H){r.vol=r.area*H/12;}
+  if(r.area){
+    let cfm;
+    if(r.area<=100){cfm=Math.max(50,Math.ceil(r.area)*(H&&H>96?H/96:1));r.fanHow='1 CFM per sq ft'+(H&&H>96?', scaled for the ceiling height':'')+', minimum 50';}
+    else{cfm=(D.toilet&&D.toilet!=='none'?50:0)+(D.bath==='jetted'?100:D.bath?50:0)+(D.bath==='tubshower'?0:0);cfm=Math.max(cfm,50);r.fanHow='50 CFM per toilet, tub or shower (100 for a jetted tub)';}
+    r.cfm=Math.ceil(cfm);r.fan=FAN_SIZES.find(s=>s>=r.cfm)||r.cfm;
+    if(r.vol)r.ach=r.fan*60/r.vol;
+  }
+  const d1=num('diag1'),d2=num('diag2');if(d1&&d2)r.square=Math.abs(d1-d2);
+  const fo=num('floorOff'),fr=num('floorRun');if(fo!=null&&fr)r.levelPer10=fo*120/fr;
+  return r;
+}
+function flags(r){
+  const f=[],y=num('year');
+  const add=(lvl,t)=>f.push([lvl,t]);
+  if(y&&y<1978) add('bad',`Built ${y}: assume lead paint until tested (pre-1978).`);
+  if(y&&y<1990&&(D.suspect||[]).length) add('bad','Suspect asbestos materials in an older house: test before demo.');
+  else if((D.suspect||[]).length) add('warn','Suspect materials noted: consider testing before demo.');
+  if(D.fan==='none') add('warn','No exhaust fan: add a fan, duct and switch.');
+  if(D.fan==='yes'&&D.fanVent==='attic') add('bad','Fan vents into the attic: needs ducting to the outside.');
+  if(D.fan==='yes'&&D.fanVent==='unknown') add('warn','Fan venting not confirmed: check the attic.');
+  if(D.fan==='yes'&&r.fan&&num('fanCfm')&&num('fanCfm')<r.cfm) add('warn',`Existing fan (${num('fanCfm')} CFM) is under the ${r.cfm} CFM guideline.`);
+  if(D.gfci==='no') add('bad','No GFCI protection: add it.');
+  if(D.circuit==='no') add('warn','No dedicated 20A circuit for the bathroom receptacles.');
+  if((D.supply||[]).includes('galv')) add('warn','Galvanized supply lines: consider replacing within the work area.');
+  if((D.supply||[]).includes('poly')) add('bad','Polybutylene supply: replacement usually recommended.');
+  if((D.drainPipe||[]).includes('galv')) add('warn','Galvanized drain: check for corrosion and flow.');
+  if(D.toilet==='10'||D.toilet==='14') add('warn',`${D.toilet}″ toilet rough-in: limited toilet choices.`);
+  if(D.shutoffs==='stiff') add('warn','Shutoffs stiff or leaking: replace.');
+  if(D.shutoffs==='none') add('warn','No fixture shutoffs: add them.');
+  if(D.window==='shower') add('warn','Window inside the shower: plan for waterproofing or replacement.');
+  for(const [id,l] of [['mTub','tub'],['mToilet','toilet'],['mWindow','window']]){const v=num(id);if(v!=null&&v>=20)add('bad',`High moisture at the ${l} (${v}%): expect rot or mold behind.`);}
+  if(r.levelPer10!=null&&r.levelPer10>0.25) add('warn',`Floor is ${fmt(r.levelPer10)} out of level per 10 ft: plan leveling for tile.`);
+  if(r.square!=null&&r.square>0.375) add('warn',`Room is out of square: diagonals differ by ${fmt(r.square)}.`);
+  const pl=num('plumbOff');if(pl!=null&&pl>0.25) add('warn',`A wall is ${fmt(pl)} out of plumb over 8 ft: plan shimming or furring.`);
+  const p=Math.min(num('path')||999,num('door')||999),tl=num('tubLen');
+  if(p<999&&p<32) add('warn',`Narrowest door on the path is ${fmt(p)}: check that the tub and vanity fit through.`);
+  if(D.stairs==='yes') add('warn','Stairs on the path: plan for carrying the tub and debris.');
+  if(D.onlyBath==='yes') add('warn','Only bathroom in the house: plan the schedule or a temporary toilet.');
+  if(D.whAge&&num('whAge')>=10) add('warn',`Water heater is ${num('whAge')} years old.`);
+  if(D.bath==='jetted'&&!D.circuit) add('warn','Jetted tub: confirm its dedicated circuit.');
+  return f;
+}
+function report(r,fl){
+  const v=id=>{const x=D[id];return Array.isArray(x)?x.map(k=>(FIELDS[id].opts.find(o=>o[0]===k)||[])[1]).join(', '):x?(FIELDS[id].opts?(FIELDS[id].opts.find(o=>o[0]===x)||[,x])[1]:x):'';};
+  const L=[];
+  L.push('BATHROOM SITE SURVEY');
+  for(const [k,id] of [['Contractor','contractor'],['Homeowner','homeowner'],['Address','address'],['Date','date'],['Built','year']]) if(v(id)) L.push(`${k}: ${v(id)}`);
+  L.push('');
+  L.push('ROOM');
+  if(D.len&&D.wid) L.push(`Size: ${fmt(num('len'))} × ${fmt(num('wid'))}${D.ceil?`, ceiling ${fmt(num('ceil'))}`:''}`);
+  if(r.area) L.push(`Floor area: ${r.area.toFixed(1)} sq ft${r.vol?` · Volume: ${Math.round(r.vol)} cu ft`:''}`);
+  if(r.fan) L.push(`Fan: ${r.fan} CFM recommended (${r.fanHow})${r.ach?`, about ${Math.round(r.ach)} air changes per hour`:''}`);
+  if(D.door) L.push(`Door: ${fmt(num('door'))} clear`);
+  if(v('window')) L.push(`Window: ${v('window')}`);
+  if(r.levelPer10!=null) L.push(`Floor level: ${fmt(num('floorOff'))} over ${fmt(num('floorRun'))}`);
+  if(D.plumbOff) L.push(`Walls: worst ${fmt(num('plumbOff'))} out of plumb over 8 ft`);
+  if(r.square!=null) L.push(`Square: diagonals ${fmt(num('diag1'))} and ${fmt(num('diag2'))}`);
+  const sec=(t,rows)=>{const out=rows.filter(([,x])=>x);if(out.length){L.push('');L.push(t);out.forEach(([k,x])=>L.push(`${k}: ${x}`));}};
+  sec('FIXTURES',[['Bathing',v('bath')],['Length',D.tubLen?fmt(num('tubLen')):''],['Drain',v('drain')],['Toilet rough-in',v('toilet')],['Vanity',D.vanity?fmt(num('vanity')):''],['Valve',v('valve')],['Shutoffs',v('shutoffs')]]);
+  sec('PLUMBING',[['Supply',v('supply')],['Drain',v('drainPipe')],['Water heater',D.whGal?`${D.whGal} gal${D.whAge?`, ${D.whAge} years`:''}`:'']]);
+  sec('ELECTRICAL AND FAN',[['GFCI',v('gfci')],['Dedicated 20A',v('circuit')],['Fan',v('fan')],['Vents to',D.fan==='yes'?v('fanVent'):''],['Existing CFM',D.fanCfm||''],['Lights and switches',v('lights')]]);
+  sec('STRUCTURE AND MOISTURE',[['Joists',v('joists')],['Subfloor',D.subfloor?fmt(num('subfloor')):''],['Moisture',[['tub','mTub'],['toilet','mToilet'],['window','mWindow']].filter(([,i])=>D[i]).map(([l,i])=>`${l} ${D[i]}%`).join(', ')],['Damage',v('damage')]]);
+  sec('HAZARDS',[['Suspect materials',v('suspect')],['Notes',v('hazNotes')]]);
+  sec('ACCESS',[['Narrowest door on path',D.path?fmt(num('path')):''],['Stairs',v('stairs')],['Only bathroom',v('onlyBath')],['Parking and dumpster',v('parking')]]);
+  sec('PHOTOS',[['Taken',v('photos')]]);
+  if(fl.length){L.push('');L.push('FLAGS');fl.forEach(([,t])=>L.push('- '+t));}
+  if(D.notes){L.push('');L.push('NOTES');L.push(D.notes);}
+  L.push('');L.push('Measurements for bidding. Verify before ordering or building. Not a licensed inspection or hazard test.');
+  return L.join('\n');
+}
+function refresh(){
+  const r=calc(),fl=flags(r);
+  const st=[['Floor area',r.area?r.area.toFixed(1)+' sq ft':'—'],['Volume',r.vol?Math.round(r.vol)+' cu ft':'—'],['Fan size',r.fan?r.fan+' CFM':'—'],['Flags',String(fl.length)]];
+  $('stats').innerHTML=st.map(([k,v])=>`<div class="stat"><small>${k}</small><b>${v}</b></div>`).join('');
+  $('flags').innerHTML=fl.length?fl.map(([l,t])=>`<li><i class="${l}"></i><span>${esc(t)}</span></li>`).join(''):'<li><i class="good"></i><span>No flags yet. They appear as you fill in the survey.</span></li>';
+  $('report').textContent=report(r,fl);
+  SECTIONS.forEach((s,i)=>{const c=document.querySelector(`[data-count="${i}"]`);if(c)c.textContent=`${filled(s)}/${s.fields.length}`;});
+  saveLocal();
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input',e=>{const el=e.target;if(!el.hasAttribute('data-f'))return;
+  const f=FIELDS[el.id];D[el.id]=el.value;
+  if(f.t==='num') el.setAttribute('aria-invalid',el.value.trim()&&isNaN(parseIn(el.value))?'true':'false');
+  refresh();});
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.c){const f=FIELDS[b.dataset.c],k=b.dataset.k;
+    if(f.t==='multi'){const a=Array.isArray(D[f.id])?D[f.id].slice():[];const i=a.indexOf(k);if(i>=0)a.splice(i,1);else a.push(k);D[f.id]=a;b.setAttribute('aria-pressed',String(a.includes(k)));}
+    else{D[f.id]=D[f.id]===k?'':k;b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-checked',String(x.dataset.k===D[f.id])));}
+    refresh();return;}
+  if(b.id==='copy'){try{navigator.clipboard.writeText($('report').textContent).then(()=>{b.textContent='Copied';},()=>{b.textContent='Copy failed';});}catch(err){b.textContent='Copy failed';}return;}
+  if(b.id==='clear'){if(b.dataset.armed){D={};cur=null;renderForm();refresh();paintJobs();b.textContent='New survey';delete b.dataset.armed;}else{b.textContent='Tap again to clear';b.dataset.armed='1';}return;}
+  if(b.id==='save'||b.id==='saveNew'){saveJob(b.id==='saveNew',b);return;}
+  if(b.dataset.open){openJob(b.dataset.open);return;}
+  if(b.dataset.del){delJob(b.dataset.del);return;}
+});
+
+/* ---------- saved surveys (private to each signed-in person) ---------- */
+let db=null,uid=null,jobs=null,cur=null,pendingDel=null,jobsErr='';
+const col=()=>db.collection('data/users/'+uid);
+const defName=()=>[D.homeowner,D.address].filter(Boolean).join(', ')||'Bathroom survey';
+function paintJobs(){
+  $('save').disabled=!db;$('save').textContent=cur?'Save changes':'Save survey';$('saveNew').hidden=!cur;
+  if(document.activeElement!==$('jobName'))$('jobName').value=cur?cur.name:defName();
+  let h;
+  if(jobsErr==='off')h='<p class="note">Saving surveys needs this page open while you’re signed in to Claude. This browser still keeps your current survey.</p>';
+  else if(jobsErr==='err')h='<p class="note">Saved surveys couldn’t load. Reopen the page to try again.</p>';
+  else if(jobs===null)h='<p class="note">Loading saved surveys…</p>';
+  else if(!jobs.length)h='<p class="note">No saved surveys yet.</p>';
+  else h=`<ul class="jobs">${jobs.map(j=>`<li><div><b>${esc(j.name||'Untitled')}</b><span>Saved ${new Date(j.savedAt||0).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}${cur&&cur.id===j.id?' · open now':''}</span></div><div class="acts"><button class="btn ghost sm" type="button" data-open="${esc(j.id)}">Open</button><button class="btn ghost sm" type="button" data-del="${esc(j.id)}">${pendingDel===j.id?'Confirm delete':'Delete'}</button></div></li>`).join('')}</ul>`;
+  $('jobs').innerHTML=h;
+}
+const msg=t=>{const m=$('saveMsg');m.hidden=false;m.textContent=t;};
+async function saveJob(asNew,btn){
+  if(!db)return;const name=($('jobName').value||'').trim().slice(0,80)||defName();
+  const ref=(!asNew&&cur)?col().doc(cur.id):col().doc();btn.disabled=true;
+  try{await ref.set({name,D:JSON.parse(JSON.stringify(D)),savedAt:Date.now()});cur={id:ref.id,name};msg('Saved “'+name+'”.');}
+  catch(e){msg(e&&e.code==='quota_exceeded'?'Storage is full. Delete an old survey and save again.':'Couldn’t save. Try again in a moment.');}
+  btn.disabled=false;paintJobs();
+}
+function openJob(id){const j=(jobs||[]).find(x=>x.id===id);if(!j||!j.D)return;D=JSON.parse(JSON.stringify(j.D));cur={id:j.id,name:String(j.name||'Untitled')};pendingDel=null;renderForm();refresh();paintJobs();window.scrollTo(0,0);}
+async function delJob(id){if(pendingDel!==id){pendingDel=id;paintJobs();return;}pendingDel=null;
+  try{await col().doc(id).delete();if(cur&&cur.id===id)cur=null;}catch(e){msg('Couldn’t delete. Try again in a moment.');}paintJobs();}
+(async()=>{try{
+  if(!window.claude||typeof window.claude.use!=='function'){jobsErr='off';paintJobs();return;}
+  const [d,u]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);uid=u?await u.id():null;
+  if(!d||!uid){jobsErr='off';paintJobs();return;}
+  db=d;paintJobs();
+  const t=setTimeout(()=>{if(jobs===null){jobsErr='err';paintJobs();}},10000);
+  col().onSnapshot(s=>{if(!s.metadata.fromCache)clearTimeout(t);jobsErr='';jobs=s.docs.filter(x=>x.exists).map(x=>Object.assign({},x.data(),{id:x.id})).sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));paintJobs();},
+    e=>{clearTimeout(t);jobsErr=e&&e.code==='revoked'?'off':'err';paintJobs();});
+}catch(e){jobsErr='off';paintJobs();}})();
+
+renderForm();refresh();paintJobs();
+</script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+Category,Item,Value,Basis,Source,Notes
+Toilet,Centerline to side wall or obstruction,15″ min,Code,IRC P2705.1,"Counts walls, vanities, tubs and partitions."
+Toilet,"Centerline to side wall, comfortable",18″,Guideline,NKBA,
+Toilet,Clear floor in front of bowl,21″ min,Code,IRC P2705.1,"From the front of the bowl to any wall, fixture or door."
+Toilet,"Clear floor in front, comfortable",30″,Guideline,NKBA,
+Toilet,"Adjacent fixtures, center to center",30″ min,Code,IRC P2705.1,
+Toilet,Separate toilet compartment,30″ wide × 60″ deep min,Code,IPC 405.3.1,NKBA suggests 36″ × 66″.
+Toilet,Flange rough-in from finished wall,12″ typical,Trade typical,,"10″ and 14″ exist, mostly in older homes."
+Toilet,Supply stop,"About 8″ AFF, up to 6″ left of centerline",Trade typical,,Check the toilet's spec sheet.
+Toilet,Seat height (comfort height),17–19″ to top of seat,ADA,ADA 604.4,Standard bowls are about 15″. Accessible dwelling units may use 15–19″.
+Toilet,Accessible centerline from side wall,16–18″,ADA,ADA 604.2,
+Toilet,Accessible clear floor at toilet,60″ wide × 56″ deep min,ADA,ADA 604.3,ICC A117.1 uses 59″ deep for floor-mounted toilets.
+Toilet,"Toilet paper holder, accessible",7–9″ in front of bowl to holder center; outlet 15–48″ AFF,ADA,ADA 604.7,
+Toilet,"Toilet paper holder, homes","8–12″ in front of bowl, about 26″ AFF",Guideline,NKBA,
+Grab bars,Bar height,33–36″ AFF to top of bar,ADA,ADA 609.4,Horizontal bars in one shower sit at the same height.
+Grab bars,Bar diameter,1 1/4–2″,ADA,ADA 609.2.1,Most bars are 1 1/4″ or 1 1/2″.
+Grab bars,Space between bar and wall,1 1/2″,ADA,ADA 609.3,
+Grab bars,Clear space above bar,12″ min to anything projecting,ADA,ADA 609.3,1 1/2″ is allowed to shower controls and other bars.
+Grab bars,Toilet side wall bar,"42″ long min, 12″ max from rear wall, reaching 54″ min from rear wall",ADA,ADA 604.5.1,
+Grab bars,Toilet rear wall bar,"36″ long min: 12″ min one side of centerline, 24″ min the other",ADA,ADA 604.5.2,Longer side toward the open side.
+Grab bars,Tub back wall,"Two bars: one at 33–36″ AFF, one 8–10″ above the tub rim",ADA,ADA 607.4,
+Grab bars,Tub control end wall,"24″ long min, at the front edge of the tub",ADA,ADA 607.4,
+Grab bars,Tub head end wall,"12″ long min, at the front edge of the tub",ADA,ADA 607.4.2,Tubs without a permanent seat.
+Grab bars,Transfer shower (36″ × 36″),"Across the control wall and the back wall, to 18″ from the control wall",ADA,ADA 608.3.1,
+Grab bars,Roll-in shower,Within 6″ of adjacent walls; three walls if no seat,ADA,ADA 608.3.2,With a seat: back wall and the wall opposite the seat.
+Grab bars,Blocking in homes,Block the walls so bars can be added later,ADA,ADA 604.5 exception,Lets a home skip the bars now. Cover the 33–36″ heights and the tub's low bar.
+Sink,Sink centerline to side wall,15″ min,Code,IRC P2705.1,Some jurisdictions don't apply this to vanity sinks; check locally.
+Sink,"Sink centerline to side wall, comfortable",20″,Guideline,NKBA,
+Sink,Clear floor in front,21″ min,Code,IRC P2705.1,
+Sink,"Clear floor in front, comfortable",30″,Guideline,NKBA,
+Sink,"Double sinks, center to center",30″ min; 30–36″ comfortable,Guideline,NKBA,30″ is also the code minimum between adjacent fixtures.
+Sink,Vanity or counter height,32–36″ common; 34–36″ comfort height,Guideline,NKBA,NKBA allows 32–43″ to fit the user.
+Sink,Accessible sink height,"34″ max to rim or counter, whichever is higher",ADA,ADA 606.3,
+Sink,Accessible knee clearance,"27″ high min, 8″ deep min from the front edge",ADA,ADA 306,
+Sink,Drain stub,18–20″ AFF,Trade typical,,Check pedestal and wall-hung sink specs.
+Sink,Supply stubs,"20–22″ AFF, 4″ each side of centerline (8″ apart)",Trade typical,,Some set them 22–24″.
+Sink,Accessible mirror,Bottom of the glass 40″ max AFF over the sink,ADA,ADA 603.3,
+Shower,Minimum size,900 sq in and 30″ min each way,Code,IRC P2708.1,"Measured to finished surfaces. UPC areas require 1,024 sq in and a 30″ circle."
+Shower,Comfortable size,36″ × 36″,Guideline,NKBA,
+Shower,Door or entry clear width,22″ min,Code,IRC P2708.1,Hinged shower doors swing out.
+Shower,Clear floor in front of opening,24″ min,Code,IRC R307.1,
+Tub,Clear floor in front of tub,21″ min; 30″ comfortable,Guideline,Common practice,Confirm locally.
+Shower,Ceiling over showerhead,6′8″ min over a 30″ × 30″ area,Code,IRC R305.1,
+Shower,Floor slope to drain,1/4–1/2″ per foot,Code,IRC P2709.1,
+Shower,Curb height above drain,"2″ min, 9″ max",Code,IRC P2709.1,Threshold also sits at least 1″ below the sides and back.
+Shower,Pan liner slope,1/4″ per foot to the weep holes,Code,IRC P2709,
+Shower,Shower valve (stall),48″ AFF typical (38–48″),Trade typical,,
+Shower,Showerhead arm,About 80″ AFF (72–80″),Trade typical,,
+Tub,Tub/shower valve,About 28″ AFF,Trade typical,,Or follow the valve spec's spout-to-valve distance.
+Tub,Tub spout,About 4″ above the tub rim,Trade typical,,Must sit above the flood rim.
+Shower,Accessible shower controls,"Above the grab bar, 48″ max AFF",ADA,ADA 608.5,
+Shower,Accessible shower seat,17–19″ AFF,ADA,ADA 610.3,
+Glass,Safety glazing near tub or shower,Glass under 60″ above the standing surface and within 60″ of the water's edge,Code,IRC R308.4.5,
+Electrical,Sink receptacle,Within 3′ of the outside edge of each basin,Code,NEC 210.52(D),One outlet between two sinks can serve both if within 3′ of each.
+Electrical,Receptacle circuit,"20A, bathroom receptacles only",Code,NEC 210.11(C)(3),
+Electrical,GFCI,All bathroom receptacles,Code,NEC 210.8(A)(1),
+Electrical,Receptacles near tub or shower,None within 3′ horizontally of the tub or shower,Code,NEC 406.9(C),2023 NEC; small-room exceptions.
+Electrical,Hanging lights and fans near tub or shower,None within 3′ horizontally and 8′ above the rim or threshold,Code,NEC 410.10(D),Fixtures over the tub or shower within 8′ must be damp- or wet-rated.
+Room,Ceiling height,6′8″ min,Code,IRC R305.1,
+Room,Exhaust fan,50 CFM intermittent or 20 CFM continuous min,Code,"IRC R303.3, M1505.4.4",Vent to the outdoors.
+Room,Fan sizing,About 1 CFM per sq ft (8′ ceiling),Guideline,HVI,"Over 100 sq ft, size by fixture count."
+Room,Entry door,32″ wide or more,Guideline,NKBA,
+Room,Walkway behind someone at a fixture,48″ (18″ user + 30″ to pass),Guideline,NKBA,
+Room,Accessible turning space,60″ circle or T-turn,ADA,ADA 603.2.1,
