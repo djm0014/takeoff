@@ -4,7 +4,11 @@
  * for Stage 2). A measurement lives in exactly one place.
  *
  * All lengths are inches (numbers). Positions along a wall are measured from
- * the wall's left end, looking at the wall from inside the room.
+ * the wall's left corner, looking at the wall from inside the room.
+ *
+ * A room's shape is its walls, in the order you walk them from a starting
+ * corner: each wall has a length and a turn to the next one. Bump-ins, chases
+ * and alcoves are just more walls. See src/plan/geometry.ts.
  */
 
 export const SCHEMA_VERSION = 1;
@@ -54,8 +58,6 @@ export interface Room {
   id: Id;
   jobId: Id;
   name: string;
-  length: number;
-  width: number;
   ceilingHeight: number;
 }
 
@@ -79,9 +81,12 @@ export interface TileLayout {
 export interface Wall {
   id: Id;
   roomId: Id;
-  /** Numbered clockwise from the top of the plan, starting at 1. */
+  /** Order you walk the room in, starting at 1 from the starting corner. */
   number: number;
+  /** Finished face length. 0 until it's entered. */
   length: number;
+  /** Turn to the next wall, degrees: 90 right, -90 left. Ignored on the last wall. */
+  turn: number;
   studSize: StudSize;
   finishThickness: number;
   open: boolean;
@@ -89,18 +94,6 @@ export interface Wall {
   firstStud: number | null;
   tileHeight: number | null;
   tileLayout: TileLayout | null;
-}
-
-export type FeatureType = 'bump-in' | 'alcove';
-
-export interface Feature {
-  id: Id;
-  wallId: Id;
-  type: FeatureType;
-  position: number;
-  width: number;
-  depth: number;
-  label: string;
 }
 
 export type ItemType =
@@ -128,9 +121,11 @@ export interface Item {
   wallId: Id;
   type: ItemType;
   status: ItemStatus;
-  /** Distance from the wall's left end to the item's left edge. */
+  /** Distance from the wall's left corner to the left edge of the item's footprint. */
   position: number;
+  /** Footprint along the wall. For a door, the opening including jambs. */
   width: number;
+  /** Footprint into the room. 0 for doors and windows. */
   depth: number;
   /** Height of the item itself. */
   height: number | null;
@@ -147,7 +142,6 @@ export interface JobDoc {
   survey: Survey | null;
   rooms: Room[];
   walls: Wall[];
-  features: Feature[];
   items: Item[];
 }
 
@@ -185,7 +179,6 @@ export function createJob(fields: Partial<Omit<Job, 'id' | 'createdAt' | 'update
     survey: null,
     rooms: [],
     walls: [],
-    features: [],
     items: [],
   };
 }
@@ -220,10 +213,6 @@ export function duplicateJobDoc(doc: JobDoc, name?: string): JobDoc {
   for (const w of copy.walls) {
     w.id = remap(w.id);
     w.roomId = remap(w.roomId);
-  }
-  for (const f of copy.features) {
-    f.id = remap(f.id);
-    f.wallId = remap(f.wallId);
   }
   for (const i of copy.items) {
     i.id = remap(i.id);
@@ -271,7 +260,7 @@ function validate(doc: Record<string, unknown>): void {
   if (!job || typeof job.id !== 'string' || typeof job.name !== 'string') {
     throw new JobFormatError('Job record is missing its job details.');
   }
-  for (const table of ['rooms', 'walls', 'features', 'items'] as const) {
+  for (const table of ['rooms', 'walls', 'items'] as const) {
     if (!Array.isArray(doc[table])) throw new JobFormatError(`Job record is missing its ${table}.`);
   }
 }

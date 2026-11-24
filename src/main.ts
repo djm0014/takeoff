@@ -3,6 +3,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { h } from './lib/dom';
 import { applyTheme, loadTheme } from './lib/theme';
 import { href, parseRoute } from './router';
+import { renderFloorPlan } from './screens/floorPlan';
 import { renderJobHome } from './screens/jobHome';
 import { renderJobs } from './screens/jobs';
 import { topbar } from './screens/shell';
@@ -20,6 +21,9 @@ async function render(): Promise<void> {
       break;
     case 'job':
       await renderJobHome(root, route.jobId);
+      break;
+    case 'plan':
+      await renderFloorPlan(root, route.jobId);
       break;
     default:
       root.replaceChildren(

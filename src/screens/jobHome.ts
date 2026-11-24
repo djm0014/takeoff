@@ -4,18 +4,39 @@
  */
 import { jobFileName, toJobFile } from '../data/jobfile';
 import { PRESET_LABELS, type Job, type JobDoc, type Preset } from '../data/model';
+import { geometry, roomWalls } from '../plan/room';
 import { jobs } from '../data/storage';
 import { downloadText, h, menuButton, toast } from '../lib/dom';
 import { go, href } from '../router';
 import { topbar } from './shell';
 
 const SCREENS: { title: string; blurb: string; milestone: number }[] = [
-  { title: 'Floor plan', blurb: 'Room, walls, bump-ins, alcoves and items.', milestone: 2 },
   { title: 'Vanity wall', blurb: 'Centerlines, mirror, lights, outlets, cabinet.', milestone: 3 },
   { title: 'Tile and niche', blurb: 'Wall tile layout, niche, sheets A-1 and A-2.', milestone: 4 },
   { title: 'Survey', blurb: 'Field checklist and report.', milestone: 5 },
   { title: 'Sheets', blurb: 'Printable drawings and schedules.', milestone: 5 },
 ];
+
+function floorPlanCard(doc: JobDoc): HTMLElement {
+  const room = doc.rooms[0];
+  const walls = room ? roomWalls(doc, room.id) : [];
+  let status = 'Not started';
+  if (room && walls.length) {
+    const g = geometry(doc, room.id);
+    const ids = new Set(walls.map((w) => w.id));
+    const items = doc.items.filter((it) => ids.has(it.wallId)).length;
+    status = g.closed
+      ? `${walls.length} walls · ${(g.area / 144).toFixed(1)} sq ft · ${items} item${items === 1 ? '' : 's'}`
+      : `${walls.length} walls · room not closed yet`;
+  }
+  return h(
+    'a',
+    { class: 'card screen-card link-card', href: href({ name: 'plan', jobId: doc.job.id }) },
+    h('h3', {}, 'Floor plan'),
+    h('p', { class: 'small muted', style: 'margin:0' }, 'Room, walls, doors, windows and fixtures.'),
+    h('span', { class: 'status' }, status),
+  );
+}
 
 export async function renderJobHome(root: HTMLElement, jobId: string): Promise<void> {
   const store = jobs();
@@ -146,6 +167,7 @@ export async function renderJobHome(root: HTMLElement, jobId: string): Promise<v
     h(
       'div',
       { class: 'screen-grid' },
+      floorPlanCard(current),
       SCREENS.map((s) =>
         h(
           'div',

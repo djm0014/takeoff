@@ -6,10 +6,14 @@ describe('router', () => {
     expect(parseRoute('')).toEqual({ name: 'jobs' });
     expect(parseRoute('#/')).toEqual({ name: 'jobs' });
     expect(parseRoute('#/job/abc-123')).toEqual({ name: 'job', jobId: 'abc-123' });
+    expect(parseRoute('#/job/abc/plan')).toEqual({ name: 'plan', jobId: 'abc' });
+    expect(parseRoute('#/job/abc/nope')).toEqual({ name: 'notFound' });
     expect(parseRoute('#/nope')).toEqual({ name: 'notFound' });
   });
   it('round-trips job links', () => {
-    const route = { name: 'job', jobId: 'a b/c' } as const;
-    expect(parseRoute(href(route))).toEqual(route);
+    for (const name of ['job', 'plan'] as const) {
+      const route = { name, jobId: 'a b/c' };
+      expect(parseRoute(href(route))).toEqual(route);
+    }
   });
 });

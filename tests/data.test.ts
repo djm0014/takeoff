@@ -12,17 +12,18 @@ import {
 } from '../src/data/model';
 import { createIdbStore, type JobStore } from '../src/data/storage';
 
-/** A small job with a room, a wall, a feature and an item, all linked. */
+/** A small job with a room, a wall and an item, all linked. */
 function sampleJob(): JobDoc {
   const doc = createJob({ name: 'Smith hall bath', client: 'Smith' });
   const roomId = newId();
   const wallId = newId();
-  doc.rooms.push({ id: roomId, jobId: doc.job.id, name: 'Hall bath', length: 96, width: 60, ceilingHeight: 96 });
+  doc.rooms.push({ id: roomId, jobId: doc.job.id, name: 'Hall bath', ceilingHeight: 96 });
   doc.walls.push({
     id: wallId,
     roomId,
     number: 1,
     length: 60,
+    turn: 90,
     studSize: '2x4',
     finishThickness: 0.5,
     open: false,
@@ -30,7 +31,6 @@ function sampleJob(): JobDoc {
     tileHeight: null,
     tileLayout: null,
   });
-  doc.features.push({ id: newId(), wallId, type: 'bump-in', position: 0, width: 12, depth: 6, label: 'Chase' });
   doc.items.push({
     id: newId(),
     wallId,
@@ -62,7 +62,6 @@ describe('job record', () => {
     expect(copy.job.name).toBe('Smith hall bath (copy)');
     expect(copy.rooms[0]!.jobId).toBe(copy.job.id);
     expect(copy.walls[0]!.roomId).toBe(copy.rooms[0]!.id);
-    expect(copy.features[0]!.wallId).toBe(copy.walls[0]!.id);
     expect(copy.items[0]!.wallId).toBe(copy.walls[0]!.id);
     expect(copy.walls[0]!.id).not.toBe(doc.walls[0]!.id);
     // the original is untouched

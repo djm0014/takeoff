@@ -7,7 +7,22 @@ scope and milestones.
 
 ## Status
 
-**Milestone 1 — Foundation** (in progress)
+**Milestone 2 — Floor plan** (in progress)
+
+- [x] Walk-the-room entry: each wall's length and the turn to the next (90°, or any angle up to 135°); rectangle shortcut
+- [x] Room closure check, with which direction is off for square rooms, and "fill in the last two walls"
+- [x] Doors, windows, tub, shower, toilet, vanity on any wall; existing / new / remove
+- [x] Existing and design views, drag along a wall, clearance checks that work in any room shape
+- [x] Checks match the old tool on rectangular rooms (`tests/fixtures/floorplan-scenarios.json`)
+- [ ] Framing view: studs, blocking, rough-in schedule, framing takeoff
+
+Decisions made in this milestone:
+
+- Bump-ins and alcoves are no longer a separate thing: they are walls in the walk.
+- Walls are numbered in the order you walk them, not clockwise from the top.
+- Plan dimensions show feet and inches from 24″ up (`4'-9`), plain inches below.
+
+**Milestone 1 — Foundation** (done except the custom domain)
 
 - [x] Vite + TypeScript build, installable on a phone (works with no signal)
 - [x] Style file: Barlow fonts, light and dark themes, 44 px tap targets
