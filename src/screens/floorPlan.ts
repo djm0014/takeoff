@@ -720,8 +720,12 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     layoutPinned();
   }
 
-  /* ----- drag along a wall ----- */
+  /* ----- tap an item to edit it, or slide it along its wall ----- */
+  // A touch that moves less than this many screen pixels is a tap, not a drag.
+  const TAP_SLOP = 8;
   let grab = 0;
+  let start: { x: number; y: number } | null = null;
+  let moved = false;
   const local = (e: PointerEvent, wallIndex: number) => {
     const svg = svgWrap.querySelector('svg');
     const m = svg?.getScreenCTM();
@@ -731,6 +735,16 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   };
   const itemWall = (it: Item) => walls().findIndex((w) => w.id === it.wallId);
 
+  /** Scroll to an item's fields and put the cursor in its first one. */
+  function editItem(it: Item) {
+    const card = itemsBody.querySelector<HTMLElement>(`[data-item-card="${it.id}"]`);
+    const input = card?.querySelector<HTMLInputElement>('input');
+    if (!card || !input) return;
+    card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    input.focus({ preventScroll: true });
+    input.select();
+  }
+
   svgWrap.addEventListener('pointerdown', (e) => {
     const el = (e.target as Element).closest('[data-id]');
     const it = el && doc.items.find((x) => x.id === el.getAttribute('data-id'));
@@ -738,13 +752,19 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const p = local(e, itemWall(it));
     if (!p) return;
     dragId = it.id;
+    focusItemId = it.id;
+    focusWallId = it.wallId;
     grab = p.x - it.position;
+    start = { x: e.clientX, y: e.clientY };
+    moved = false;
     svgWrap.setPointerCapture(e.pointerId);
     e.preventDefault();
     renderPlan();
   });
   svgWrap.addEventListener('pointermove', (e) => {
-    if (!dragId) return;
+    if (!dragId || !start) return;
+    if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) < TAP_SLOP) return;
+    moved = true;
     const it = doc.items.find((x) => x.id === dragId);
     if (!it) return;
     const k = itemWall(it);
@@ -761,11 +781,15 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     if (input && field) input.value = inchText(field.get(it));
     renderPlan();
   });
-  const endDrag = () => {
+  const endDrag = (e: PointerEvent) => {
     if (!dragId) return;
+    const it = doc.items.find((x) => x.id === dragId);
+    const wasTap = !moved && e.type === 'pointerup';
     dragId = null;
-    saver.schedule();
+    start = null;
+    if (moved) saver.schedule();
     renderPlan();
+    if (wasTap && it) editItem(it);
   };
   svgWrap.addEventListener('pointerup', endDrag);
   svgWrap.addEventListener('pointercancel', endDrag);

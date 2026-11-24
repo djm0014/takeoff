@@ -543,7 +543,11 @@ table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; l
 .plan-svg .nextlbl { fill: var(--accent); font-family: var(--font-text); font-weight: 600; }
 .plan-svg .hit { fill: transparent; }
 .plan-svg .drag { cursor: grab; touch-action: none; }
-.plan-svg .drag.on .fx { stroke-width: 2.4; }
+/* The item being edited or dragged, in orange like the wall being edited. */
+.plan-svg .drag.on .fx { fill: var(--newfill); stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: none; }
+.plan-svg .drag.on .fx2 { stroke: var(--accent); stroke-dasharray: none; }
+.plan-svg .drag.on .ln, .plan-svg .drag.on .leaf, .plan-svg .drag.on .arc { stroke: var(--accent); stroke-width: 2; }
+.plan-svg .drag.on .hit { fill: var(--accent); fill-opacity: 0.35; }
 
 /* ---------- Print ---------- */
 
