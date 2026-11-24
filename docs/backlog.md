@@ -7,10 +7,11 @@ Newest notes at the top of each section. Check items off when they ship.
 
 From the first phone test (Nov 24, 2026):
 
-- [ ] **Keep the drawing in view while editing.** Pin the drawing to the top
-  half to two thirds of the screen, with the wall and item fields scrolling
-  underneath, so you can see which wall an item lands on and catch mistakes as
-  they happen instead of scrolling back to the top.
+- [x] **Keep the drawing in view while editing.** The drawing is pinned under
+  the top bar (half screen, bigger, or hidden), the wall or item being edited
+  is highlighted, and an arrow shows which way the next wall goes. To check on
+  a real phone: the drawing shrinks while the keyboard is up, so the field you're
+  typing in stays visible.
 - [ ] **Door jamb minimum from a wall.** Set a minimum distance from a corner
   to a door jamb (for trim and the door's swing), and flag doors closer than
   that.

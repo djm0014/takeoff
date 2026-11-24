@@ -9,7 +9,7 @@
 import { newId, type Item, type ItemStatus, type JobDoc, type Room, type StudSize, type Wall } from '../data/model';
 import { jobs } from '../data/storage';
 import { autosave } from '../lib/autosave';
-import { h, menuButton, toast } from '../lib/dom';
+import { h, icon, ICONS, menuButton, toast } from '../lib/dom';
 import { formatInches, parseInches } from '../lib/inches';
 import { runChecks } from '../plan/checks';
 import { drawPlan, type PlanView } from '../plan/draw';
@@ -42,6 +42,27 @@ const STATUS_OPTIONS: [ItemStatus, string][] = [
   ['new', 'New'],
   ['remove', 'Remove'],
 ];
+
+/* ---------- drawing size, remembered on this device ---------- */
+
+type PlanSize = 'half' | 'large' | 'hidden';
+const SIZE_KEY = 'bathroom-tools:plan-size';
+function loadPlanSize(): PlanSize {
+  try {
+    const v = localStorage.getItem(SIZE_KEY);
+    if (v === 'large' || v === 'hidden') return v;
+  } catch {
+    /* storage blocked */
+  }
+  return 'half';
+}
+function savePlanSize(v: PlanSize): void {
+  try {
+    localStorage.setItem(SIZE_KEY, v);
+  } catch {
+    /* storage blocked */
+  }
+}
 
 /* ---------- small input pieces ---------- */
 
@@ -128,6 +149,10 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   let view: PlanView = 'existing';
   let dragId: string | null = null;
   let lastWallId: string | null = null;
+  /** What's being edited below the drawing, so the drawing can point it out. */
+  let focusWallId: string | null = null;
+  let focusItemId: string | null = null;
+  let size = loadPlanSize();
 
   const savedNote = h('span', { class: 'saved-note', 'aria-live': 'polite' }, '');
   const saver = autosave(store, () => doc, (t) => (savedNote.textContent = t));
@@ -146,17 +171,72 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   const itemsBody = h('div', { class: 'stack' });
   const framingCard = h('section', { class: 'card stack' });
 
+  const sizeBtn = h('button', { class: 'icon-btn size-btn', type: 'button' });
+  const planCard = h('section', { class: 'card plan-card' }, svgWrap);
+  // The drawing stays pinned under the top bar while the fields scroll underneath.
+  const pinned = h('div', { class: 'pinned' }, h('div', { class: 'pin-bar' }, tabs, sizeBtn), planCard);
   const main = h(
     'main',
     { class: 'stack' },
-    h('div', { class: 'row' }, tabs, h('span', { class: 'spacer' }), savedNote),
-    h('section', { class: 'card plan-card' }, svgWrap, hint),
+    pinned,
+    hint,
     h('section', { class: 'card stack' }, h('h2', {}, 'Checks'), checksList),
     framingCard,
     h('section', { class: 'card stack' }, h('h2', {}, 'Room'), roomBody),
     h('section', { class: 'card stack' }, h('h2', {}, 'Doors, windows, fixtures'), itemsBody),
   );
-  root.replaceChildren(topbar(doc.job.name, { back: href({ name: 'job', jobId }) }), main);
+  const bar = topbar(doc.job.name, { back: href({ name: 'job', jobId }), actions: [savedNote] });
+  root.replaceChildren(bar, main);
+
+  /** Keep fields that get focus from scrolling up under the pinned drawing. */
+  function layoutPinned() {
+    pinned.dataset.size = size;
+    sizeBtn.replaceChildren(icon(size === 'half' ? ICONS.expand : size === 'large' ? ICONS.collapse : ICONS.show));
+    const next = size === 'half' ? 'Make the drawing bigger' : size === 'large' ? 'Hide the drawing' : 'Show the drawing';
+    sizeBtn.setAttribute('aria-label', next);
+    sizeBtn.title = next;
+    // With the phone keyboard up there's much less screen: shrink the drawing to leave room for the field.
+    const vv = window.visualViewport;
+    const vh = vv ? vv.height : window.innerHeight;
+    const keyboard = vh < window.innerHeight * 0.8;
+    const frac = size === 'large' ? (keyboard ? 0.4 : 0.62) : keyboard ? 0.28 : 0.42;
+    svgWrap.style.height = `${Math.round(vh * frac)}px`;
+    const topH = bar.offsetHeight;
+    pinned.style.top = `${topH}px`;
+    document.documentElement.style.scrollPaddingTop = `${topH + pinned.offsetHeight + 8}px`;
+  }
+  sizeBtn.addEventListener('click', () => {
+    size = size === 'half' ? 'large' : size === 'large' ? 'hidden' : 'half';
+    savePlanSize(size);
+    layoutPinned();
+  });
+  window.addEventListener('resize', layoutPinned);
+  window.visualViewport?.addEventListener('resize', layoutPinned);
+  window.addEventListener(
+    'hashchange',
+    () => {
+      window.removeEventListener('resize', layoutPinned);
+      window.visualViewport?.removeEventListener('resize', layoutPinned);
+      document.documentElement.style.scrollPaddingTop = '';
+    },
+    { once: true },
+  );
+
+  /** Point out the wall or item whose fields you're touching. */
+  function trackFocus(e: Event) {
+    const t = e.target as Element;
+    const wallEl = t.closest('[data-wall]');
+    const itemEl = t.closest('[data-item-card]');
+    const nextWall = wallEl?.getAttribute('data-wall') ?? (itemEl ? doc.items.find((i) => i.id === itemEl.getAttribute('data-item-card'))?.wallId ?? null : null);
+    const nextItem = itemEl?.getAttribute('data-item-card') ?? null;
+    if (nextWall === focusWallId && nextItem === focusItemId) return;
+    focusWallId = nextWall;
+    focusItemId = nextItem;
+    renderPlan();
+  }
+  for (const area of [roomBody, itemsBody]) {
+    for (const type of ['focusin', 'pointerdown']) area.addEventListener(type, trackFocus);
+  }
 
   /* ----- rendering ----- */
   function renderTabs() {
@@ -191,7 +271,10 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const ws = walls();
     const { checks, zones } = runChecks({ room: g, walls: ws, items: doc.items });
     const F = view === 'framing' && g.closed && !g.problems.length ? framing(g, ws, doc.items) : undefined;
-    svgWrap.innerHTML = ws.length ? drawPlan({ room: g, walls: ws, items: doc.items, view, zones, activeId: dragId, framing: F }) : '';
+    const hl = focusWallId ? ws.findIndex((w) => w.id === focusWallId) : -1;
+    svgWrap.innerHTML = ws.length
+      ? drawPlan({ room: g, walls: ws, items: doc.items, view, zones, activeId: dragId ?? focusItemId, framing: F, highlightWall: hl >= 0 ? hl : null })
+      : '';
     renderFraming(F, g);
     if (!ws.length) svgWrap.append(h('p', { class: 'empty' }, 'Enter the room below to see the plan.'));
     hint.textContent = HINTS[view];
@@ -310,8 +393,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
             class: 'btn',
             type: 'button',
             onclick: () => {
-              insertWall(doc, room.id);
-              changed(true);
+              focusNewWall(insertWall(doc, room.id));
             },
           },
           'Walk the room',
@@ -381,7 +463,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const lastNote = `Then back to the start${Math.abs(closing) > 0.01 ? ` (a ${Math.abs(Math.round(closing * 10) / 10)}° ${closing > 0 ? 'right' : 'left'} turn into wall 1)` : ''}.`;
     return h(
       'div',
-      { class: 'wall-row' },
+      { class: 'wall-row', 'data-wall': w.id },
       h('div', { class: 'wall-num', 'aria-hidden': 'true' }, String(w.number)),
       h(
         'div',
@@ -417,8 +499,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
         {
           label: 'Insert a wall after this one',
           run: () => {
-            insertWall(doc, room.id, w.id);
-            changed(true);
+            focusNewWall(insertWall(doc, room.id, w.id));
           },
         },
         {
@@ -455,8 +536,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
             class: 'btn',
             type: 'button',
             onclick: () => {
-              insertWall(doc, room.id);
-              changed(true);
+              focusNewWall(insertWall(doc, room.id));
             },
           },
           'Add wall',
@@ -524,7 +604,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     );
     return h(
       'div',
-      { class: 'subcard stack' },
+      { class: 'subcard stack', 'data-item-card': it.id },
       h(
         'div',
         { class: 'row' },
@@ -622,11 +702,22 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     );
   }
 
+  /** After adding a wall: show it, and put the cursor in its length. */
+  function focusNewWall(w: Wall) {
+    focusWallId = w.id;
+    focusItemId = null;
+    changed(true);
+    const input = roomBody.querySelector<HTMLInputElement>(`[data-wall="${w.id}"] input`);
+    input?.focus();
+    input?.scrollIntoView({ block: 'nearest' });
+  }
+
   function renderAll() {
     renderTabs();
     renderRoom();
     renderItems();
     renderPlan();
+    layoutPinned();
   }
 
   /* ----- drag along a wall ----- */
