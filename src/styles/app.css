@@ -441,6 +441,10 @@ a.link-card .status { color: var(--accent); font-weight: 600; }
 .checks li + li { margin-top: 6px; }
 .checks .dot { margin-top: 6px; }
 
+table.schedule { width: 100%; border-collapse: collapse; font-size: 15px; }
+table.schedule th, table.schedule td { text-align: left; vertical-align: top; padding: 6px 8px 6px 0; border-top: 1px solid var(--line); }
+table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-2); }
+
 /* ---------- Wall entry ---------- */
 
 .wall-list > * + * { border-top: 1px solid var(--line); }
@@ -506,6 +510,13 @@ a.link-card .status { color: var(--accent); font-weight: 600; }
 .plan-svg .zone.bad { fill: var(--bad); fill-opacity: 0.2; stroke: var(--bad); }
 .plan-svg .gapline { stroke: var(--bad); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
 .plan-svg .startpt { fill: var(--bad); }
+.plan-svg .face { fill: none; stroke: var(--ink-2); stroke-width: 0.5; stroke-dasharray: 2 2; }
+.plan-svg .plate { fill: var(--surface); stroke: var(--ink); stroke-width: 0.8; }
+.plan-svg .stud { fill: var(--ink); }
+.plan-svg .hdr { fill: none; stroke: var(--ink); stroke-width: 0.9; stroke-dasharray: 5 3; }
+.plan-svg .blk { stroke: var(--accent); stroke-width: 4; fill: none; stroke-opacity: 0.75; }
+.plan-svg .mk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
+.plan-svg .ghost .fx, .plan-svg .ghost .fx2 { fill: none; stroke: var(--ink-2); stroke-dasharray: 3 3; }
 .plan-svg .hit { fill: transparent; }
 .plan-svg .drag { cursor: grab; touch-action: none; }
 .plan-svg .drag.on .fx { stroke-width: 2.4; }

@@ -7,9 +7,10 @@ import type { Item, Wall } from '../data/model';
 import { formatInches } from '../lib/inches';
 import { toPlan, wallMatrix, type Pt, type RoomGeom, type WallGeom } from './geometry';
 import type { Zone } from './checks';
+import { DRYWALL, type Framing } from './framing';
 import { doorSize, isFixture, isOpening, itemName, span, toiletCenter } from './items';
 
-export type PlanView = 'existing' | 'design';
+export type PlanView = 'existing' | 'design' | 'framing';
 
 export interface DrawInput {
   room: RoomGeom;
@@ -19,6 +20,8 @@ export interface DrawInput {
   zones: Zone[];
   /** Item being dragged, drawn heavier. */
   activeId?: string | null;
+  /** Needed for the framing view. */
+  framing?: Framing;
 }
 
 const r2 = (v: number) => Math.round(v * 1000) / 1000;
@@ -27,7 +30,7 @@ const pts = (list: Pt[]) => list.map((p) => `${r2(p.x)},${r2(p.y)}`).join(' ');
 const dimText = (v: number) => formatInches(v, { mark: false, feet: v >= 24 }).replace('′-', "'-");
 
 export function visibleIn(view: PlanView, it: Item): boolean {
-  return view === 'existing' ? it.status !== 'new' : true;
+  return view === 'existing' ? it.status !== 'new' : view === 'framing' ? it.status !== 'remove' : true;
 }
 
 function fixtureSymbol(it: Item): string {
@@ -69,18 +72,44 @@ function openingSymbol(it: Item, t: number, removed: boolean): string {
   return s + `<path class="leaf" d="M${hu} 0V${sz}"/><path class="arc" d="M${tip} 0A${sz} ${sz} 0 0 ${left ? 1 : 0} ${hu} ${sz}"/>`;
 }
 
-/** Text rotated to run along a wall, kept upright. */
-function alongText(w: WallGeom, u: number, v: number, text: string, size: number, cls = 'dt'): string {
-  const p = toPlan(w, u, v);
+interface Box {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+/** Label boxes drawn so far, so dimension strings can keep clear of each other. */
+let boxes: Box[] = [];
+const hits = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+
+function textAngle(w: WallGeom): number {
   let ang = (Math.atan2(w.dirU.y, w.dirU.x) * 180) / Math.PI;
   if (ang > 90.01) ang -= 180;
   if (ang <= -90.01) ang += 180;
+  return ang;
+}
+
+/** Rough on-plan box of a label, for overlap tests. */
+function textBox(w: WallGeom, u: number, v: number, text: string, size: number): Box {
+  const p = toPlan(w, u, v);
+  const a = (textAngle(w) * Math.PI) / 180;
+  const L = text.length * size * 0.55;
+  const H = size;
+  const bw = Math.abs(L * Math.cos(a)) + Math.abs(H * Math.sin(a));
+  const bh = Math.abs(L * Math.sin(a)) + Math.abs(H * Math.cos(a));
+  return { x0: p.x - bw / 2, y0: p.y - bh / 2, x1: p.x + bw / 2, y1: p.y + bh / 2 };
+}
+
+/** Text rotated to run along a wall, kept upright. */
+function alongText(w: WallGeom, u: number, v: number, text: string, size: number, cls = 'dt'): string {
+  const p = toPlan(w, u, v);
+  const ang = textAngle(w);
   const rot = Math.abs(ang) > 0.01 ? ` transform="rotate(${r2(ang)} ${r2(p.x)} ${r2(p.y)})"` : '';
   return `<text class="${cls}" font-size="${r2(size)}" text-anchor="middle" dominant-baseline="central" x="${r2(p.x)}" y="${r2(p.y)}"${rot}>${esc(text)}</text>`;
 }
 
 /** A dimension string along a wall, outside it at distance `d` from the finished face. */
-function chain(w: WallGeom, us: number[], d: number, fs: number, ext: number): string {
+function chain(w: WallGeom, us: number[], d: number, fs: number, ext: number, out?: Box[]): string {
   const list = [...new Set(us.map(r2))].sort((a, b) => a - b);
   if (list.length < 2) return '';
   const P = (u: number, v: number) => {
@@ -98,7 +127,9 @@ function chain(w: WallGeom, us: number[], d: number, fs: number, ext: number): s
     if (b - a < 0.05) continue;
     const small = b - a < fs * 2.6;
     alt = small ? !alt : false;
-    s += alongText(w, (a + b) / 2, -d - fs * 0.55 - (small && alt ? fs * 1.15 : 0), dimText(b - a), fs * 0.82);
+    const tv = -d - fs * 0.55 - (small && alt ? fs * 1.15 : 0);
+    out?.push(textBox(w, (a + b) / 2, tv, dimText(b - a), fs * 0.82));
+    s += alongText(w, (a + b) / 2, tv, dimText(b - a), fs * 0.82);
   }
   return s;
 }
@@ -116,9 +147,25 @@ export function drawPlan(input: DrawInput): string {
   const grp = (w: WallGeom, inner: string, cls = '', id?: string) =>
     `<g${cls ? ` class="${cls}"` : ''}${id ? ` data-id="${esc(id)}"` : ''} transform="matrix(${wallMatrix(w)})">${inner}</g>`;
 
+  const F = view === 'framing' ? input.framing : undefined;
   let s = '';
   if (room.closed) s += `<polygon class="floor" points="${pts(room.inner)}"/>`;
-  for (const w of room.walls) if (w.length > 0) s += `<polygon class="wall" points="${pts(w.body)}"/>`;
+  for (const w of room.walls) if (w.length > 0) s += `<polygon class="${F ? 'face' : 'wall'}" points="${pts(w.body)}"/>`;
+  if (F) {
+    for (const f of F.walls) {
+      const w = room.walls[f.wall]!;
+      const D = f.depth;
+      const y = -DRYWALL - D;
+      let g = `<rect class="plate" x="${f.u0}" y="${y}" width="${f.u1 - f.u0}" height="${D}"/>`;
+      for (const r of f.openings) {
+        if (r.item.type === 'door') g += `<rect class="cut" x="${r.a}" y="${y - 0.1}" width="${r.b - r.a}" height="${D + 0.2}"/>`;
+        g += `<rect class="hdr" x="${r.a - 1.5}" y="${y}" width="${r.b - r.a + 3}" height="${D}"/>`;
+      }
+      for (const [a, b2] of f.studs) g += `<rect class="stud" x="${a}" y="${y}" width="${b2 - a}" height="${D}"/>`;
+      for (const bk of F.blocking) if (bk.wall === f.wall) g += `<path class="blk" d="M${bk.a} ${y + D / 2}H${bk.b}"/>`;
+      s += grp(w, g);
+    }
+  }
   if (!room.closed && room.walls.length) {
     const last = room.walls[room.walls.length - 1]!;
     s += `<path class="gapline" d="M${r2(last.end.x)} ${r2(last.end.y)}L0 0"/><circle class="startpt" cx="0" cy="0" r="${r2(fs * 0.3)}"/>`;
@@ -131,16 +178,37 @@ export function drawPlan(input: DrawInput): string {
     }
   }
 
-  const stateCls = (it: Item) => (view === 'design' ? (it.status === 'new' ? 'new' : it.status === 'remove' ? 'rem' : '') : '');
+  const stateCls = (it: Item) =>
+    view === 'framing' ? 'ghost' : view === 'design' ? (it.status === 'new' ? 'new' : it.status === 'remove' ? 'rem' : '') : '';
   for (const it of vis.filter(isFixture)) {
     const cls = ['drag', stateCls(it), input.activeId === it.id ? 'on' : ''].filter(Boolean).join(' ');
     s += grp(geomOf(it), fixtureSymbol(it), cls, it.id);
   }
   for (const it of vis.filter(isOpening)) {
     const w = geomOf(it);
+    if (F) {
+      const [u0, u1] = span(it);
+      s += grp(w, `<rect class="hit" x="${u0}" y="${-w.thickness}" width="${u1 - u0}" height="${w.thickness}"/>`, 'drag', it.id);
+      continue;
+    }
     const removed = view === 'design' && it.status === 'remove';
     const cls = ['drag', removed ? 'rem' : stateCls(it), input.activeId === it.id ? 'on' : ''].filter(Boolean).join(' ');
     s += grp(w, openingSymbol(it, w.thickness, removed), cls, it.id);
+  }
+
+  if (F) {
+    for (const m of F.marks) {
+      const w = room.walls[m.wall];
+      if (!w) continue;
+      const p = toPlan(w, m.u, m.v);
+      const r = fs * 0.45;
+      s +=
+        m.kind === 'x'
+          ? `<path class="mk" d="M${r2(p.x - r * 1.6)} ${r2(p.y)}H${r2(p.x + r * 1.6)}M${r2(p.x)} ${r2(p.y - r * 1.6)}V${r2(p.y + r * 1.6)}"/><circle class="mk" cx="${r2(p.x)}" cy="${r2(p.y)}" r="${r2(r)}"/>`
+          : m.kind === 'valve'
+            ? `<rect class="mk" x="${r2(p.x - r)}" y="${r2(p.y - r)}" width="${r2(2 * r)}" height="${r2(2 * r)}"/><text class="lbl" font-size="${r2(fs * 0.7)}" x="${r2(p.x + r * 1.6)}" y="${r2(p.y + fs * 0.25)}">V</text>`
+            : `<circle class="mk" cx="${r2(p.x)}" cy="${r2(p.y)}" r="${r2(r)}"/>`;
+    }
   }
 
   // Fixture labels, upright.
@@ -154,28 +222,63 @@ export function drawPlan(input: DrawInput): string {
     s += `<text class="lbl" font-size="${r2(fs * 0.72)}" text-anchor="middle" dominant-baseline="central" x="${r2(c.x)}" y="${r2(c.y)}">${esc(label)}</text>`;
   }
 
-  // Dimensions and wall numbers.
+  // Dimensions and wall numbers. A wall whose labels would land on labels
+  // already drawn (short walls at a jog) gets its strings moved farther out.
+  boxes = [];
   for (const w of room.walls) {
     if (w.length <= 0) continue;
     const t = w.thickness;
     const ext = t + fs * 0.4;
-    const us = [0, w.length];
-    for (const it of vis) {
-      if (geomOf(it) !== w || (view === 'design' && it.status === 'remove')) continue;
-      const [u0, u1] = span(it);
-      if (it.type === 'toilet') us.push(toiletCenter(it));
-      else us.push(u0, u1);
+    let us: number[];
+    let overall: [number, number];
+    if (F) {
+      const f = F.walls[w.index]!;
+      us = [f.u0, f.u1, ...f.openings.flatMap((r) => [r.a, r.b])];
+      overall = [f.u0, f.u1];
+    } else {
+      us = [0, w.length];
+      for (const it of vis) {
+        if (geomOf(it) !== w || (view === 'design' && it.status === 'remove')) continue;
+        const [u0, u1] = span(it);
+        if (it.type === 'toilet') us.push(toiletCenter(it));
+        else us.push(u0, u1);
+      }
+      us = us.filter((u) => u >= -0.01 && u <= w.length + 0.01);
+      overall = [0, w.length];
     }
-    const inside = us.filter((u) => u >= -0.01 && u <= w.length + 0.01);
-    if (new Set(inside.map(r2)).size > 2) s += chain(w, inside, t + fs * 2.2, fs, ext);
-    s += chain(w, [0, w.length], t + fs * 4.4, fs, ext);
-    const tag = toPlan(w, w.length / 2, -(t + fs * 6.9));
-    s +=
-      `<circle class="tagc" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(fs * 0.85)}"/>` +
-      `<text class="dt" font-size="${r2(fs * 0.95)}" text-anchor="middle" dominant-baseline="central" x="${r2(tag.x)}" y="${r2(tag.y)}">${w.index + 1}</text>`;
+    const showItems = new Set(us.map(r2)).size > 2;
+    let best = '';
+    for (let step = 0; step < 4; step++) {
+      const off = step * fs * 2.2;
+      const mine: Box[] = [];
+      let g = '';
+      if (showItems) g += chain(w, us, t + fs * 2.2 + off, fs, ext, mine);
+      g += chain(w, overall, t + fs * 4.4 + off, fs, ext, mine);
+      const tag = toPlan(w, w.length / 2, -(t + fs * 6.9 + off));
+      mine.push({ x0: tag.x - fs, y0: tag.y - fs, x1: tag.x + fs, y1: tag.y + fs });
+      g +=
+        `<circle class="tagc" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(fs * 0.85)}"/>` +
+        `<text class="dt" font-size="${r2(fs * 0.95)}" text-anchor="middle" dominant-baseline="central" x="${r2(tag.x)}" y="${r2(tag.y)}">${w.index + 1}</text>`;
+      best = g;
+      if (!mine.some((m) => boxes.some((b2) => hits(m, b2))) || step === 3) {
+        boxes.push(...mine);
+        break;
+      }
+    }
+    s += best;
   }
 
-  const vb = [b.minX - M, b.minY - M, b.maxX - b.minX + 2 * M, b.maxY - b.minY + 2 * M].map(r2).join(' ');
-  const label = view === 'existing' ? 'Existing conditions plan' : 'Design plan';
+  // Fit the view to the walls and every label actually drawn.
+  const pad = fs * 0.6;
+  const fit = boxes.length
+    ? {
+        x0: Math.min(b.minX, ...boxes.map((q) => q.x0)) - pad,
+        y0: Math.min(b.minY, ...boxes.map((q) => q.y0)) - pad,
+        x1: Math.max(b.maxX, ...boxes.map((q) => q.x1)) + pad,
+        y1: Math.max(b.maxY, ...boxes.map((q) => q.y1)) + pad,
+      }
+    : { x0: b.minX - M, y0: b.minY - M, x1: b.maxX + M, y1: b.maxY + M };
+  const vb = [fit.x0, fit.y0, fit.x1 - fit.x0, fit.y1 - fit.y0].map(r2).join(' ');
+  const label = view === 'existing' ? 'Existing conditions plan' : view === 'framing' ? 'Framing plan' : 'Design plan';
   return `<svg id="plan" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${label}">${s}</svg>`;
 }

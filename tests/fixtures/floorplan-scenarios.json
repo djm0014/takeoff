@@ -77,6 +77,70 @@
           "level": "good",
           "text": "Door on wall 3 swings clear."
         }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Tub drain",
+            "4",
+            "left end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "15 1/2″ from the tub wall framing, on the drain centerline"
+          ],
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 48 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 79 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "4",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "3",
+            "66 1/2″ to 96 1/2″",
+            "Grab bar blocking + valve"
+          ],
+          [
+            "1",
+            "1/2″ to 30 1/2″",
+            "Grab bar blocking"
+          ],
+          [
+            "1",
+            "64 1/2″ to 94 1/2″",
+            "Vanity and mirror backing"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "34 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "53 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 2",
+            "27″ long for a 24″ window RO"
+          ],
+          [
+            "Header, wall 3",
+            "33″ long for a 30″ door RO"
+          ]
+        ]
       ]
     },
     {
@@ -135,6 +199,41 @@
           "level": "good",
           "text": "Door on wall 3 swings clear."
         }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 40 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 65 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "1",
+            "50 1/2″ to 80 1/2″",
+            "Vanity and mirror backing"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "29 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "49 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 3",
+            "35″ long for a 32″ door RO"
+          ]
+        ]
       ]
     },
     {
@@ -199,6 +298,61 @@
           "level": "bad",
           "text": "The tub blocks the door on wall 2."
         }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Shower drain",
+            "1",
+            "15 1/2″ off back framing · 14 1/2″ from left corner framing"
+          ],
+          [
+            "Tub drain",
+            "3",
+            "right end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "tub end is not against a wall: set the valve location by hand"
+          ]
+        ],
+        [
+          [
+            "1",
+            "1/2″ to 28 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "4",
+            "10 1/2″ to 40 1/2″",
+            "Grab bar blocking"
+          ],
+          [
+            "3",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "2",
+            "10 1/2″ to 40 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "26 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "39 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 2",
+            "29″ long for a 26″ door RO"
+          ]
+        ]
       ]
     },
     {
@@ -280,6 +434,56 @@
           "level": "good",
           "text": "Toilet: 21″ clear in front."
         }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Toilet flange",
+            "1",
+            "12 1/2″ off back framing · 12 1/2″ from left corner framing"
+          ],
+          [
+            "Vanity drain & supplies",
+            "2",
+            "centered 34 1/2″ from left corner framing"
+          ],
+          [
+            "Shower drain",
+            "3",
+            "18 1/2″ off back framing · 18 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "2",
+            "10 1/2″ to 58 1/2″",
+            "Vanity and mirror backing"
+          ],
+          [
+            "3",
+            "1/2″ to 36 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "2",
+            "36 1/2″ to 72 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "34 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "57 ft (bottom + single top)"
+          ],
+          [
+            "Header, wall 4",
+            "35″ long for a 32″ door RO"
+          ]
+        ]
       ]
     },
     {
@@ -346,6 +550,62 @@
           "level": "bad",
           "text": "Toilet: 21″ clear in front — something sits in that space (0″ of 30″ width clear)."
         }
+      ],
+      "expectedFraming": [
+        [
+          [
+            "Vanity drain & supplies",
+            "1",
+            "centered 55 1/2″ from left corner framing"
+          ],
+          [
+            "Tub drain",
+            "4",
+            "left end · 15 1/2″ off back framing (check tub spec)"
+          ],
+          [
+            "Tub/shower valve",
+            "3",
+            "15 1/2″ from the tub wall framing, on the drain centerline"
+          ],
+          [
+            "Toilet flange",
+            "2",
+            "12 1/2″ off back framing · 30 1/2″ from left corner framing"
+          ]
+        ],
+        [
+          [
+            "1",
+            "40 1/2″ to 60 1/2″",
+            "Vanity and mirror backing"
+          ],
+          [
+            "4",
+            "1/2″ to 60 1/2″",
+            "Grab bar blocking, 33–36″ AFF"
+          ],
+          [
+            "3",
+            "30 1/2″ to 60 1/2″",
+            "Grab bar blocking + valve"
+          ],
+          [
+            "1",
+            "1/2″ to 30 1/2″",
+            "Grab bar blocking"
+          ]
+        ],
+        [
+          [
+            "Studs",
+            "24 (all four walls, before waste)"
+          ],
+          [
+            "Plates",
+            "43 ft (bottom + single top)"
+          ]
+        ]
       ]
     }
   ]

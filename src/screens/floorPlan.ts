@@ -13,6 +13,7 @@ import { h, menuButton, toast } from '../lib/dom';
 import { formatInches, parseInches } from '../lib/inches';
 import { runChecks } from '../plan/checks';
 import { drawPlan, type PlanView } from '../plan/draw';
+import { blockingText, framing } from '../plan/framing';
 import { closingTurn, toLocal, type RoomGeom } from '../plan/geometry';
 import {
   CHOICE_FIELDS,
@@ -32,6 +33,8 @@ const HINTS: Record<PlanView, string> = {
     'Existing conditions as measured. Walls are numbered in the order you walked them; distances run from the left corner as you face each wall from inside the room. Drag a fixture, door or window to slide it along its wall.',
   design:
     'Existing items stay, new items show in orange, removed items are dashed. Shaded areas are the clear floor space checked below. Drag to try other locations.',
+  framing:
+    'Framing for the design: 2×4 or 2×6 studs at 16″ OC from the left end of each plate, single top plate, king and jack studs at openings. Orange bars are blocking. Layout assumes framing ½″ behind the finished face.',
 };
 
 const STATUS_OPTIONS: [ItemStatus, string][] = [
@@ -141,6 +144,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   const roomBody = h('div', { class: 'stack' });
   const closeStatus = h('p', { class: 'note', role: 'status' });
   const itemsBody = h('div', { class: 'stack' });
+  const framingCard = h('section', { class: 'card stack' });
 
   const main = h(
     'main',
@@ -148,6 +152,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     h('div', { class: 'row' }, tabs, h('span', { class: 'spacer' }), savedNote),
     h('section', { class: 'card plan-card' }, svgWrap, hint),
     h('section', { class: 'card stack' }, h('h2', {}, 'Checks'), checksList),
+    framingCard,
     h('section', { class: 'card stack' }, h('h2', {}, 'Room'), roomBody),
     h('section', { class: 'card stack' }, h('h2', {}, 'Doors, windows, fixtures'), itemsBody),
   );
@@ -159,6 +164,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       ...(
         [
           ['existing', 'Existing'],
+          ['framing', 'Framing'],
           ['design', 'Design'],
         ] as [PlanView, string][]
       ).map(([v, label]) =>
@@ -184,7 +190,9 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const g = geom();
     const ws = walls();
     const { checks, zones } = runChecks({ room: g, walls: ws, items: doc.items });
-    svgWrap.innerHTML = ws.length ? drawPlan({ room: g, walls: ws, items: doc.items, view, zones, activeId: dragId }) : '';
+    const F = view === 'framing' && g.closed && !g.problems.length ? framing(g, ws, doc.items) : undefined;
+    svgWrap.innerHTML = ws.length ? drawPlan({ room: g, walls: ws, items: doc.items, view, zones, activeId: dragId, framing: F }) : '';
+    renderFraming(F, g);
     if (!ws.length) svgWrap.append(h('p', { class: 'empty' }, 'Enter the room below to see the plan.'));
     hint.textContent = HINTS[view];
 
@@ -194,6 +202,44 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
         : [h('li', {}, h('i', { class: 'dot ok' }), h('span', {}, 'Add fixtures to check clearances.'))]),
     );
     renderCloseStatus(g, ws);
+  }
+
+  function table(head: string[], rows: string[][]): HTMLElement {
+    return h(
+      'table',
+      { class: 'schedule' },
+      h('thead', {}, h('tr', {}, head.map((t) => h('th', {}, t)))),
+      h('tbody', {}, rows.map((r) => h('tr', {}, r.map((c) => h('td', {}, c))))),
+    );
+  }
+
+  function renderFraming(F: ReturnType<typeof framing> | undefined, g: RoomGeom) {
+    framingCard.hidden = view !== 'framing';
+    if (view !== 'framing') return;
+    if (!F) {
+      framingCard.replaceChildren(h('h2', {}, 'Framing'), h('p', { class: 'note' }, 'Close the room to see its framing.'));
+      return;
+    }
+    framingCard.replaceChildren(
+      h('h2', {}, 'Rough-in locations'),
+      F.rough.length ? table(['Item', 'Wall', 'Location'], F.rough.map((r) => [r.item, r.wall, r.location])) : h('p', { class: 'note' }, 'No fixtures yet.'),
+      h('h2', {}, 'Blocking'),
+      F.blocking.length
+        ? table(['Wall', 'From left corner framing', 'For'], F.blocking.map((b) => [String(b.wall + 1), blockingText(F, b, g), b.label]))
+        : h('p', { class: 'note' }, 'None.'),
+      h('h2', {}, 'Framing takeoff'),
+      table(
+        ['Item', 'Quantity'],
+        [
+          ['Studs', `${F.studs} (all walls, before waste)`],
+          ['Plates', `${Math.ceil(F.plate / 12)} ft (bottom + single top)`],
+          ...F.headers.map((hd) => [`Header, wall ${hd.wall + 1}`, `${formatInches(hd.width + 3)} long for a ${formatInches(hd.width)} ${hd.type} RO`]),
+        ],
+      ),
+      ...(F.angledCorners
+        ? [h('p', { class: 'note' }, 'This room has corners that aren’t square. Their plates are laid out to the framing faces; check those corners by hand.')]
+        : []),
+    );
   }
 
   function renderCloseStatus(g: RoomGeom, ws: Wall[]) {

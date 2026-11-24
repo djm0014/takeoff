@@ -7,14 +7,14 @@ scope and milestones.
 
 ## Status
 
-**Milestone 2 — Floor plan** (in progress)
+**Milestone 2 — Floor plan** (ready for field testing)
 
 - [x] Walk-the-room entry: each wall's length and the turn to the next (90°, or any angle up to 135°); rectangle shortcut
 - [x] Room closure check, with which direction is off for square rooms, and "fill in the last two walls"
 - [x] Doors, windows, tub, shower, toilet, vanity on any wall; existing / new / remove
 - [x] Existing and design views, drag along a wall, clearance checks that work in any room shape
 - [x] Checks match the old tool on rectangular rooms (`tests/fixtures/floorplan-scenarios.json`)
-- [ ] Framing view: studs, blocking, rough-in schedule, framing takeoff
+- [x] Framing view: studs, blocking, rough-in schedule, framing takeoff (matches the old tool on rectangles; outside corners handled; angled corners flagged to check by hand)
 
 Decisions made in this milestone:
 

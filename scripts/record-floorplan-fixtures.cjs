@@ -1,7 +1,8 @@
 /**
  * Runs each scenario in tests/fixtures/floorplan-scenarios.json through the old
  * Bathroom Floor Plan tool (public/legacy/floor-plan) in a headless browser and
- * records its check list as 'expected'. Run after adding a scenario:
+ * records its check list as 'expected' and its framing schedules as
+ * 'expectedFraming'. Run after adding a scenario:
  *   node scripts/record-floorplan-fixtures.cjs
  */
 const { chromium } = require('playwright');
@@ -23,6 +24,14 @@ const tool = 'file://' + path.join(root, 'public/legacy/floor-plan/index.html');
     await page.click('[data-view="de"]');
     sc.expected = await page.$$eval('#checks li', (lis) =>
       lis.map((li) => ({ level: li.querySelector('i').className || 'warn', text: li.textContent.trim() })),
+    );
+    await page.click('[data-view="fr"]');
+    sc.expectedFraming = await page.$$eval('#frcard table', (tables) =>
+      tables.map((t) =>
+        [...t.querySelectorAll('tr')]
+          .filter((tr) => tr.querySelector('td'))
+          .map((tr) => [...tr.querySelectorAll('td')].map((td) => td.textContent.trim())),
+      ),
     );
     await page.close();
     console.log(`${sc.name}: ${sc.expected.length} checks`);

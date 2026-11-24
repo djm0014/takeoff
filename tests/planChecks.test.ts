@@ -231,3 +231,61 @@ describe('rules', () => {
     }
   });
 });
+
+/* ---------- framing matches the old tool ---------- */
+
+import { blockingText, framing } from '../src/plan/framing';
+import { formatInches } from '../src/lib/inches';
+
+const fixturesFraming = JSON.parse(readFileSync('tests/fixtures/floorplan-scenarios.json', 'utf8')) as {
+  scenarios: { name: string; state: OldState; expectedFraming: string[][][] }[];
+};
+const oldWall = (n: string) => String(newWall(Number(n) - 1) + 1);
+
+describe('framing matches the old tool on rectangles', () => {
+  for (const sc of fixturesFraming.scenarios) {
+    it(sc.name, () => {
+      const ctx = fromOld(sc.state);
+      const f = framing(ctx.room, ctx.walls, ctx.items);
+      const [rough, blocking, takeoff] = sc.expectedFraming;
+
+      expect(f.rough.map((r) => [r.item, r.wall, r.location])).toEqual(rough!.map(([a, w, c]) => [a, oldWall(w!), c]));
+
+      // The old tool shows "None." instead of a table when there's no blocking.
+      const oldBlocking = blocking && blocking[0]?.length === 3 ? blocking : [];
+      const oldTakeoff = blocking && blocking[0]?.length === 3 ? takeoff! : blocking!;
+      expect(f.blocking.map((b) => [String(b.wall + 1), blockingText(f, b, ctx.room), b.label])).toEqual(
+        oldBlocking.map(([w, t, l]) => [oldWall(w!), t, l]),
+      );
+
+      expect(`${f.studs}`).toBe(oldTakeoff[0]![1]!.split(' ')[0]);
+      expect(`${Math.ceil(f.plate / 12)} ft`).toBe(oldTakeoff[1]![1]!.split(' (')[0]);
+      expect(f.headers.map((hd) => [`Header, wall ${hd.wall + 1}`, `${formatInches(hd.width + 3)} long for a ${formatInches(hd.width)} ${hd.type} RO`])).toEqual(
+        oldTakeoff.slice(2).map(([k, v]) => [k!.replace(/wall (\d)/, (_, n) => `wall ${oldWall(n)}`), v]),
+      );
+    });
+  }
+});
+
+describe('framing at an outside corner', () => {
+  it('butts one plate into the other with no gap or overlap', () => {
+    const ctx = walked(
+      [
+        [72, 90],
+        [48, 90],
+        [36, -90],
+        [36, 90],
+        [36, 90],
+        [84, 90],
+      ],
+      () => [],
+    );
+    const f = framing(ctx.room, ctx.walls, []);
+    const w3 = f.walls[2]!; // runs down to the outside corner, butts
+    const w4 = f.walls[3]!; // runs out from the outside corner, through
+    expect(w4.u0).toBeCloseTo(0.5, 9); // starts at the corner's framing face
+    expect(w3.u1).toBeCloseTo(36 - 0.5 - 3.5, 9); // stops at wall 4's framing
+    expect(w4.leftFraming).toBeCloseTo(0.5, 9);
+    expect(f.angledCorners).toBe(false);
+  });
+});
