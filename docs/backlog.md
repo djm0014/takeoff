@@ -5,6 +5,20 @@ Newest notes at the top of each section. Check items off when they ship.
 
 ## Floor plan
 
+From the second phone test (Nov 24, 2026):
+
+- [x] Pinned drawing works as intended so far.
+- [ ] **Landscape layout.** The app already turns with the phone (nothing locks
+  it upright), but the screen is built for portrait: in landscape the pinned
+  drawing would be a short strip. Lay it out side by side instead: drawing on
+  the left, fields scrolling on the right.
+- [ ] **Highlight the item being edited in orange,** like the wall. Today an
+  item only gets a slightly heavier outline while its fields are in use.
+- [ ] **Tap an item in the drawing to edit it.** A quick tap (no slide) scrolls
+  to that item's fields and puts the cursor in its first one (its distance
+  from the left corner), so a known dimension can be typed in. Tap and slide
+  keeps dragging it along the wall as now.
+
 From the first phone test (Nov 24, 2026):
 
 - [x] **Keep the drawing in view while editing.** The drawing is pinned under
