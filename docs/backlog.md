@@ -27,10 +27,14 @@ From the second phone test (Nov 24, 2026):
   move onto the walls); dimensions take less room when on; items have a
   fingertip-size touch area. Landscape, build mode with dims off draws the
   room about 2.6× the size it was.
-- [ ] Taps on items still sometimes don't register. Seen: the first tap after
-  opening the screen doesn't select anything; once a wall's field has been
-  used, taps work. Likely iPhone Safari ignoring a field opened a moment
-  after the tap (fixed to open during the tap; confirm on the phone).
+- [x] Taps on items didn't register until a field had been used (iPhone
+  Safari). Fixed; first tap works.
+- [x] **Tap selects instead of opening the number pad** (Nov 25). Tapping an
+  item or a wall (or its number) in the drawing turns it orange and brings its
+  card or row to the top of the fields, name first, outlined in orange. Tap a
+  field to change a number. Walls weren't tappable in the drawing before.
+- [ ] The Dims and Build buttons can sit on top of the top dimension string.
+  Keep the drawing clear of them, or move them.
 - [x] Fixture labels caught taps, so touching an item on its name did nothing.
   Labels and dimension text now let taps through.
 - [x] **Highlight the item being edited in orange,** like the wall. Today an
