@@ -27,8 +27,10 @@ From the second phone test (Nov 24, 2026):
   move onto the walls); dimensions take less room when on; items have a
   fingertip-size touch area. Landscape, build mode with dims off draws the
   room about 2.6× the size it was.
-- [ ] Taps on items still sometimes don't register. Note when it happens
-  (which item, which view, near other items or not).
+- [ ] Taps on items still sometimes don't register. Seen: the first tap after
+  opening the screen doesn't select anything; once a wall's field has been
+  used, taps work. Likely iPhone Safari ignoring a field opened a moment
+  after the tap (fixed to open during the tap; confirm on the phone).
 - [x] Fixture labels caught taps, so touching an item on its name did nothing.
   Labels and dimension text now let taps through.
 - [x] **Highlight the item being edited in orange,** like the wall. Today an
@@ -61,6 +63,21 @@ Known from building it:
   check by hand; no corner framing details yet.
 - [x] Fractions can't be typed on a phone's number keypad (no `/` key).
   Fixed by the app's own number pad.
+
+## Vanity wall (Milestone 3)
+
+Idea (Nov 25, 2026):
+
+- [ ] **Item details and product link.** Double-tap (or long press, or an ⓘ on
+  the item's card) opens one item on its own: its size, height AFF and rough-in
+  numbers, plus a product link, model number, notes, and an attached spec
+  sheet or photo kept on the phone with the job. Key spec numbers (rough opening
+  W × H, recess depth) are typed in; the app can't read them off a
+  manufacturer's site. Phones use double-tap to zoom, so the drawing would turn
+  that off.
+- [ ] **Check a recessed medicine cabinet against the studs.** With its rough
+  opening stored, check it on the wall's stud layout: fits the stud bay, or
+  needs a stud cut with a header and cripples, and where the bottom lands AFF.
 
 ## App
 
