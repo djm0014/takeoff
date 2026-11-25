@@ -64,6 +64,21 @@ Known from building it:
 - [x] Fractions can't be typed on a phone's number keypad (no `/` key).
   Fixed by the app's own number pad.
 
+## Vanity wall (Milestone 3)
+
+Idea (Nov 25, 2026):
+
+- [ ] **Item details and product link.** Double-tap (or long press, or an ⓘ on
+  the item's card) opens one item on its own: its size, height AFF and rough-in
+  numbers, plus a product link, model number, notes, and an attached spec
+  sheet or photo kept on the phone with the job. Key spec numbers (rough opening
+  W × H, recess depth) are typed in; the app can't read them off a
+  manufacturer's site. Phones use double-tap to zoom, so the drawing would turn
+  that off.
+- [ ] **Check a recessed medicine cabinet against the studs.** With its rough
+  opening stored, check it on the wall's stud layout: fits the stud bay, or
+  needs a stud cut with a header and cripples, and where the bottom lands AFF.
+
 ## App
 
 - [ ] Custom domain for the site.
