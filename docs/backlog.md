@@ -5,6 +5,16 @@ Newest notes at the top of each section. Check items off when they ship.
 
 ## Floor plan
 
+Number entry (Nov 25, 2026):
+
+- [x] **App's own number pad** for measurements, so the phone keyboard never
+  covers the drawing: digits, eighths (16ths on a toggle), ft, Next, Done.
+  The first digit replaces the old value; a fraction keeps the whole inches.
+- [x] **Nudge buttons** on the pad for distances: −1″, −1/8″, +1/8″, +1″.
+- [ ] Customize the nudge steps (now set in `NUDGES` in `src/lib/keypad.ts`).
+- [ ] Bluetooth laser measure (Bosch, Leica) straight into a field. Only
+  possible on Android: iPhone browsers don't let web apps use Bluetooth.
+
 From the second phone test (Nov 24, 2026):
 
 - [x] Pinned drawing works as intended so far.
@@ -40,8 +50,8 @@ Known from building it:
 - [ ] Dimension strings can still crowd at very short walls next to a jog.
 - [ ] Angled corners: framing is laid out to the framing faces and flagged to
   check by hand; no corner framing details yet.
-- [ ] Fractions can't be typed on a phone's number keypad (no `/` key); use
-  decimals like `.5` for now. Consider a fraction picker.
+- [x] Fractions can't be typed on a phone's number keypad (no `/` key).
+  Fixed by the app's own number pad.
 
 ## App
 
