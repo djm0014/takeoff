@@ -44,6 +44,9 @@ const STATUS_OPTIONS: [ItemStatus, string][] = [
   ['remove', 'Remove'],
 ];
 
+/** Wide, short screens (a phone on its side, a tablet) get the drawing beside the fields. */
+const landscape = matchMedia('(orientation: landscape) and (min-width: 600px)');
+
 /* ---------- drawing size, remembered on this device ---------- */
 
 type PlanSize = 'half' | 'large' | 'hidden';
@@ -182,31 +185,48 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   const planCard = h('section', { class: 'card plan-card' }, svgWrap);
   // The drawing stays pinned under the top bar while the fields scroll underneath.
   const pinned = h('div', { class: 'pinned' }, h('div', { class: 'pin-bar' }, tabs, sizeBtn), planCard);
-  const main = h(
-    'main',
-    { class: 'stack' },
-    pinned,
+  // Fields, checks and schedules: under the drawing in portrait, beside it in landscape.
+  const side = h(
+    'div',
+    { class: 'plan-side stack' },
     hint,
     h('section', { class: 'card stack' }, h('h2', {}, 'Checks'), checksList),
     framingCard,
     h('section', { class: 'card stack' }, h('h2', {}, 'Room'), roomBody),
     h('section', { class: 'card stack' }, h('h2', {}, 'Doors, windows, fixtures'), itemsBody),
   );
+  const layout = h('div', { class: 'plan-layout' }, pinned, side);
+  const main = h('main', { class: 'plan-main' }, layout);
   const bar = topbar(doc.job.name, { back: href({ name: 'job', jobId }), actions: [savedNote] });
   root.replaceChildren(bar, main);
 
   /** Keep fields that get focus from scrolling up under the pinned drawing. */
   function layoutPinned() {
     pinned.dataset.size = size;
+    layout.dataset.size = size;
     sizeBtn.replaceChildren(icon(size === 'half' ? ICONS.expand : size === 'large' ? ICONS.collapse : ICONS.show));
     const next = size === 'half' ? 'Make the drawing bigger' : size === 'large' ? 'Hide the drawing' : 'Show the drawing';
     sizeBtn.setAttribute('aria-label', next);
+    // In landscape the drawing takes about half, or two thirds, of the width.
     sizeBtn.title = next;
     const topH = bar.offsetHeight;
+    const root = document.documentElement.style;
+    root.setProperty('--topbar-h', `${topH}px`);
+    pinned.style.top = `${topH}px`;
+    const kp = keypadHeight();
+    root.scrollPaddingBottom = kp ? `${kp + 8}px` : '';
+
+    if (landscape.matches) {
+      // Side by side: the drawing fills its column; the number pad docks under the fields only.
+      svgWrap.style.height = '';
+      root.setProperty('--keypad-left', `${Math.round(size === 'hidden' ? 0 : side.getBoundingClientRect().left - 8)}px`);
+      root.scrollPaddingTop = `${topH + 8}px`;
+      return;
+    }
+    root.removeProperty('--keypad-left');
     const vv = window.visualViewport;
     const vh = vv ? vv.height : window.innerHeight;
     let h0 = vh * (size === 'large' ? 0.62 : 0.42);
-    const kp = keypadHeight();
     if (kp) {
       // The number pad is up: leave room between the drawing and the pad for the field being edited.
       const tabsH = 52;
@@ -217,10 +237,9 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       h0 = vh * (size === 'large' ? 0.4 : 0.28);
     }
     svgWrap.style.height = `${Math.round(Math.max(120, h0))}px`;
-    document.documentElement.style.scrollPaddingBottom = kp ? `${kp + 8}px` : '';
-    pinned.style.top = `${topH}px`;
-    document.documentElement.style.scrollPaddingTop = `${topH + pinned.offsetHeight + 8}px`;
+    root.scrollPaddingTop = `${topH + pinned.offsetHeight + 8}px`;
   }
+  landscape.addEventListener('change', layoutPinned);
   sizeBtn.addEventListener('click', () => {
     size = size === 'half' ? 'large' : size === 'large' ? 'hidden' : 'half';
     savePlanSize(size);
@@ -238,6 +257,8 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     'hashchange',
     () => {
       offKeypad();
+      landscape.removeEventListener('change', layoutPinned);
+      document.documentElement.style.removeProperty('--keypad-left');
       document.documentElement.style.scrollPaddingBottom = '';
       window.removeEventListener('resize', layoutPinned);
       window.visualViewport?.removeEventListener('resize', layoutPinned);
