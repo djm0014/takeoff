@@ -542,12 +542,49 @@ table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; l
 .plan-svg .nexthead { fill: var(--accent); }
 .plan-svg .nextlbl { fill: var(--accent); font-family: var(--font-text); font-weight: 600; }
 .plan-svg .hit { fill: transparent; }
+/* Labels and dimensions never catch a tap meant for the item under them. */
+.plan-svg text { pointer-events: none; }
 .plan-svg .drag { cursor: grab; touch-action: none; }
 /* The item being edited or dragged, in orange like the wall being edited. */
 .plan-svg .drag.on .fx { fill: var(--newfill); stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: none; }
 .plan-svg .drag.on .fx2 { stroke: var(--accent); stroke-dasharray: none; }
 .plan-svg .drag.on .ln, .plan-svg .drag.on .leaf, .plan-svg .drag.on .arc { stroke: var(--accent); stroke-width: 2; }
 .plan-svg .drag.on .hit { fill: var(--accent); fill-opacity: 0.35; }
+
+/* ---------- Floor plan layout ---------- */
+
+.plan-layout { display: grid; gap: 12px; }
+
+/* A phone on its side or a tablet: drawing on the left, fields on the right. */
+@media (orientation: landscape) and (min-width: 600px) {
+  main.plan-main { max-width: none; padding-top: 8px; }
+  .topbar { min-height: 44px; padding-top: max(2px, env(safe-area-inset-top)); padding-bottom: 2px; }
+  .topbar h1 { font-size: 18px; }
+  .plan-layout {
+    grid-template-columns: minmax(0, 55fr) minmax(0, 45fr);
+    align-items: start;
+    gap: 16px;
+  }
+  .plan-layout[data-size='large'] { grid-template-columns: minmax(0, 68fr) minmax(0, 32fr); }
+  .plan-layout[data-size='hidden'] { grid-template-columns: minmax(0, 1fr); }
+  .pinned {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--topbar-h, 44px) - 16px);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+  .pinned[data-size='hidden'] { height: auto; position: static; }
+  .pinned .plan-card { flex: 1; min-height: 0; display: flex; }
+  .pinned .plan-svg { flex: 1; min-height: 0; height: auto; }
+  .plan-side { padding-bottom: 24px; }
+  .wall-row { padding: 8px 0; }
+  .wall-num { margin-top: 18px; }
+
+}
 
 /* ---------- Number pad ---------- */
 
@@ -587,6 +624,17 @@ body { padding-bottom: var(--keypad-h, 0px); }
 .kp-nudge { min-height: 38px; font-size: 15px; background: var(--surface-2); border-color: var(--line-2); }
 .kp-done { font-size: 15px; font-weight: 600; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 input.kp-fresh { color: var(--accent); }
+
+/* Landscape: the pad sits under the fields column only (the floor plan sets
+   --keypad-left), with shorter keys so the field above it stays in view. */
+@media (orientation: landscape) and (min-width: 600px) {
+  .keypad { left: var(--keypad-left, 0px); padding-top: 4px; }
+  .kp-grid, .kp-nudges { gap: 4px; }
+  .kp-nudges { margin-bottom: 4px; }
+  .kp-key { min-height: 36px; font-size: 18px; }
+  .kp-frac, .kp-fn, .kp-done { font-size: 14px; }
+  .kp-nudge { min-height: 30px; font-size: 14px; }
+}
 
 /* ---------- Print ---------- */
 

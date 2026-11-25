@@ -18,10 +18,14 @@ Number entry (Nov 25, 2026):
 From the second phone test (Nov 24, 2026):
 
 - [x] Pinned drawing works as intended so far.
-- [ ] **Landscape layout.** The app already turns with the phone (nothing locks
-  it upright), but the screen is built for portrait: in landscape the pinned
-  drawing would be a short strip. Lay it out side by side instead: drawing on
-  the left, fields scrolling on the right.
+- [x] **Landscape layout.** Drawing on the left filling the height, fields
+  scrolling on the right, number pad docked under the fields only. The size
+  button switches the drawing between about half and two thirds of the width,
+  or hides it.
+- [ ] Landscape: the view tabs take height from the drawing; consider moving
+  them beside it or into the top bar if the drawing feels short.
+- [x] Fixture labels caught taps, so touching an item on its name did nothing.
+  Labels and dimension text now let taps through.
 - [x] **Highlight the item being edited in orange,** like the wall. Today an
   item only gets a slightly heavier outline while its fields are in use.
 - [x] **Tap an item in the drawing to edit it.** A quick tap (no slide) scrolls
