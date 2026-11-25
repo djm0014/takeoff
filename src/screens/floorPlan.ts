@@ -895,6 +895,8 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     renderPlan();
   });
   let swallowUntil = 0;
+  let tapped: Item | null = null;
+  const fieldOpen = (it: Item) => document.activeElement?.closest?.(`[data-item-card="${it.id}"]`) != null;
   const endDrag = (e: PointerEvent) => {
     if (!dragId) return;
     const it = doc.items.find((x) => x.id === dragId);
@@ -906,24 +908,28 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       renderPlan();
       return;
     }
-    // A tap: open the item's fields once the browser's own click for this tap has passed.
+    // A tap. Open the item's field right now, inside the tap: iPhone Safari ignores a page
+    // putting the cursor in a field a moment later, unless a field was already active.
     swallowUntil = Date.now() + 400;
-    setTimeout(() => {
-      renderPlan();
-      if (it) editItem(it);
-    }, 0);
+    tapped = it ?? null;
+    if (it) editItem(it);
+    // Redraw after the browser's own click for this tap has gone by.
+    setTimeout(() => renderPlan(), 0);
   };
-  // The browser's click after a tap on the drawing must not land on a button that scrolled under the finger.
-  document.addEventListener(
-    'click',
-    (e) => {
-      if (Date.now() < swallowUntil && !svgWrap.contains(e.target as Node)) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    },
-    true,
-  );
+  // The browser's click after a tap on the drawing: a second chance to open the field (the
+  // click always counts as part of the tap), and it must not land on a button that scrolled
+  // under the finger.
+  const onClick = (e: MouseEvent) => {
+    if (Date.now() >= swallowUntil) return;
+    if (tapped && !fieldOpen(tapped)) editItem(tapped);
+    tapped = null;
+    if (!svgWrap.contains(e.target as Node)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  document.addEventListener('click', onClick, true);
+  window.addEventListener('hashchange', () => document.removeEventListener('click', onClick, true), { once: true });
   svgWrap.addEventListener('pointerup', endDrag);
   svgWrap.addEventListener('pointercancel', endDrag);
 
