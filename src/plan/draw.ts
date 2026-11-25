@@ -24,6 +24,10 @@ export interface DrawInput {
   framing?: Framing;
   /** Wall being edited, drawn in the accent color. */
   highlightWall?: number | null;
+  /** Draw dimension strings (default true). Off, the room fills the window. */
+  showDims?: boolean;
+  /** Extra touch area around each item, in plan inches (so small items are easy to tap). */
+  hitPad?: number;
 }
 
 const r2 = (v: number) => Math.round(v * 1000) / 1000;
@@ -35,10 +39,10 @@ export function visibleIn(view: PlanView, it: Item): boolean {
   return view === 'existing' ? it.status !== 'new' : view === 'framing' ? it.status !== 'remove' : true;
 }
 
-function fixtureSymbol(it: Item): string {
+function fixtureSymbol(it: Item, pad: number): string {
   const [u0, u1, , d] = span(it);
   const w = u1 - u0;
-  let s = `<rect class="hit" x="${u0}" y="0" width="${w}" height="${d}"/>`;
+  let s = `<rect class="hit" x="${r2(u0 - pad)}" y="${r2(-pad)}" width="${r2(w + 2 * pad)}" height="${r2(d + 2 * pad)}"/>`;
   if (it.type === 'tub') {
     const dx = it.props.drain === 'right' ? u1 - 7 : u0 + 7;
     s += `<rect class="fx" x="${u0}" y="0" width="${w}" height="${d}"/><rect class="fx2" x="${u0 + 2.5}" y="2.5" width="${Math.max(0, w - 5)}" height="${Math.max(0, d - 5)}" rx="7"/><circle class="fx2" cx="${dx}" cy="${d / 2}" r="1.3"/>`;
@@ -55,12 +59,12 @@ function fixtureSymbol(it: Item): string {
   return s;
 }
 
-function openingSymbol(it: Item, t: number, removed: boolean): string {
+function openingSymbol(it: Item, t: number, removed: boolean, pad: number): string {
   const [u0, u1] = span(it);
   if (removed) return `<rect class="infill" x="${u0}" y="${-t}" width="${u1 - u0}" height="${t}"/>`;
   let s =
     `<rect class="cut" x="${u0}" y="${-t - 0.05}" width="${u1 - u0}" height="${t + 0.1}"/>` +
-    `<rect class="hit" x="${u0}" y="${-t}" width="${u1 - u0}" height="${t}"/>` +
+    `<rect class="hit" x="${r2(u0 - pad)}" y="${r2(-t - pad)}" width="${r2(u1 - u0 + 2 * pad)}" height="${r2(t + 2 * pad)}"/>` +
     `<path class="ln" d="M${u0} ${-t}V0M${u1} ${-t}V0"/>`;
   if (it.type === 'window') return s + `<path class="ln" d="M${u0} ${-t}H${u1}M${u0} ${-t / 2}H${u1}M${u0} 0H${u1}"/>`;
   const sz = doorSize(it);
@@ -141,6 +145,8 @@ export function drawPlan(input: DrawInput): string {
   const b = room.bounds;
   const span0 = Math.max(b.maxX - b.minX, b.maxY - b.minY, 48);
   const fs = span0 / 24;
+  const hitPad = input.hitPad ?? fs * 0.6;
+  const dims = input.showDims !== false;
   const maxT = Math.max(0, ...room.walls.map((w) => w.thickness));
   const M = maxT + fs * 8.4;
   const wallIdx = new Map(walls.map((w, i) => [w.id, i]));
@@ -208,18 +214,23 @@ export function drawPlan(input: DrawInput): string {
     view === 'framing' ? 'ghost' : view === 'design' ? (it.status === 'new' ? 'new' : it.status === 'remove' ? 'rem' : '') : '';
   for (const it of vis.filter(isFixture)) {
     const cls = ['drag', stateCls(it), input.activeId === it.id ? 'on' : ''].filter(Boolean).join(' ');
-    s += grp(geomOf(it), fixtureSymbol(it), cls, it.id);
+    s += grp(geomOf(it), fixtureSymbol(it, hitPad), cls, it.id);
   }
   for (const it of vis.filter(isOpening)) {
     const w = geomOf(it);
     if (F) {
       const [u0, u1] = span(it);
-      s += grp(w, `<rect class="hit" x="${u0}" y="${-w.thickness}" width="${u1 - u0}" height="${w.thickness}"/>`, 'drag', it.id);
+      s += grp(
+        w,
+        `<rect class="hit" x="${r2(u0 - hitPad)}" y="${r2(-w.thickness - hitPad)}" width="${r2(u1 - u0 + 2 * hitPad)}" height="${r2(w.thickness + 2 * hitPad)}"/>`,
+        'drag',
+        it.id,
+      );
       continue;
     }
     const removed = view === 'design' && it.status === 'remove';
     const cls = ['drag', removed ? 'rem' : stateCls(it), input.activeId === it.id ? 'on' : ''].filter(Boolean).join(' ');
-    s += grp(w, openingSymbol(it, w.thickness, removed), cls, it.id);
+    s += grp(w, openingSymbol(it, w.thickness, removed, hitPad), cls, it.id);
   }
 
   if (F) {
@@ -272,19 +283,31 @@ export function drawPlan(input: DrawInput): string {
       us = us.filter((u) => u >= -0.01 && u <= w.length + 0.01);
       overall = [0, w.length];
     }
-    const showItems = new Set(us.map(r2)).size > 2;
+    // Item string nearest the wall, the overall length outside it (or nearest, when the wall is
+    // bare), then the wall number. With dimensions off, just the number, on the wall.
+    const showItems = dims && new Set(us.map(r2)).size > 2;
+    const row = fs * 1.75;
     let best = '';
     for (let step = 0; step < 4; step++) {
-      const off = step * fs * 2.2;
+      const off = step * row;
       const mine: Box[] = [];
       let g = '';
-      if (showItems) g += chain(w, us, t + fs * 2.2 + off, fs, ext, mine);
-      g += chain(w, overall, t + fs * 4.4 + off, fs, ext, mine);
-      const tag = toPlan(w, w.length / 2, -(t + fs * 6.9 + off));
-      mine.push({ x0: tag.x - fs, y0: tag.y - fs, x1: tag.x + fs, y1: tag.y + fs });
+      let tagV: number;
+      if (dims) {
+        if (showItems) g += chain(w, us, t + row + off, fs, ext, mine);
+        const overallD = t + (showItems ? 2 : 1) * row + off;
+        g += chain(w, overall, overallD, fs, ext, mine);
+        tagV = overallD + fs * 2;
+      } else {
+        // On the wall itself, so the room can fill the window.
+        tagV = t / 2 + off;
+      }
+      const tr = fs * 0.75;
+      const tag = toPlan(w, w.length / 2, -tagV);
+      mine.push({ x0: tag.x - tr, y0: tag.y - tr, x1: tag.x + tr, y1: tag.y + tr });
       g +=
-        `<circle class="tagc" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(fs * 0.85)}"/>` +
-        `<text class="dt" font-size="${r2(fs * 0.95)}" text-anchor="middle" dominant-baseline="central" x="${r2(tag.x)}" y="${r2(tag.y)}">${w.index + 1}</text>`;
+        `<circle class="tagc" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(tr)}"/>` +
+        `<text class="dt" font-size="${r2(fs * 0.85)}" text-anchor="middle" dominant-baseline="central" x="${r2(tag.x)}" y="${r2(tag.y)}">${w.index + 1}</text>`;
       best = g;
       if (!mine.some((m) => boxes.some((b2) => hits(m, b2))) || step === 3) {
         boxes.push(...mine);
@@ -295,7 +318,7 @@ export function drawPlan(input: DrawInput): string {
   }
 
   // Fit the view to the walls and every label actually drawn.
-  const pad = fs * 0.6;
+  const pad = fs * 0.4;
   boxes.push(...extra);
   const fit = boxes.length
     ? {

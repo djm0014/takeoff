@@ -22,8 +22,13 @@ From the second phone test (Nov 24, 2026):
   scrolling on the right, number pad docked under the fields only. The size
   button switches the drawing between about half and two thirds of the width,
   or hides it.
-- [ ] Landscape: the view tabs take height from the drawing; consider moving
-  them beside it or into the top bar if the drawing feels short.
+- [x] **Bigger drawing** (Nov 25): build mode hides the job bar and view tabs
+  until you tap Exit; a Dims button turns dimension strings off (wall numbers
+  move onto the walls); dimensions take less room when on; items have a
+  fingertip-size touch area. Landscape, build mode with dims off draws the
+  room about 2.6× the size it was.
+- [ ] Taps on items still sometimes don't register. Note when it happens
+  (which item, which view, near other items or not).
 - [x] Fixture labels caught taps, so touching an item on its name did nothing.
   Labels and dimension text now let taps through.
 - [x] **Highlight the item being edited in orange,** like the wall. Today an

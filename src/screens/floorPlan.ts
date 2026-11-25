@@ -68,6 +68,25 @@ function savePlanSize(v: PlanSize): void {
   }
 }
 
+const DIMS_KEY = 'bathroom-tools:plan-dims';
+function loadDims(): boolean {
+  try {
+    return localStorage.getItem(DIMS_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+function saveDims(on: boolean): void {
+  try {
+    localStorage.setItem(DIMS_KEY, on ? 'on' : 'off');
+  } catch {
+    /* storage blocked */
+  }
+}
+
+/** Extra touch area around each item in the drawing, in screen pixels. */
+const TOUCH_PAD_PX = 12;
+
 /* ---------- small input pieces ---------- */
 
 function chips<T extends string | number>(
@@ -163,9 +182,18 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   let focusWallId: string | null = null;
   let focusItemId: string | null = null;
   let size = loadPlanSize();
+  let dims = loadDims();
+  /** Build mode: job bar and view tabs hidden so the drawing gets the most room. Entered and left by hand. */
+  let build = false;
+  /** Screen pixels per plan inch at the last draw, for sizing touch areas. */
+  let pxPerInch = 0;
 
   const savedNote = h('span', { class: 'saved-note', 'aria-live': 'polite' }, '');
-  const saver = autosave(store, () => doc, (t) => (savedNote.textContent = t));
+  const buildSaved = h('span', { class: 'build-saved', 'aria-hidden': 'true' }, '');
+  const saver = autosave(store, () => doc, (t) => {
+    savedNote.textContent = t;
+    buildSaved.textContent = t;
+  });
   if (!hadRoom) saver.schedule();
 
   const walls = (): Wall[] => roomWalls(doc, room.id);
@@ -182,7 +210,10 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   const framingCard = h('section', { class: 'card stack' });
 
   const sizeBtn = h('button', { class: 'icon-btn size-btn', type: 'button' });
-  const planCard = h('section', { class: 'card plan-card' }, svgWrap);
+  const dimsBtn = h('button', { type: 'button', class: 'tool-btn' }, 'Dims');
+  const buildBtn = h('button', { type: 'button', class: 'tool-btn' });
+  const tools = h('div', { class: 'plan-tools' }, buildSaved, dimsBtn, buildBtn);
+  const planCard = h('section', { class: 'card plan-card' }, svgWrap, tools);
   // The drawing stays pinned under the top bar while the fields scroll underneath.
   const pinned = h('div', { class: 'pinned' }, h('div', { class: 'pin-bar' }, tabs, sizeBtn), planCard);
   // Fields, checks and schedules: under the drawing in portrait, beside it in landscape.
@@ -202,6 +233,12 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
 
   /** Keep fields that get focus from scrolling up under the pinned drawing. */
   function layoutPinned() {
+    if (build && size === 'hidden') size = 'half'; // build mode always shows the drawing
+    document.documentElement.classList.toggle('build-mode', build);
+    dimsBtn.setAttribute('aria-pressed', String(dims));
+    dimsBtn.setAttribute('aria-label', dims ? 'Hide dimensions' : 'Show dimensions');
+    buildBtn.textContent = build ? 'Exit' : 'Build';
+    buildBtn.setAttribute('aria-label', build ? 'Exit build mode' : 'Build mode: hide the job bar and tabs for a bigger drawing');
     pinned.dataset.size = size;
     layout.dataset.size = size;
     sizeBtn.replaceChildren(icon(size === 'half' ? ICONS.expand : size === 'large' ? ICONS.collapse : ICONS.show));
@@ -209,7 +246,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     sizeBtn.setAttribute('aria-label', next);
     // In landscape the drawing takes about half, or two thirds, of the width.
     sizeBtn.title = next;
-    const topH = bar.offsetHeight;
+    const topH = build ? 0 : bar.offsetHeight;
     const root = document.documentElement.style;
     root.setProperty('--topbar-h', `${topH}px`);
     pinned.style.top = `${topH}px`;
@@ -226,10 +263,10 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     root.removeProperty('--keypad-left');
     const vv = window.visualViewport;
     const vh = vv ? vv.height : window.innerHeight;
-    let h0 = vh * (size === 'large' ? 0.62 : 0.42);
+    let h0 = vh * (build ? (size === 'large' ? 0.7 : 0.52) : size === 'large' ? 0.62 : 0.42);
     if (kp) {
       // The number pad is up: leave room between the drawing and the pad for the field being edited.
-      const tabsH = 52;
+      const tabsH = build ? 0 : 52;
       const fieldRoom = 150;
       h0 = Math.min(h0, window.innerHeight - topH - kp - tabsH - fieldRoom);
     } else if (vh < window.innerHeight * 0.8) {
@@ -240,6 +277,17 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     root.scrollPaddingTop = `${topH + pinned.offsetHeight + 8}px`;
   }
   landscape.addEventListener('change', layoutPinned);
+  dimsBtn.addEventListener('click', () => {
+    dims = !dims;
+    saveDims(dims);
+    layoutPinned();
+    renderPlan();
+  });
+  buildBtn.addEventListener('click', () => {
+    build = !build;
+    layoutPinned();
+    renderPlan();
+  });
   sizeBtn.addEventListener('click', () => {
     size = size === 'half' ? 'large' : size === 'large' ? 'hidden' : 'half';
     savePlanSize(size);
@@ -258,6 +306,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     () => {
       offKeypad();
       landscape.removeEventListener('change', layoutPinned);
+      document.documentElement.classList.remove('build-mode');
       document.documentElement.style.removeProperty('--keypad-left');
       document.documentElement.style.scrollPaddingBottom = '';
       window.removeEventListener('resize', layoutPinned);
@@ -318,8 +367,26 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const F = view === 'framing' && g.closed && !g.problems.length ? framing(g, ws, doc.items) : undefined;
     const hl = focusWallId ? ws.findIndex((w) => w.id === focusWallId) : -1;
     svgWrap.innerHTML = ws.length
-      ? drawPlan({ room: g, walls: ws, items: doc.items, view, zones, activeId: dragId ?? focusItemId, framing: F, highlightWall: hl >= 0 ? hl : null })
+      ? drawPlan({
+          room: g,
+          walls: ws,
+          items: doc.items,
+          view,
+          zones,
+          activeId: dragId ?? focusItemId,
+          framing: F,
+          highlightWall: hl >= 0 ? hl : null,
+          showDims: dims,
+          hitPad: pxPerInch ? TOUCH_PAD_PX / pxPerInch : undefined,
+        })
       : '';
+    // Size the touch areas in screen pixels: redraw once if the drawing's scale changed a lot.
+    const scale = svgWrap.querySelector('svg')?.getScreenCTM()?.a ?? 0;
+    if (scale > 0 && Math.abs(scale - pxPerInch) / scale > 0.15) {
+      pxPerInch = scale;
+      renderPlan();
+      return;
+    }
     renderFraming(F, g);
     if (!ws.length) svgWrap.append(h('p', { class: 'empty' }, 'Enter the room below to see the plan.'));
     hint.textContent = HINTS[view];
