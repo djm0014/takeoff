@@ -445,6 +445,10 @@ table.schedule { width: 100%; border-collapse: collapse; font-size: 15px; }
 table.schedule th, table.schedule td { text-align: left; vertical-align: top; padding: 6px 8px 6px 0; border-top: 1px solid var(--line); }
 table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-2); }
 
+/* What's selected in the drawing, outlined in the fields. */
+.subcard.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.wall-row.selected .wall-num { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
 /* ---------- Wall entry ---------- */
 
 .wall-list > * + * { border-top: 1px solid var(--line); }
@@ -537,6 +541,8 @@ table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; l
 .plan-svg .mk { stroke: var(--accent); stroke-width: 1.4; fill: none; }
 .plan-svg .ghost .fx, .plan-svg .ghost .fx2 { fill: none; stroke: var(--ink-2); stroke-dasharray: 3 3; }
 .plan-svg .wall.hl { fill: var(--accent); }
+.plan-svg .tagc.hl { fill: var(--accent); stroke: var(--accent); }
+.plan-svg .wall, .plan-svg .tagc { cursor: pointer; }
 .plan-svg .face.hl { stroke: var(--accent); stroke-width: 2; stroke-dasharray: none; }
 .plan-svg .nextarrow { stroke: var(--accent); stroke-width: 2; fill: none; }
 .plan-svg .nexthead { fill: var(--accent); }

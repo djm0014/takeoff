@@ -159,7 +159,9 @@ export function drawPlan(input: DrawInput): string {
   let s = '';
   if (room.closed) s += `<polygon class="floor" points="${pts(room.inner)}"/>`;
   for (const w of room.walls) {
-    if (w.length > 0) s += `<polygon class="${F ? 'face' : 'wall'}${input.highlightWall === w.index ? ' hl' : ''}" points="${pts(w.body)}"/>`;
+    if (w.length > 0) {
+      s += `<polygon class="${F ? 'face' : 'wall'}${input.highlightWall === w.index ? ' hl' : ''}" data-wall-index="${w.index}" points="${pts(w.body)}"/>`;
+    }
   }
   if (F) {
     for (const f of F.walls) {
@@ -306,7 +308,7 @@ export function drawPlan(input: DrawInput): string {
       const tag = toPlan(w, w.length / 2, -tagV);
       mine.push({ x0: tag.x - tr, y0: tag.y - tr, x1: tag.x + tr, y1: tag.y + tr });
       g +=
-        `<circle class="tagc" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(tr)}"/>` +
+        `<circle class="tagc${input.highlightWall === w.index ? ' hl' : ''}" data-wall-index="${w.index}" cx="${r2(tag.x)}" cy="${r2(tag.y)}" r="${r2(tr)}"/>` +
         `<text class="dt" font-size="${r2(fs * 0.85)}" text-anchor="middle" dominant-baseline="central" x="${r2(tag.x)}" y="${r2(tag.y)}">${w.index + 1}</text>`;
       best = g;
       if (!mine.some((m) => boxes.some((b2) => hits(m, b2))) || step === 3) {

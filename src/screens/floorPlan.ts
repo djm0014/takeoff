@@ -11,7 +11,7 @@ import { jobs } from '../data/storage';
 import { autosave } from '../lib/autosave';
 import { h, icon, ICONS, menuButton, toast } from '../lib/dom';
 import { formatInches, parseInches } from '../lib/inches';
-import { keypadAttrs, keypadEnabled, keypadHeight, onKeypadChange } from '../lib/keypad';
+import { keypadAttrs, keypadHeight, onKeypadChange } from '../lib/keypad';
 import { runChecks } from '../plan/checks';
 import { drawPlan, type PlanView } from '../plan/draw';
 import { blockingText, framing } from '../plan/framing';
@@ -388,6 +388,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       return;
     }
     renderFraming(F, g);
+    markSelected();
     if (!ws.length) svgWrap.append(h('p', { class: 'empty' }, 'Enter the room below to see the plan.'));
     hint.textContent = HINTS[view];
 
@@ -848,19 +849,40 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   const itemWall = (it: Item) => walls().findIndex((w) => w.id === it.wallId);
 
   /** Scroll to an item's fields and put the cursor in its first one. */
-  function editItem(it: Item) {
-    const card = itemsBody.querySelector<HTMLElement>(`[data-item-card="${it.id}"]`);
-    const input = card?.querySelector<HTMLInputElement>('input');
-    if (!card || !input) return;
-    card.scrollIntoView({ block: 'start', behavior: 'smooth' });
-    input.focus({ preventScroll: true });
-    if (!keypadEnabled()) input.select();
+  /**
+   * Show what was tapped: bring its card (or wall row) to the top of the fields, name first,
+   * without opening the number pad. Tap a field to change a number.
+   */
+  function showSelected(el: HTMLElement | null) {
+    const a = document.activeElement;
+    if (a instanceof HTMLInputElement && a.hasAttribute('data-keypad')) a.blur(); // the pad would cover the card
+    el?.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
+  const itemCardEl = (id: string) => itemsBody.querySelector<HTMLElement>(`[data-item-card="${id}"]`);
+  const wallRowEl = (id: string) => roomBody.querySelector<HTMLElement>(`[data-wall="${id}"]`);
+
+  /** Outline the card or wall row of what's selected, so the fields show what's being edited. */
+  function markSelected() {
+    for (const el of itemsBody.querySelectorAll<HTMLElement>('[data-item-card]')) {
+      el.classList.toggle('selected', el.dataset.itemCard === focusItemId);
+    }
+    for (const el of roomBody.querySelectorAll<HTMLElement>('[data-wall]')) {
+      el.classList.toggle('selected', !focusItemId && el.dataset.wall === focusWallId);
+    }
+  }
+
+  /** A wall tapped in the drawing (no dragging walls). */
+  let wallTap: { id: string; x: number; y: number } | null = null;
 
   svgWrap.addEventListener('pointerdown', (e) => {
     const el = (e.target as Element).closest('[data-id]');
     const it = el && doc.items.find((x) => x.id === el.getAttribute('data-id'));
-    if (!it) return;
+    if (!it) {
+      const wEl = (e.target as Element).closest('[data-wall-index]');
+      const w = wEl ? walls()[Number(wEl.getAttribute('data-wall-index'))] : undefined;
+      wallTap = w ? { id: w.id, x: e.clientX, y: e.clientY } : null;
+      return;
+    }
     const p = local(e, itemWall(it));
     if (!p) return;
     dragId = it.id;
@@ -895,8 +917,6 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     renderPlan();
   });
   let swallowUntil = 0;
-  let tapped: Item | null = null;
-  const fieldOpen = (it: Item) => document.activeElement?.closest?.(`[data-item-card="${it.id}"]`) != null;
   const endDrag = (e: PointerEvent) => {
     if (!dragId) return;
     const it = doc.items.find((x) => x.id === dragId);
@@ -908,21 +928,25 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       renderPlan();
       return;
     }
-    // A tap. Open the item's field right now, inside the tap: iPhone Safari ignores a page
-    // putting the cursor in a field a moment later, unless a field was already active.
+    // A tap: show the item's card, name first. Redraw after the browser's own click has gone by.
     swallowUntil = Date.now() + 400;
-    tapped = it ?? null;
-    if (it) editItem(it);
-    // Redraw after the browser's own click for this tap has gone by.
+    if (it) showSelected(itemCardEl(it.id));
     setTimeout(() => renderPlan(), 0);
   };
-  // The browser's click after a tap on the drawing: a second chance to open the field (the
-  // click always counts as part of the tap), and it must not land on a button that scrolled
-  // under the finger.
+  svgWrap.addEventListener('pointerup', (e) => {
+    if (!wallTap) return;
+    const t = wallTap;
+    wallTap = null;
+    if (Math.hypot(e.clientX - t.x, e.clientY - t.y) >= TAP_SLOP) return;
+    focusWallId = t.id;
+    focusItemId = null;
+    swallowUntil = Date.now() + 400;
+    showSelected(wallRowEl(t.id));
+    setTimeout(() => renderPlan(), 0);
+  });
+  // The browser's click after a tap on the drawing must not land on a button that scrolled under the finger.
   const onClick = (e: MouseEvent) => {
     if (Date.now() >= swallowUntil) return;
-    if (tapped && !fieldOpen(tapped)) editItem(tapped);
-    tapped = null;
     if (!svgWrap.contains(e.target as Node)) {
       e.preventDefault();
       e.stopPropagation();
