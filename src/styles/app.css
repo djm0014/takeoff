@@ -543,11 +543,55 @@ table.schedule th { border-top: 0; font-size: 13px; text-transform: uppercase; l
 .plan-svg .nextlbl { fill: var(--accent); font-family: var(--font-text); font-weight: 600; }
 .plan-svg .hit { fill: transparent; }
 .plan-svg .drag { cursor: grab; touch-action: none; }
-.plan-svg .drag.on .fx { stroke-width: 2.4; }
+/* The item being edited or dragged, in orange like the wall being edited. */
+.plan-svg .drag.on .fx { fill: var(--newfill); stroke: var(--accent); stroke-width: 2.4; stroke-dasharray: none; }
+.plan-svg .drag.on .fx2 { stroke: var(--accent); stroke-dasharray: none; }
+.plan-svg .drag.on .ln, .plan-svg .drag.on .leaf, .plan-svg .drag.on .arc { stroke: var(--accent); stroke-width: 2; }
+.plan-svg .drag.on .hit { fill: var(--accent); fill-opacity: 0.35; }
+
+/* ---------- Number pad ---------- */
+
+body { padding-bottom: var(--keypad-h, 0px); }
+.keypad {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  padding: 6px 6px max(6px, env(safe-area-inset-bottom));
+  background: var(--surface-2);
+  border-top: 1px solid var(--line-2);
+  box-shadow: 0 -6px 16px -8px rgb(0 0 0 / 0.3);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.keypad[hidden] { display: none; }
+.kp-grid, .kp-nudges { display: grid; gap: 5px; max-width: 560px; margin: 0 auto; }
+.kp-grid { grid-template-columns: repeat(3, 1fr) repeat(2, 1.05fr) 1.2fr; }
+.kp-nudges { grid-template-columns: repeat(4, 1fr); margin-bottom: 5px; }
+.kp-key {
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 20px var(--font-text);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.kp-key:active { background: var(--line); }
+.kp-frac { font-size: 16px; background: var(--accent-soft); border-color: transparent; }
+.kp-fn { font-size: 15px; background: var(--surface-2); border-color: var(--line-2); }
+.kp-nudge { min-height: 38px; font-size: 15px; background: var(--surface-2); border-color: var(--line-2); }
+.kp-done { font-size: 15px; font-weight: 600; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+input.kp-fresh { color: var(--accent); }
 
 /* ---------- Print ---------- */
 
 @media print {
+  .keypad { display: none !important; }
   .topbar, .no-print { display: none !important; }
   body { background: #fff; color: #000; }
   .card { border-color: #999; }

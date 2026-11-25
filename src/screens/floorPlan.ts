@@ -11,6 +11,7 @@ import { jobs } from '../data/storage';
 import { autosave } from '../lib/autosave';
 import { h, icon, ICONS, menuButton, toast } from '../lib/dom';
 import { formatInches, parseInches } from '../lib/inches';
+import { keypadAttrs, keypadEnabled, keypadHeight, onKeypadChange } from '../lib/keypad';
 import { runChecks } from '../plan/checks';
 import { drawPlan, type PlanView } from '../plan/draw';
 import { blockingText, framing } from '../plan/framing';
@@ -85,7 +86,7 @@ const inchText = (v: number) => (v ? formatInches(v, { mark: false }) : '');
 
 /** Text input for inches; calls back only with valid numbers. */
 function inchInput(label: string, value: number, onValue: (v: number) => void, attrs: Record<string, string> = {}): HTMLElement {
-  const input = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', value: inchText(value), ...attrs });
+  const input = h('input', { type: 'text', autocomplete: 'off', value: inchText(value), ...keypadAttrs({ nudge: true }), ...attrs });
   input.addEventListener('input', () => {
     const v = input.value.trim() === '' ? 0 : parseInches(input.value);
     input.setAttribute('aria-invalid', String(v === null || v < 0));
@@ -98,13 +99,19 @@ function inchInput(label: string, value: number, onValue: (v: number) => void, a
 function feetInches(label: string, value: number, onValue: (v: number) => void): HTMLElement {
   const ft = value > 0 ? Math.floor(value / 12 + 1e-9) : 0;
   const inch = value > 0 ? value - ft * 12 : 0;
-  const ftIn = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', value: value > 0 ? String(ft) : '', 'aria-label': `${label} feet` });
+  const ftIn = h('input', {
+    type: 'text',
+    autocomplete: 'off',
+    value: value > 0 ? String(ft) : '',
+    'aria-label': `${label} feet`,
+    ...keypadAttrs({ unit: 'ft' }),
+  });
   const inIn = h('input', {
     type: 'text',
-    inputmode: 'decimal',
     autocomplete: 'off',
     value: value > 0 && inch > 0 ? formatInches(inch, { mark: false }) : '',
     'aria-label': `${label} inches`,
+    ...keypadAttrs(),
   });
   const update = () => {
     const f = ftIn.value.trim() === '' ? 0 : Number(ftIn.value);
@@ -195,13 +202,22 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const next = size === 'half' ? 'Make the drawing bigger' : size === 'large' ? 'Hide the drawing' : 'Show the drawing';
     sizeBtn.setAttribute('aria-label', next);
     sizeBtn.title = next;
-    // With the phone keyboard up there's much less screen: shrink the drawing to leave room for the field.
+    const topH = bar.offsetHeight;
     const vv = window.visualViewport;
     const vh = vv ? vv.height : window.innerHeight;
-    const keyboard = vh < window.innerHeight * 0.8;
-    const frac = size === 'large' ? (keyboard ? 0.4 : 0.62) : keyboard ? 0.28 : 0.42;
-    svgWrap.style.height = `${Math.round(vh * frac)}px`;
-    const topH = bar.offsetHeight;
+    let h0 = vh * (size === 'large' ? 0.62 : 0.42);
+    const kp = keypadHeight();
+    if (kp) {
+      // The number pad is up: leave room between the drawing and the pad for the field being edited.
+      const tabsH = 52;
+      const fieldRoom = 150;
+      h0 = Math.min(h0, window.innerHeight - topH - kp - tabsH - fieldRoom);
+    } else if (vh < window.innerHeight * 0.8) {
+      // The phone's own keyboard is up (text fields, or no number pad on this device).
+      h0 = vh * (size === 'large' ? 0.4 : 0.28);
+    }
+    svgWrap.style.height = `${Math.round(Math.max(120, h0))}px`;
+    document.documentElement.style.scrollPaddingBottom = kp ? `${kp + 8}px` : '';
     pinned.style.top = `${topH}px`;
     document.documentElement.style.scrollPaddingTop = `${topH + pinned.offsetHeight + 8}px`;
   }
@@ -212,9 +228,17 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   });
   window.addEventListener('resize', layoutPinned);
   window.visualViewport?.addEventListener('resize', layoutPinned);
+  const offKeypad = onKeypadChange(() => {
+    layoutPinned();
+    // Keep the field being typed in visible between the drawing and the pad.
+    const a = document.activeElement;
+    if (a instanceof HTMLElement && keypadHeight()) a.scrollIntoView({ block: 'nearest' });
+  });
   window.addEventListener(
     'hashchange',
     () => {
+      offKeypad();
+      document.documentElement.style.scrollPaddingBottom = '';
       window.removeEventListener('resize', layoutPinned);
       window.visualViewport?.removeEventListener('resize', layoutPinned);
       document.documentElement.style.scrollPaddingTop = '';
@@ -425,7 +449,7 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       ),
     );
     if (kind === 'other') {
-      const deg = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', value: String(mag), 'aria-label': 'Angle in degrees' });
+      const deg = h('input', { type: 'text', autocomplete: 'off', value: String(mag), 'aria-label': 'Angle in degrees', ...keypadAttrs() });
       deg.addEventListener('input', () => {
         const v = Number(deg.value);
         const ok = Number.isFinite(v) && v >= 1 && v <= 135;
@@ -720,8 +744,12 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     layoutPinned();
   }
 
-  /* ----- drag along a wall ----- */
+  /* ----- tap an item to edit it, or slide it along its wall ----- */
+  // A touch that moves less than this many screen pixels is a tap, not a drag.
+  const TAP_SLOP = 8;
   let grab = 0;
+  let start: { x: number; y: number } | null = null;
+  let moved = false;
   const local = (e: PointerEvent, wallIndex: number) => {
     const svg = svgWrap.querySelector('svg');
     const m = svg?.getScreenCTM();
@@ -731,6 +759,16 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
   };
   const itemWall = (it: Item) => walls().findIndex((w) => w.id === it.wallId);
 
+  /** Scroll to an item's fields and put the cursor in its first one. */
+  function editItem(it: Item) {
+    const card = itemsBody.querySelector<HTMLElement>(`[data-item-card="${it.id}"]`);
+    const input = card?.querySelector<HTMLInputElement>('input');
+    if (!card || !input) return;
+    card.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    input.focus({ preventScroll: true });
+    if (!keypadEnabled()) input.select();
+  }
+
   svgWrap.addEventListener('pointerdown', (e) => {
     const el = (e.target as Element).closest('[data-id]');
     const it = el && doc.items.find((x) => x.id === el.getAttribute('data-id'));
@@ -738,13 +776,20 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     const p = local(e, itemWall(it));
     if (!p) return;
     dragId = it.id;
+    focusItemId = it.id;
+    focusWallId = it.wallId;
     grab = p.x - it.position;
+    start = { x: e.clientX, y: e.clientY };
+    moved = false;
     svgWrap.setPointerCapture(e.pointerId);
     e.preventDefault();
-    renderPlan();
+    // Don't redraw under the finger (that confuses the tap that follows); just tint the item.
+    el.classList.add('on');
   });
   svgWrap.addEventListener('pointermove', (e) => {
-    if (!dragId) return;
+    if (!dragId || !start) return;
+    if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) < TAP_SLOP) return;
+    moved = true;
     const it = doc.items.find((x) => x.id === dragId);
     if (!it) return;
     const k = itemWall(it);
@@ -761,12 +806,36 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
     if (input && field) input.value = inchText(field.get(it));
     renderPlan();
   });
-  const endDrag = () => {
+  let swallowUntil = 0;
+  const endDrag = (e: PointerEvent) => {
     if (!dragId) return;
+    const it = doc.items.find((x) => x.id === dragId);
+    const wasTap = !moved && e.type === 'pointerup';
     dragId = null;
-    saver.schedule();
-    renderPlan();
+    start = null;
+    if (!wasTap) {
+      if (moved) saver.schedule();
+      renderPlan();
+      return;
+    }
+    // A tap: open the item's fields once the browser's own click for this tap has passed.
+    swallowUntil = Date.now() + 400;
+    setTimeout(() => {
+      renderPlan();
+      if (it) editItem(it);
+    }, 0);
   };
+  // The browser's click after a tap on the drawing must not land on a button that scrolled under the finger.
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (Date.now() < swallowUntil && !svgWrap.contains(e.target as Node)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    true,
+  );
   svgWrap.addEventListener('pointerup', endDrag);
   svgWrap.addEventListener('pointercancel', endDrag);
 

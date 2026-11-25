@@ -1,6 +1,7 @@
 import './styles/app.css';
 import { registerSW } from 'virtual:pwa-register';
 import { h } from './lib/dom';
+import { installKeypad } from './lib/keypad';
 import { applyTheme, loadTheme } from './lib/theme';
 import { href, parseRoute } from './router';
 import { renderFloorPlan } from './screens/floorPlan';
@@ -9,6 +10,7 @@ import { renderJobs } from './screens/jobs';
 import { topbar } from './screens/shell';
 
 applyTheme(loadTheme());
+installKeypad();
 
 const root = document.getElementById('app')!;
 
