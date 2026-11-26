@@ -94,6 +94,12 @@ export interface Wall {
   firstStud: number | null;
   tileHeight: number | null;
   tileLayout: TileLayout | null;
+  /**
+   * Vanity wall answers (the old Vanity Wall Solver's settings), when this wall
+   * has a vanity. Values that live elsewhere on the record (wall width, studs,
+   * the toilet, the vanity's place) aren't kept here. See src/vanity/bind.ts.
+   */
+  vanity?: Record<string, string> | null;
 }
 
 export type ItemType =

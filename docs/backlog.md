@@ -70,6 +70,16 @@ Known from building it:
 
 ## Vanity wall (Milestone 3)
 
+From building it (Nov 26, 2026):
+
+- [ ] Build mode and a dims toggle on the wall screen, like the floor plan: in
+  landscape the elevation is limited by height.
+- [ ] A vanity added from the wall screen is "new", so the floor plan shows it
+  in the Design view, not Existing. Consider asking existing or new.
+- [ ] Section at the sink left out for now (by request).
+- [ ] The old tool's per-wall "toilet measured from the right wall" choice is
+  gone: the toilet comes from the floor plan, measured from the left corner.
+
 Idea (Nov 25, 2026):
 
 - [ ] **Item details and product link.** Double-tap (or long press, or an ⓘ on

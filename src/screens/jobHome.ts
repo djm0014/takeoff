@@ -11,7 +11,6 @@ import { go, href } from '../router';
 import { topbar } from './shell';
 
 const SCREENS: { title: string; blurb: string; milestone: number }[] = [
-  { title: 'Vanity wall', blurb: 'Centerlines, mirror, lights, outlets, cabinet.', milestone: 3 },
   { title: 'Tile and niche', blurb: 'Wall tile layout, niche, sheets A-1 and A-2.', milestone: 4 },
   { title: 'Survey', blurb: 'Field checklist and report.', milestone: 5 },
   { title: 'Sheets', blurb: 'Printable drawings and schedules.', milestone: 5 },
@@ -35,6 +34,25 @@ function floorPlanCard(doc: JobDoc): HTMLElement {
     h('h3', {}, 'Floor plan'),
     h('p', { class: 'small muted', style: 'margin:0' }, 'Room, walls, doors, windows and fixtures.'),
     h('span', { class: 'status' }, status),
+  );
+}
+
+function vanityCard(doc: JobDoc): HTMLElement {
+  const room = doc.rooms[0];
+  const walls = room ? roomWalls(doc, room.id) : [];
+  const withVanity = walls.filter((w) => doc.items.some((i) => i.wallId === w.id && i.type === 'vanity' && i.status !== 'remove'));
+  return h(
+    'div',
+    { class: 'card screen-card' },
+    h('h3', {}, 'Vanity wall'),
+    h('p', { class: 'small muted', style: 'margin:0' }, 'Centerlines, mirror, lights, outlets, cabinet.'),
+    withVanity.length
+      ? h(
+          'div',
+          { class: 'row', style: 'margin-top:8px' },
+          withVanity.map((w) => h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId: doc.job.id, wallId: w.id }) }, `Wall ${w.number}`)),
+        )
+      : h('span', { class: 'status' }, walls.length ? 'Add a vanity in the floor plan' : 'Start the floor plan first'),
   );
 }
 
@@ -168,6 +186,7 @@ export async function renderJobHome(root: HTMLElement, jobId: string): Promise<v
       'div',
       { class: 'screen-grid' },
       floorPlanCard(current),
+      vanityCard(current),
       SCREENS.map((s) =>
         h(
           'div',

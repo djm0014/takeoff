@@ -1,0 +1,1106 @@
+{
+  "note": "Vanity walls run through the old Vanity Wall Solver. 'state' is the old tool's answers (merged over its defaults); 'expected' is its checks and rough-in schedule, and 'afterFix' the same after tapping quick fix number 'applyFix'. Recorded by scripts/record-vanity-fixtures.cjs.",
+  "scenarios": [
+    {
+      "name": "screenshot wall: comfort height, recessed cabinet, bar light",
+      "state": {
+        "preset": "comfort",
+        "wall": "60",
+        "ceil": "96",
+        "studd": "3.5",
+        "wfin": "1/2",
+        "wallc": "open",
+        "stud": "",
+        "plumb": "keep",
+        "exdx": "",
+        "drain": "19",
+        "sup": "22",
+        "spread": "8",
+        "sink": "under",
+        "vw": "36",
+        "vd": "21",
+        "ctr": "36",
+        "bs": "4",
+        "sinks": "1",
+        "vpos": "center",
+        "fau": "deck",
+        "fh": "10",
+        "freach": "5",
+        "mir": "rec",
+        "mw": "24",
+        "mh": "30",
+        "mro": "",
+        "mroh": "",
+        "mrd": "3 1/2",
+        "place": "eye",
+        "mc": "64",
+        "fgap": "2",
+        "lt": "bar",
+        "lbkeep": "move",
+        "lw": "24",
+        "lh": "6",
+        "lgap": "3",
+        "ldp": "5",
+        "rec": "R",
+        "rech": "42",
+        "bid": "none",
+        "wo": "none",
+        "wc": "none",
+        "cab": "none"
+      },
+      "expected": {
+        "checks": [
+          {
+            "level": "warn",
+            "text": "Recessed cabinet needs a 22 1/4″ × 28 1/4″ rough opening; enter the stud layout to check it against the studs.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "The sink vent usually runs up the sink centerline: confirm the cabinet bay is clear.",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 30″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "30″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "30″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "26 & 34″",
+            "22″"
+          ],
+          [
+            "Vanity",
+            "12–48″",
+            "36″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "12–48″",
+            "30–34 1/2″"
+          ],
+          [
+            "Medicine cabinet",
+            "18–42″",
+            "49–79″"
+          ],
+          [
+            "Cabinet rough opening",
+            "18 7/8–41 1/8″",
+            "49 7/8–78 1/8″"
+          ],
+          [
+            "Light box (bar)",
+            "30″",
+            "85″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "46″",
+            "42″ center"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "toilet with vanity centered beside it, sideways-drawer cabinet",
+      "state": {
+        "preset": "std",
+        "wall": "84",
+        "wc": "left",
+        "wcx": "18",
+        "wcmove": "keep",
+        "vpos": "beside",
+        "vref": "clear",
+        "vside": "R",
+        "vw": "30",
+        "ctr": "32",
+        "place": "low",
+        "mir": "mirror",
+        "cab": "yes",
+        "cabface": "left",
+        "cabw": "12",
+        "cabx": "",
+        "cabh": "34 1/2",
+        "cabb": "0",
+        "cabn": "4",
+        "stud": "10"
+      },
+      "applyFix": 0,
+      "expected": {
+        "checks": [
+          {
+            "level": "ans",
+            "text": "Vanity centered between the 15″ clearance line and the right wall: 10 1/2″ each side, left edge at 43 1/2″ from the left wall, sink centerline at 58 1/2″.",
+            "fixes": []
+          },
+          {
+            "level": "bad",
+            "text": "Storage cabinet overlaps the vanity.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Sideways drawers need about 11 1/4″ to open fully (10″ slides). Drawer 1 from the bottom opens 7″ before the toilet; Drawer 2 from the bottom opens 5″ before the toilet tank; Drawer 3 from the bottom opens 5″ before the toilet tank; Drawer 4 from the bottom opens 5″ before the toilet tank.",
+            "fixes": [
+              "Turn the drawers to face the room"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 25 1/2″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 18″ from the side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 15″ from the storage cabinet (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 25 1/2″ from the vanity (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet to sink centerline: 40 1/2″ (30″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "58 1/2″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "58 1/2″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "54 1/2 & 62 1/2″",
+            "22″"
+          ],
+          [
+            "Storage cabinet",
+            "33–45″",
+            "0–34 1/2″"
+          ],
+          [
+            "Drawers (4, opening left)",
+            "10″ full-extension slides",
+            "12″ box space"
+          ],
+          [
+            "Toilet centerline",
+            "18″",
+            ""
+          ],
+          [
+            "Toilet flange (existing)",
+            "on centerline, 12″ off finished wall",
+            "floor"
+          ],
+          [
+            "Toilet supply stop",
+            "12″",
+            "8″"
+          ],
+          [
+            "Vanity",
+            "43 1/2–73 1/2″",
+            "32″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "43 1/2–73 1/2″",
+            "26–30 1/2″"
+          ],
+          [
+            "Mirror",
+            "46 1/2–70 1/2″",
+            "44–74″"
+          ],
+          [
+            "Mirror blocking",
+            "46 1/2–70 1/2″",
+            "at 44 & 74″"
+          ],
+          [
+            "Light box (bar)",
+            "58 1/2″",
+            "80″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "74 1/2″",
+            "42″ center"
+          ]
+        ]
+      },
+      "afterFix": {
+        "checks": [
+          {
+            "level": "ans",
+            "text": "Vanity centered between the 15″ clearance line and the right wall: 10 1/2″ each side, left edge at 43 1/2″ from the left wall, sink centerline at 58 1/2″.",
+            "fixes": []
+          },
+          {
+            "level": "bad",
+            "text": "Storage cabinet overlaps the vanity.",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 25 1/2″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 18″ from the side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 15″ from the storage cabinet (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 25 1/2″ from the vanity (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet to sink centerline: 40 1/2″ (30″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "58 1/2″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "58 1/2″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "54 1/2 & 62 1/2″",
+            "22″"
+          ],
+          [
+            "Storage cabinet",
+            "33–45″",
+            "0–34 1/2″"
+          ],
+          [
+            "Drawers (4, facing the room)",
+            "16″ full-extension slides",
+            "18″ box space"
+          ],
+          [
+            "Toilet centerline",
+            "18″",
+            ""
+          ],
+          [
+            "Toilet flange (existing)",
+            "on centerline, 12″ off finished wall",
+            "floor"
+          ],
+          [
+            "Toilet supply stop",
+            "12″",
+            "8″"
+          ],
+          [
+            "Vanity",
+            "43 1/2–73 1/2″",
+            "32″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "43 1/2–73 1/2″",
+            "26–30 1/2″"
+          ],
+          [
+            "Mirror",
+            "46 1/2–70 1/2″",
+            "44–74″"
+          ],
+          [
+            "Mirror blocking",
+            "46 1/2–70 1/2″",
+            "at 44 & 74″"
+          ],
+          [
+            "Light box (bar)",
+            "58 1/2″",
+            "80″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "74 1/2″",
+            "42″ center"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "double vanity with sconces and mirror per sink",
+      "state": {
+        "preset": "std",
+        "wall": "96",
+        "vw": "72",
+        "sinks": "2",
+        "mm": "each",
+        "mir": "mirror",
+        "mw": "24",
+        "lt": "sconce",
+        "place": "low",
+        "rec": "L",
+        "stud": "8"
+      },
+      "expected": {
+        "checks": [
+          {
+            "level": "bad",
+            "text": "Sconces between the two mirrors collide: use one centered mirror or narrower mirrors.",
+            "fixes": [
+              "Use one centered mirror",
+              "Use a light bar above instead"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 30″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Sinks are 36″ center to center (30″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 17″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline (left sink)",
+            "30″",
+            ""
+          ],
+          [
+            "Drain stub (left sink) (existing)",
+            "30″",
+            "19″"
+          ],
+          [
+            "Supplies (left sink) (existing)",
+            "26 & 34″",
+            "22″"
+          ],
+          [
+            "Sink centerline (right sink)",
+            "66″",
+            ""
+          ],
+          [
+            "Drain stub (right sink) (existing)",
+            "66″",
+            "19″"
+          ],
+          [
+            "Supplies (right sink) (existing)",
+            "62 & 70″",
+            "22″"
+          ],
+          [
+            "Vanity",
+            "12–84″",
+            "36″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "12–84″",
+            "30–34 1/2″"
+          ],
+          [
+            "Mirror",
+            "18–42″",
+            "48–78″"
+          ],
+          [
+            "Mirror blocking",
+            "18–42″",
+            "at 48 & 78″"
+          ],
+          [
+            "Mirror",
+            "54–78″",
+            "48–78″"
+          ],
+          [
+            "Mirror blocking",
+            "54–78″",
+            "at 48 & 78″"
+          ],
+          [
+            "Sconce box",
+            "11 1/2″",
+            "65″"
+          ],
+          [
+            "Sconce box",
+            "48 1/2″",
+            "65″"
+          ],
+          [
+            "Sconce box",
+            "47 1/2″",
+            "65″"
+          ],
+          [
+            "Sconce box",
+            "84 1/2″",
+            "65″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "5″",
+            "42″ center"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "aging in place pedestal, toilet from the right, bidet outlet",
+      "state": {
+        "preset": "aip",
+        "wall": "72",
+        "sink": "ped",
+        "pw": "24",
+        "pd": "18",
+        "prim": "34",
+        "wc": "right",
+        "wcx": "16",
+        "wcseat": "15",
+        "wcmove": "keep",
+        "bid": "yes",
+        "bidx": "",
+        "mir": "surf",
+        "place": "bot",
+        "mb": "40",
+        "lt": "bar",
+        "rech": "50",
+        "plumb": "keep",
+        "exdx": "20",
+        "spread": "8"
+      },
+      "applyFix": 0,
+      "expected": {
+        "checks": [
+          {
+            "level": "bad",
+            "text": "Existing drain is 16″ left of the sink centerline. A pedestal hides very little offset: center on the drain or move it.",
+            "fixes": [
+              "Center the sink on the drain"
+            ]
+          },
+          {
+            "level": "bad",
+            "text": "Toilet centerline is 8″ from the sink (15″ minimum).",
+            "fixes": [
+              "Shift the sink 7″ away from the toilet"
+            ]
+          },
+          {
+            "level": "bad",
+            "text": "Toilet to sink centerline: 20″ (30″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Pedestal: supplies 8″ apart will likely show beside the column. Most pedestals want them about 4–6″ apart (check the spec).",
+            "fixes": [
+              "Set supplies 4″ apart"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Mirror was raised to clear the faucet and backsplash: bottom at 46″.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Toilet seat at 15″: 17–19″ for aging in place.",
+            "fixes": [
+              "Use an 18″ seat height"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Mirror bottom at 46″: 40″ max over the sink for seated use.",
+            "fixes": [
+              "Use a 4″-tall faucet"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Vanity outlet at 50″: keep outlets within 15–48″ for reach.",
+            "fixes": [
+              "Set it to 44″"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 36″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 16″ from the side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Pedestal: block the wall for the sink hanger bracket before drywall.",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Aging in place: plan lever handles and a 30″ × 48″ clear space in front of the sink.",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "36″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "20″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "32 & 40″",
+            "22″"
+          ],
+          [
+            "Toilet centerline",
+            "56″",
+            ""
+          ],
+          [
+            "Toilet flange (existing)",
+            "on centerline, 12″ off finished wall",
+            "floor"
+          ],
+          [
+            "Toilet supply stop",
+            "50″",
+            "8″"
+          ],
+          [
+            "Pedestal sink",
+            "24–48″",
+            "34″ rim"
+          ],
+          [
+            "Sink hanger blocking",
+            "22–50″",
+            "25–32 1/2″ (check bracket height in spec)"
+          ],
+          [
+            "Medicine cabinet",
+            "24–48″",
+            "46–76″"
+          ],
+          [
+            "Cabinet blocking",
+            "24–48″",
+            "at 46 & 76″"
+          ],
+          [
+            "Light box (bar)",
+            "36″",
+            "82″"
+          ],
+          [
+            "Grab bar blocking behind toilet",
+            "32–72″",
+            "32–38″"
+          ],
+          [
+            "Grab bar blocking, side wall",
+            "adjacent wall, 12–54″ from this wall",
+            "32–38″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "52″",
+            "50″ center"
+          ],
+          [
+            "Bidet outlet (GFCI)",
+            "68″",
+            "20″ center"
+          ]
+        ]
+      },
+      "afterFix": {
+        "checks": [
+          {
+            "level": "warn",
+            "text": "Pedestal: supplies 8″ apart will likely show beside the column. Most pedestals want them about 4–6″ apart (check the spec).",
+            "fixes": [
+              "Set supplies 4″ apart"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Mirror was raised to clear the faucet and backsplash: bottom at 46″.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Toilet seat at 15″: 17–19″ for aging in place.",
+            "fixes": [
+              "Use an 18″ seat height"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Mirror bottom at 46″: 40″ max over the sink for seated use.",
+            "fixes": [
+              "Use a 4″-tall faucet"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Vanity outlet at 50″: keep outlets within 15–48″ for reach.",
+            "fixes": [
+              "Set it to 44″"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 20″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Existing drain lines up with the sink centerline.",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 16″ from the side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet centerline is 24″ from the sink (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Toilet to sink centerline: 36″ (30″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Pedestal: block the wall for the sink hanger bracket before drywall.",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Aging in place: plan lever handles and a 30″ × 48″ clear space in front of the sink.",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "20″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "20″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "16 & 24″",
+            "22″"
+          ],
+          [
+            "Toilet centerline",
+            "56″",
+            ""
+          ],
+          [
+            "Toilet flange (existing)",
+            "on centerline, 12″ off finished wall",
+            "floor"
+          ],
+          [
+            "Toilet supply stop",
+            "50″",
+            "8″"
+          ],
+          [
+            "Pedestal sink",
+            "8–32″",
+            "34″ rim"
+          ],
+          [
+            "Sink hanger blocking",
+            "6–34″",
+            "25–32 1/2″ (check bracket height in spec)"
+          ],
+          [
+            "Medicine cabinet",
+            "8–32″",
+            "46–76″"
+          ],
+          [
+            "Cabinet blocking",
+            "8–32″",
+            "at 46 & 76″"
+          ],
+          [
+            "Light box (bar)",
+            "20″",
+            "82″"
+          ],
+          [
+            "Grab bar blocking behind toilet",
+            "32–72″",
+            "32–38″"
+          ],
+          [
+            "Grab bar blocking, side wall",
+            "adjacent wall, 12–54″ from this wall",
+            "32–38″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "36″",
+            "50″ center"
+          ],
+          [
+            "Bidet outlet (GFCI)",
+            "68″",
+            "20″ center"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "vessel sink, wall faucet, existing light box, finished wall",
+      "state": {
+        "preset": "comfort",
+        "wall": "60",
+        "sink": "vessel",
+        "vh": "6",
+        "ctr": "34",
+        "fau": "wall",
+        "freach": "8",
+        "spout": "4",
+        "lbkeep": "keep",
+        "lbx": "31",
+        "lbh": "80",
+        "wallc": "closed",
+        "mir": "rec",
+        "mrd": "4",
+        "stud": "",
+        "wo": "yes",
+        "wox": "1",
+        "woh": "16"
+      },
+      "expected": {
+        "checks": [
+          {
+            "level": "bad",
+            "text": "Recessed cabinet body is 4″ deep; a 2×4 cavity is 3 1/2″.",
+            "fixes": [
+              "Use a surface-mount cabinet",
+              "Frame this wall with 2×6"
+            ]
+          },
+          {
+            "level": "bad",
+            "text": "Wall outlet is off the wall.",
+            "fixes": [
+              "Move the wall outlet to 6″"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Wall is still finished: find the studs before committing to the recessed cabinet location.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Spout outlet lands 3 1/2″ behind the drain, close to the back of the bowl.",
+            "fixes": [
+              "Use a 11 1/2″ spout reach"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Sink rim at 40″: high for most people. Lower the vanity for a vessel sink.",
+            "fixes": [
+              "Lower the vanity to 30″ (rim at 36″)"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Recessed cabinet needs a 22 1/4″ × 28 1/4″ rough opening; enter the stud layout to check it against the studs.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "The sink vent usually runs up the sink centerline: confirm the cabinet bay is clear.",
+            "fixes": []
+          },
+          {
+            "level": "warn",
+            "text": "Existing light box is 1″ right of the light centerline. Center the vanity on it, or move the box.",
+            "fixes": [
+              "Center the vanity on the light box"
+            ]
+          },
+          {
+            "level": "warn",
+            "text": "Existing light box is at 80″; the bar's box lands at 85″.",
+            "fixes": [
+              "Set the mirror top to 74″ to meet the box"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 30″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "30″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "30″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "26 & 34″",
+            "22″"
+          ],
+          [
+            "Wall faucet spout",
+            "30″",
+            "44″ (set valve per spec)"
+          ],
+          [
+            "Vanity",
+            "12–48″",
+            "34″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "12–48″",
+            "28–32 1/2″"
+          ],
+          [
+            "Medicine cabinet",
+            "18–42″",
+            "49–79″"
+          ],
+          [
+            "Cabinet rough opening",
+            "18 7/8–41 1/8″",
+            "49 7/8–78 1/8″"
+          ],
+          [
+            "Light box (bar), per layout",
+            "30″",
+            "85″"
+          ],
+          [
+            "Light box (existing)",
+            "31″",
+            "80″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "46″",
+            "42″ center"
+          ],
+          [
+            "Wall outlet (GFCI)",
+            "1″",
+            "16″ center"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "tight 36-inch wall, low ceiling",
+      "state": {
+        "preset": "tight",
+        "wall": "36",
+        "ceil": "80",
+        "vw": "24",
+        "vd": "18",
+        "ctr": "32",
+        "place": "low",
+        "mir": "mirror",
+        "mh": "40",
+        "lt": "bar",
+        "rec": "R"
+      },
+      "expected": {
+        "checks": [
+          {
+            "level": "bad",
+            "text": "Mirror top at 84″ runs into the ceiling.",
+            "fixes": [
+              "Use a 34″ tall mirror"
+            ]
+          },
+          {
+            "level": "bad",
+            "text": "Light bar top at 93″ is too close to the ceiling: lower the mirror or use sconces.",
+            "fixes": [
+              "Use sconces instead",
+              "Use a 26″ tall mirror"
+            ]
+          },
+          {
+            "level": "good",
+            "text": "Sink centerline is 18″ from the nearest side wall (15″ minimum).",
+            "fixes": []
+          },
+          {
+            "level": "good",
+            "text": "Outlet is 8″ from the basin edge (36″ maximum).",
+            "fixes": []
+          }
+        ],
+        "schedule": [
+          [
+            "Sink centerline",
+            "18″",
+            ""
+          ],
+          [
+            "Drain stub (existing)",
+            "18″",
+            "19″"
+          ],
+          [
+            "Supplies (existing)",
+            "14 & 22″",
+            "22″"
+          ],
+          [
+            "Vanity",
+            "6–30″",
+            "32″ top"
+          ],
+          [
+            "Vanity backing (blocking)",
+            "6–30″",
+            "26–30 1/2″"
+          ],
+          [
+            "Mirror",
+            "6–30″",
+            "44–84″"
+          ],
+          [
+            "Mirror blocking",
+            "6–30″",
+            "at 44 & 84″"
+          ],
+          [
+            "Light box (bar)",
+            "18″",
+            "90″"
+          ],
+          [
+            "Vanity outlet (GFCI)",
+            "34″",
+            "42″ center"
+          ]
+        ]
+      }
+    }
+  ]
+}

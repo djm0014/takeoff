@@ -62,8 +62,17 @@ export function createIdbStore(factory: IDBFactory = indexedDB): JobStore {
     return (await db()).transaction(JOBS, mode).objectStore(JOBS);
   }
 
+  // Saves still in progress. Reads wait for them, so a screen opened right after
+  // another one's last edit sees that edit (the leaving screen saves on its way out).
+  const pending = new Set<Promise<unknown>>();
+  async function settled() {
+    await new Promise((r) => setTimeout(r, 0)); // let the leaving screen start its save
+    await Promise.allSettled([...pending]);
+  }
+
   const api: JobStore = {
     async list() {
+      await settled();
       const all = (await request((await store('readonly')).getAll())) as unknown[];
       const summaries: JobSummary[] = [];
       for (const raw of all) {
@@ -77,6 +86,7 @@ export function createIdbStore(factory: IDBFactory = indexedDB): JobStore {
     },
 
     async get(id) {
+      await settled();
       const raw = await request((await store('readonly')).get(id));
       return raw ? migrate(raw) : null;
     },
@@ -84,7 +94,13 @@ export function createIdbStore(factory: IDBFactory = indexedDB): JobStore {
     async save(doc) {
       const toSave: JobDoc = structuredClone(doc);
       toSave.job.updatedAt = new Date().toISOString();
-      await request((await store('readwrite')).put(toSave));
+      const p = (async () => request((await store('readwrite')).put(toSave)))();
+      pending.add(p);
+      try {
+        await p;
+      } finally {
+        pending.delete(p);
+      }
       return toSave;
     },
 
