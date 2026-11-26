@@ -7,6 +7,7 @@ import { href, parseRoute } from './router';
 import { renderFloorPlan } from './screens/floorPlan';
 import { renderJobHome } from './screens/jobHome';
 import { renderJobs } from './screens/jobs';
+import { renderWallScreen } from './screens/wallScreen';
 import { topbar } from './screens/shell';
 
 applyTheme(loadTheme());
@@ -26,6 +27,9 @@ async function render(): Promise<void> {
       break;
     case 'plan':
       await renderFloorPlan(root, route.jobId);
+      break;
+    case 'wall':
+      await renderWallScreen(root, route.jobId, route.wallId);
       break;
     default:
       root.replaceChildren(

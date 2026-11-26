@@ -7,6 +7,13 @@ scope and milestones.
 
 ## Status
 
+**Milestone 3 — Vanity wall** (ready for field testing)
+
+- [x] Wall screen (from the floor plan's wall menu, the vanity's card, or the job page) with the Vanity tab
+- [x] The old Vanity Wall Solver's setup questions, checks with quick fixes and undo, rough-in schedule, elevation and presentation drawings (no section, by request)
+- [x] Matches the old tool on six vanity walls, including two quick fixes (`tests/fixtures/vanity-scenarios.json`)
+- [x] On the shared record: wall width and ceiling from the floor plan; studs, finish and first stud on the wall; the job's preset; the floor plan's toilet and vanity (moving either one moves it on both screens)
+
 **Milestone 2 — Floor plan** (ready for field testing)
 
 - [x] Walk-the-room entry: each wall's length and the turn to the next (90°, or any angle up to 135°); rectangle shortcut

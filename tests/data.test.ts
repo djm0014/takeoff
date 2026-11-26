@@ -132,3 +132,15 @@ describe('storage', () => {
     expect((await store.list()).length).toBe(2);
   });
 });
+
+describe('storage ordering', () => {
+  it('a read started right after a save sees the saved job', async () => {
+    const store = createIdbStore(new IDBFactory());
+    const doc = await store.save(createJob({ name: 'Before' }));
+    doc.job.name = 'After';
+    // Same order as leaving a screen: the next screen's read starts, then the old screen's save.
+    const read = store.get(doc.job.id);
+    void store.save(doc);
+    expect((await read)!.job.name).toBe('After');
+  });
+});

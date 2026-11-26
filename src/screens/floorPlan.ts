@@ -610,6 +610,12 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       ),
       menuButton(`Wall ${w.number} actions`, [
         {
+          label: `Open wall ${w.number} (vanity)`,
+          run: () => {
+            location.hash = href({ name: 'wall', jobId, wallId: w.id });
+          },
+        },
+        {
           label: 'Insert a wall after this one',
           run: () => {
             focusNewWall(insertWall(doc, room.id, w.id));
@@ -747,6 +753,9 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       h(
         'div',
         { class: 'row' },
+        it.type === 'vanity'
+          ? h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId, wallId: it.wallId }) }, 'Vanity wall')
+          : null,
         it.status === 'existing'
           ? h(
               'button',
