@@ -93,6 +93,38 @@ Idea (Nov 25, 2026):
   opening stored, check it on the wall's stud layout: fits the stud bay, or
   needs a stud cut with a header and cripples, and where the bottom lands AFF.
 
+## 3D and presentation (future milestone, after Survey, before Takeoffs)
+
+Discussed Nov 27, 2026. For showing clients the design.
+
+- [ ] **3D view in the web app.** A third view beside the floor plan and the
+  walls, built from the job record we already have: walls raised to the
+  ceiling height from the walked room, doors, windows and fixtures placed from
+  the floor plan, heights from the vanity wall (counter, mirror, cabinet,
+  lights). Clean "white model" look; orbit around it with a finger. Uses
+  three.js, which runs well in iPhone Safari. Small rooms are an easy load.
+- [ ] **View in AR, no app needed.** Export the model as USDZ (three.js can) and
+  open it in iPhone AR Quick Look: the new vanity shows in the real room through
+  the camera, at full scale.
+- [ ] **Materials and finishes** for presentations: tile, vanity color, wood,
+  glass. Not photo-realistic rendering (heavy for a phone, little gain).
+- [ ] **Fixture models**: simple stand-ins sized to the job's numbers first.
+  Exact product models (manufacturer 3D files) later, if worth collecting.
+
+Limits: photo-real renders, exact product libraries, and battery/heat with long
+3D sessions. LiDAR room scanning (Apple RoomPlan) and Bluetooth laser measures
+on iPhone need an App Store app; a web page can't use them.
+
+**If it goes to the App Store later:** keep the TypeScript code and wrap it with
+**Capacitor** (a native app shell around the web app, with plugins for LiDAR
+scanning, Bluetooth laser measures, files and camera). No language change or
+rewrite. React Native or Flutter would mean a rewrite; native Swift only makes
+sense for an AR-first, iPhone-only product. The code is already set up for it:
+layout math and drawings are separate from the screens, and storage sits behind
+one module. The App Store also needs an Apple Developer account ($99/yr), a Mac
+with Xcode or a cloud build service, Apple's review, a privacy policy, and a
+separate Android listing if wanted.
+
 ## App
 
 - [ ] Custom domain for the site.

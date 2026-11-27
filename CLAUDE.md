@@ -90,3 +90,8 @@ Read first: `docs/combined-app-plan.md` (goals, scope, milestones),
    the biggest and most fragile old tool; furring/tub-fit rules still open).
 5. Survey and job home. 6. Switch over (import old tools' saved jobs; see
    `docs/legacy-tools.md`). 7. Takeoffs. 8. Sync and accounts.
+
+Future, planned with the owner: a 3D / AR presentation view (three.js, AR Quick
+Look via USDZ) between Survey and Takeoffs, and an App Store app later by
+wrapping this code with Capacitor (no rewrite). Details in `docs/backlog.md`
+under "3D and presentation".
