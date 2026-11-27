@@ -95,6 +95,15 @@ Idea (Nov 25, 2026):
 
 ## Tile and niche (Milestone 4)
 
+From the first phone test (Nov 27, 2026):
+
+- [ ] **Move the niche left or right one stud bay** when it has to fit an
+  existing bay, like the up/down a course and taller/shorter buttons.
+- [ ] **Slivers at the corners.** "No matter how I adjusted the pattern, half
+  bond, 1/3, the end tiles ended up with 3/16″ slivers on every other or every
+  3rd row." Tile already chosen and ordered, so changing tile size isn't an
+  option; changing the grout joint only does so much. Needs a way to fix it.
+
 From building it (Nov 27, 2026):
 
 - [ ] Wall width is read-only on the Tile tab: stud to stud is the floor plan's
