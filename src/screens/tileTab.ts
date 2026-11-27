@@ -24,11 +24,15 @@ import {
   ext,
   fmt,
   isPlain,
+  centerName,
+  keepSpot,
   layout,
+  lineMoves,
   optTitle,
   optionLine,
   snapInfo,
   solve,
+  spotOf,
   worstOf,
   type Layout,
   type Opt,
@@ -247,10 +251,20 @@ export function renderTileTab(c: WallCtx): void {
     // The first solve on opening keeps the saved option and course moves.
     const first = cacheK === '';
     cacheK = k;
+    // Where the niche was, to put it back after the options are worked out again.
+    const was = !first && lastL && !lastL.r.plain ? spotOf(lastL.r) : null;
+    const moved = !!(ui.adjH || ui.adjS || ui.adjHin || ui.adjSin);
     res = solve(S);
     if (first) return;
+    const back = was ? keepSpot(S, res, was) : null;
+    if (back) {
+      ui.optIdx = back.optIdx;
+      Object.assign(ui, back.adj);
+      return;
+    }
     ui.adjH = ui.adjS = ui.adjHin = ui.adjSin = 0;
     if (!keep) ui.optIdx = 0;
+    if (moved) toast('The courses moved, so the niche went back to the planner’s size. Fine-tune it again if needed.');
   }
 
   const viewTabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Drawing' });
@@ -395,6 +409,26 @@ export function renderTileTab(c: WallCtx): void {
     return h('section', { class: 'card stack tile-view tile-legend-colors' }, headline, ...extra);
   }
 
+  /** Niche in an existing stud bay: move it a bay left or right. */
+  function bayRow(): HTMLElement | null {
+    if (S.framed === 'yes' || S.studs !== 'bay') return null;
+    const fits = (to: number) => to >= 0 && solve({ ...S, bayL: to }).length > 0;
+    const move = (dir: -1 | 1) => () => {
+      S.bayL = Math.round((S.bayL + dir * S.studOC) * 16) / 16;
+      results(true, true);
+    };
+    const l = S.bayL - S.studOC;
+    const r = S.bayL + S.studOC;
+    return h(
+      'div',
+      { class: 'tune' },
+      h('span', { class: 'lab' }, 'Stud bay'),
+      h('button', { class: 'btn small-btn', type: 'button', disabled: !fits(l), onclick: move(-1) }, 'Left 1 bay'),
+      h('b', {}, `Bay starts ${fmt(S.bayL)} from left corner`),
+      h('button', { class: 'btn small-btn', type: 'button', disabled: !fits(r), onclick: move(1) }, 'Right 1 bay'),
+    );
+  }
+
   function tuneCard(L: Layout) {
     const r = L.r;
     const TS = L.S;
@@ -434,7 +468,7 @@ export function renderTileTab(c: WallCtx): void {
                   results(true, true);
                 },
               },
-              'Reset',
+              'Back to original size',
             )
           : null,
       ),
@@ -480,6 +514,7 @@ export function renderTileTab(c: WallCtx): void {
         h('b', {}, `Rough sill ${fmt(r.sF - bu(TS))}`),
         btn('Up 1 course', canAdjust(TS, L.r0, a(0, 1)), move(0, 1)),
       ),
+      bayRow(),
       h(
         'p',
         { class: 'note' },
@@ -535,11 +570,47 @@ export function renderTileTab(c: WallCtx): void {
     );
   }
 
+  function lineFix(L: Layout): HTMLElement | null {
+    const mv = lineMoves(L);
+    if (!mv) return null;
+    const what = centerName(L.S);
+    const go = (shift: number) => () => {
+      S.shift = shift;
+      results(true, true);
+    };
+    const btn = (m: { shift: number; min: number }) =>
+      h(
+        'button',
+        { class: 'btn small-btn primary fix', type: 'button', onclick: go(m.shift) },
+        `Move it ${fmt(Math.abs(m.shift))} ${m.shift < 0 ? 'left' : 'right'}: corner pieces ${fmt(m.min)} and up`,
+      );
+    const moved = S.shift
+      ? h(
+          'p',
+          { class: 'note' },
+          `The layout line is moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'} of the ${what}’s center. Smallest corner piece: ${fmt(mv.now)}.`,
+        )
+      : h('p', { class: 'note' }, `Centered on the ${what}, the corner pieces get down to ${fmt(mv.now)}. Moving the layout line off center fixes that; the tile size and the wall stay the same.`);
+    return h(
+      'div',
+      { class: 'stack line-fix' },
+      moved,
+      h(
+        'div',
+        { class: 'fixes' },
+        mv.left && Math.abs(mv.left.shift - S.shift) > 1e-6 ? btn(mv.left) : null,
+        mv.right && Math.abs(mv.right.shift - S.shift) > 1e-6 ? btn(mv.right) : null,
+        S.shift ? h('button', { class: 'btn small-btn fix', type: 'button', onclick: go(0) }, `Center it on the ${what} again`) : null,
+      ),
+    );
+  }
+
   function cutsCard(L: Layout) {
     return h(
       'section',
       { class: 'card stack' },
       h('h2', {}, 'Cuts'),
+      lineFix(L),
       h(
         'ul',
         { class: 'tile-cuts' },

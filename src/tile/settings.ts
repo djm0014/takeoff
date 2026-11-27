@@ -79,6 +79,8 @@ export interface TileS {
   studStart: 'left' | 'right';
   block: 'flat' | 'edge';
   sides: 'full' | 'block';
+  /** Layout line moved off center (new, not in the old tool): inches, negative is left. */
+  shift: number;
   /* set by tileS(): the finished tile wall */
   _tile?: boolean;
   _frW?: number;
@@ -97,6 +99,7 @@ export const DEF: TileS = {
   wallType: 'niche', widthRef: 'framing', minReach: 0.25, maxReach: 0.5, tubSlide: 'center', fitClear: 0.125, furSplit: 'even',
   framing: 'new', studMode: 'oc', stud1: 16, exOC: 16, studList: '', sillType: 'tile', sillT: 0.75, sillProj: 1,
   start: 'bottom', shelfPos: 'center', shelf1: 6, shelf2: 12, pat: 'wall', side: 'auto', studStart: 'left', block: 'flat', sides: 'full',
+  shift: 0,
 };
 
 /** Keys the old tool kept in IN rather than S. */

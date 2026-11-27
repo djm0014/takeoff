@@ -563,7 +563,8 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     if (w < 1) continue;
     const L = leftOf(w);
     if (L - e < fieldL(S) + 0.25 || L + w + e > fieldR(S) - 0.25) continue;
-    const xc = S.center === 'niche' ? L + w / 2 : S.center === 'wall' ? (fieldL(S) + fieldR(S)) / 2 : S.center === 'tub' ? tubCenter(S) : null;
+    const xc0 = S.center === 'niche' ? L + w / 2 : S.center === 'wall' ? (fieldL(S) + fieldR(S)) / 2 : S.center === 'tub' ? tubCenter(S) : null;
+    const xc = xc0 == null ? null : xc0 + (S.shift || 0);
     const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : [xc - tw / 2, xc + g / 2];
     let inB: { ix: number; mn: number } | null = null;
     const ixs = [L + w / 2 - tw / 2, L + w / 2 + g / 2];
@@ -628,7 +629,8 @@ function solveHPlain(S: TileS): HFit {
   const mw = tw + g;
   const c = shiftCount(S);
   const mid = (fieldL(S) + fieldR(S)) / 2;
-  const xc = S.center === 'tub' ? tubCenter(S) : S.center === 'left' || S.center === 'right' ? null : mid;
+  const xc0 = S.center === 'tub' ? tubCenter(S) : S.center === 'left' || S.center === 'right' ? null : mid;
+  const xc = xc0 == null ? null : xc0 + (S.shift || 0);
   const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : [xc - tw / 2, xc + g / 2];
   let best: HFit | null = null;
   const none: Leg = { aligned: true, leg: 0 };
@@ -713,7 +715,64 @@ function verticalLine(S: TileS, h: HFit): string {
         ' at ' +
         fmt(h.xc) +
         ' from left corner' +
-        (S.widthRef === 'framing' ? ` (${fmt(h.xc + (S._offL || 0))} from the left stud)` : '');
+        (S.widthRef === 'framing' ? ` (${fmt(h.xc + (S._offL || 0))} from the left stud)` : '') +
+        (S.shift ? `, moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'} of the ${centerName(S)}'s center` : '');
+}
+
+/** What the field tile centers on, in words. */
+export const centerName = (S: TileS) => (S.center === 'niche' && !isPlain(S) ? 'niche' : S.center === 'tub' ? 'tub' : 'wall');
+
+/** The smallest piece at either corner, over every row of the pattern, with the layout line at xc. */
+function cornerMin(S: TileS, xc: number): number {
+  const tw = S.tileW;
+  const g = S.grout;
+  const mw = tw + g;
+  const c = shiftCount(S);
+  let best = 0;
+  for (const x0 of [xc - tw / 2, xc + g / 2]) {
+    let mn = tw;
+    for (let k = 0; k < c; k++) {
+      const ps = rowPieces(S, x0, (k * mw) / c);
+      if (!ps.length) continue;
+      mn = Math.min(mn, ps[0]!.w, ps[ps.length - 1]!.w);
+    }
+    best = Math.max(best, mn);
+  }
+  return best;
+}
+
+export interface LineMove {
+  /** New shift from center: negative is left. */
+  shift: number;
+  /** Smallest corner piece it gives. */
+  min: number;
+}
+
+/**
+ * Corner slivers: the best places to move the layout line off center, one to
+ * the left and one to the right, each the shortest move that gives the
+ * biggest smallest corner piece. Null when the corners are already fine, or
+ * the field starts from a corner.
+ */
+export function lineMoves(L: Layout): { now: number; left: LineMove | null; right: LineMove | null } | null {
+  const S = L.S;
+  const h = L.r.h;
+  if (h.xc == null) return null;
+  const base = h.xc - (S.shift || 0);
+  const now = cornerMin(S, h.xc);
+  const tw = S.tileW;
+  const want = S.minFrac * tw;
+  if (now >= want - 1e-6 && !S.shift) return null;
+  const pick = (dir: -1 | 1): LineMove | null => {
+    let best: LineMove | null = null;
+    for (let i = 1; i <= Math.round(((tw + S.grout) / 2) * 16); i++) {
+      const d = (dir * i) / 16;
+      const m = cornerMin(S, base + d);
+      if (!best || m > best.min + 1 / 32) best = { shift: d, min: m };
+    }
+    return best && best.min > now + 1 / 32 ? best : null;
+  };
+  return { now, left: pick(-1), right: pick(1) };
 }
 
 export function sheetPlainRows(S: TileS, r: Opt): SheetRow[] {
@@ -1182,4 +1241,36 @@ export function snapInfo(S: TileS, r: Opt) {
   const hOn = uh <= G.g + TOL || uh >= G.m - TOL;
   const sOn = us <= G.g + TOL || us >= G.m - TOL;
   return { hOn, sOn, hd: uh - G.g, hu: G.m - uh + G.g, sd: us, su: G.m - us };
+}
+
+/** Where a niche sits: its finished sill and height, on a grid of courses. */
+export interface NicheSpot {
+  T0: number;
+  m: number;
+  sF: number;
+  hF: number;
+}
+export const spotOf = (r: Opt): NicheSpot => ({ T0: r.G.T0, m: r.G.m, sF: r.sF, hF: r.hF });
+
+/**
+ * After the options are worked out again, find the option and course moves
+ * that put the niche back where it was (same courses, same finished sill and
+ * height). Null when no option has the same courses, or the niche no longer fits.
+ */
+export function keepSpot(S0: TileS, options: Opt[], spot: NicheSpot): { optIdx: number; adj: Adjust } | null {
+  const S = tileS(S0);
+  const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
+  for (let i = 0; i < options.length; i++) {
+    const o = options[i]!;
+    if (o.plain || !near(o.G.T0, spot.T0) || !near(o.G.m, spot.m)) continue;
+    const m = o.G.m;
+    const adjS = Math.round((spot.sF - o.sF) / m);
+    const adjSin = spot.sF - o.sF - adjS * m;
+    const adjH = Math.round((spot.hF - o.hF + adjSin) / m);
+    const adjHin = spot.hF - o.hF + adjSin - adjH * m;
+    const adj = { adjH, adjS, adjHin: Math.abs(adjHin) < 1e-9 ? 0 : adjHin, adjSin: Math.abs(adjSin) < 1e-9 ? 0 : adjSin };
+    const r = adjustOpt(S, o, adj.adjH, adj.adjS, adj.adjHin, adj.adjSin);
+    if (r && near(r.sF, spot.sF) && near(r.hF, spot.hF)) return { optIdx: i, adj };
+  }
+  return null;
 }

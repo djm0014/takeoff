@@ -95,6 +95,27 @@ Idea (Nov 25, 2026):
 
 ## Tile and niche (Milestone 4)
 
+From the first phone test (Nov 27, 2026):
+
+- [x] **Move the niche left or right one stud bay** when it has to fit an
+  existing bay, like the up/down a course and taller/shorter buttons.
+- [x] **Slivers at the corners.** "No matter how I adjusted the pattern, half
+  bond, 1/3, the end tiles ended up with 3/16″ slivers on every other or every
+  3rd row." Tile already chosen and ordered, so changing tile size isn't an
+  option; changing the grout joint only does so much. Needs a way to fix it.
+  Plan (agreed direction): a quick fix that moves the layout line off center
+  about a quarter tile for half bond (3″ on 12″ tile), about a sixth for 1/3
+  offset, left or right, showing the corner pieces each way. Built (Nov 27):
+  the Cuts card offers it when a corner piece is under your smallest cut.
+- [ ] More sliver fixes if the line move isn't enough: split the sliver with
+  the next tile into two pieces; fur or trim an end wall while it's still
+  framing; a grout change of 1/16″ or less.
+- [x] **Niche size reset after changing the centering** (or any other answer
+  on the Adjust card), so the course moves had to be made again. Now the niche
+  stays at the sill and height you moved it to; it only goes back to the
+  planner's size when the courses themselves move (tile size, tub height),
+  and it says so. The Reset button is now "Back to original size".
+
 From building it (Nov 27, 2026):
 
 - [ ] Wall width is read-only on the Tile tab: stud to stud is the floor plan's
