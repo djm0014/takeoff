@@ -177,6 +177,10 @@ separate Android listing if wanted.
 
 ## App
 
+- [ ] **Show which version is running** (e.g. a date or number on the jobs
+  screen), so a field test can tell whether the phone picked up the latest
+  update. The app updates itself in the background; the open copy keeps
+  running until it's closed and reopened (Nov 27, 2026).
 - [ ] Custom domain for the site.
 
 ## Open questions (from the plan)
