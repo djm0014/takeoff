@@ -610,9 +610,15 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
       ),
       menuButton(`Wall ${w.number} actions`, [
         {
-          label: `Open wall ${w.number} (vanity)`,
+          label: `Open wall ${w.number}: vanity`,
           run: () => {
-            location.hash = href({ name: 'wall', jobId, wallId: w.id });
+            location.hash = href({ name: 'wall', jobId, wallId: w.id, tab: 'vanity' });
+          },
+        },
+        {
+          label: `Open wall ${w.number}: tile and niche`,
+          run: () => {
+            location.hash = href({ name: 'wall', jobId, wallId: w.id, tab: 'tile' });
           },
         },
         {
@@ -754,8 +760,10 @@ export async function renderFloorPlan(root: HTMLElement, jobId: string): Promise
         'div',
         { class: 'row' },
         it.type === 'vanity'
-          ? h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId, wallId: it.wallId }) }, 'Vanity wall')
-          : null,
+          ? h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId, wallId: it.wallId, tab: 'vanity' }) }, 'Vanity wall')
+          : it.type === 'tub' || it.type === 'shower'
+            ? h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId, wallId: it.wallId, tab: 'tile' }) }, 'Tile and niche')
+            : null,
         it.status === 'existing'
           ? h(
               'button',

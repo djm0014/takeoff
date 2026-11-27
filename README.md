@@ -7,6 +7,14 @@ scope and milestones.
 
 ## Status
 
+**Milestone 4 — Tile and niche** (ready for field testing)
+
+- [x] Tile tab on the wall screen (from the floor plan's wall menu, a tub or shower card, or the job page), next to the Vanity tab
+- [x] The old Niche Rough-In Planner's setup questions, best options, fine-tune by whole courses, inside-the-niche choices, rough-in sheet, cuts and Adjust card
+- [x] Tile, presentation and framing drawings; sheets A-1 (elevations, niche detail, notes) and A-2 (niche section), downloadable as SVG for 11×17
+- [x] Matches the old tool on 14 walls, down to the exact drawings (`tests/fixtures/niche-scenarios.json`)
+- [x] On the shared record: wall width (stud to stud) and ceiling from the floor plan; the tub from the floor plan, including the tub end on each end wall of an alcove; tub height kept on the tub; stud depth and first stud on the wall (shared with the vanity); build-up saved as the wall's finish thickness
+
 **Milestone 3 — Vanity wall** (ready for field testing)
 
 - [x] Wall screen (from the floor plan's wall menu, the vanity's card, or the job page) with the Vanity tab

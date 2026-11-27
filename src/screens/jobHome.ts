@@ -3,7 +3,7 @@
  * milestone by milestone; for now the job details save automatically.
  */
 import { jobFileName, toJobFile } from '../data/jobfile';
-import { PRESET_LABELS, type Job, type JobDoc, type Preset } from '../data/model';
+import { PRESET_LABELS, type Job, type JobDoc, type Preset, type Wall } from '../data/model';
 import { geometry, roomWalls } from '../plan/room';
 import { jobs } from '../data/storage';
 import { downloadText, h, menuButton, toast } from '../lib/dom';
@@ -11,7 +11,6 @@ import { go, href } from '../router';
 import { topbar } from './shell';
 
 const SCREENS: { title: string; blurb: string; milestone: number }[] = [
-  { title: 'Tile and niche', blurb: 'Wall tile layout, niche, sheets A-1 and A-2.', milestone: 4 },
   { title: 'Survey', blurb: 'Field checklist and report.', milestone: 5 },
   { title: 'Sheets', blurb: 'Printable drawings and schedules.', milestone: 5 },
 ];
@@ -53,6 +52,26 @@ function vanityCard(doc: JobDoc): HTMLElement {
           withVanity.map((w) => h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId: doc.job.id, wallId: w.id }) }, `Wall ${w.number}`)),
         )
       : h('span', { class: 'status' }, walls.length ? 'Add a vanity in the floor plan' : 'Start the floor plan first'),
+  );
+}
+
+function tileCard(doc: JobDoc): HTMLElement {
+  const room = doc.rooms[0];
+  const walls = room ? roomWalls(doc, room.id) : [];
+  const wet = (w: Wall) => doc.items.some((i) => i.wallId === w.id && (i.type === 'tub' || i.type === 'shower') && i.status !== 'remove');
+  const tiled = walls.filter((w) => w.tileLayout || wet(w));
+  return h(
+    'div',
+    { class: 'card screen-card' },
+    h('h3', {}, 'Tile and niche'),
+    h('p', { class: 'small muted', style: 'margin:0' }, 'Tile layout with no slivers, niche rough-in, framing, sheets A-1 and A-2.'),
+    tiled.length
+      ? h(
+          'div',
+          { class: 'row', style: 'margin-top:8px' },
+          tiled.map((w) => h('a', { class: 'btn small-btn', href: href({ name: 'wall', jobId: doc.job.id, wallId: w.id, tab: 'tile' }) }, `Wall ${w.number}`)),
+        )
+      : h('span', { class: 'status' }, walls.length ? 'Open any wall from the floor plan, or add a tub or shower' : 'Start the floor plan first'),
   );
 }
 
@@ -187,6 +206,7 @@ export async function renderJobHome(root: HTMLElement, jobId: string): Promise<v
       { class: 'screen-grid' },
       floorPlanCard(current),
       vanityCard(current),
+      tileCard(current),
       SCREENS.map((s) =>
         h(
           'div',

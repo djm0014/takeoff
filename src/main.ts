@@ -29,7 +29,7 @@ async function render(): Promise<void> {
       await renderFloorPlan(root, route.jobId);
       break;
     case 'wall':
-      await renderWallScreen(root, route.jobId, route.wallId);
+      await renderWallScreen(root, route.jobId, route.wallId, route.tab);
       break;
     default:
       root.replaceChildren(
