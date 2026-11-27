@@ -43,7 +43,7 @@ describe('moving the layout line off center fixes corner slivers', () => {
 
   it('finds a quarter-tile move each way', () => {
     const L = layout(S, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
-    const mv = lineMoves(L)!;
+    const mv = lineMoves(S, L)!;
     expect(mv.now).toBeLessThan(1 / 4);
     expect(Math.abs(mv.left!.shift + 3)).toBeLessThanOrEqual(1 / 4);
     expect(Math.abs(mv.right!.shift - 3)).toBeLessThanOrEqual(1 / 4);
@@ -62,6 +62,34 @@ describe('moving the layout line off center fixes corner slivers', () => {
   it('leaves a clean wall alone', () => {
     const clean = fromSaved({ wallType: 'plain', base: 'floor', widthRef: 'finished', wallW: 60.25, center: 'wall', pattern: 'stack', minFrac: 0.25 });
     const L = layout(clean, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
-    expect(lineMoves(L)).toBeNull();
+    expect(lineMoves(clean, L)).toBeNull();
+  });
+});
+
+describe('the line-move quick fix tells the truth', () => {
+  const A = { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 };
+  const cornerMin = (L: NonNullable<ReturnType<typeof layout>>) => Math.min(L.r.h.cL, L.r.h.cR, L.S.tileW);
+  it('what it shows is what the Cuts list gets, on many walls', () => {
+    let checked = 0;
+    for (const pattern of ['half', 'third'] as const)
+      for (const center of ['wall', 'niche'] as const)
+        for (let W = 44; W <= 72; W += 1.4375) {
+          const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, base: 'floor', pattern, minFrac: 0.3333, center });
+          const L = layout(S, 0, A)!;
+          const mv = lineMoves(S, L);
+          if (!mv) continue;
+          expect(mv.now).toBeCloseTo(cornerMin(L), 6);
+          for (const m of [mv.left, mv.right]) {
+            if (!m) continue;
+            const S1 = { ...S, shift: m.shift };
+            const res = solve(S1);
+            const back = keepSpot(S1, res, spotOf(L.r));
+            const L1 = layout(S1, back ? back.optIdx : 0, back ? back.adj : A, res)!;
+            expect(cornerMin(L1)).toBeCloseTo(m.min, 6);
+            expect(m.min).toBeGreaterThan(mv.now);
+            checked++;
+          }
+        }
+    expect(checked).toBeGreaterThan(20);
   });
 });
