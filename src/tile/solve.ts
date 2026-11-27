@@ -1183,3 +1183,35 @@ export function snapInfo(S: TileS, r: Opt) {
   const sOn = us <= G.g + TOL || us >= G.m - TOL;
   return { hOn, sOn, hd: uh - G.g, hu: G.m - uh + G.g, sd: us, su: G.m - us };
 }
+
+/** Where a niche sits: its finished sill and height, on a grid of courses. */
+export interface NicheSpot {
+  T0: number;
+  m: number;
+  sF: number;
+  hF: number;
+}
+export const spotOf = (r: Opt): NicheSpot => ({ T0: r.G.T0, m: r.G.m, sF: r.sF, hF: r.hF });
+
+/**
+ * After the options are worked out again, find the option and course moves
+ * that put the niche back where it was (same courses, same finished sill and
+ * height). Null when no option has the same courses, or the niche no longer fits.
+ */
+export function keepSpot(S0: TileS, options: Opt[], spot: NicheSpot): { optIdx: number; adj: Adjust } | null {
+  const S = tileS(S0);
+  const near = (a: number, b: number) => Math.abs(a - b) < 1e-6;
+  for (let i = 0; i < options.length; i++) {
+    const o = options[i]!;
+    if (o.plain || !near(o.G.T0, spot.T0) || !near(o.G.m, spot.m)) continue;
+    const m = o.G.m;
+    const adjS = Math.round((spot.sF - o.sF) / m);
+    const adjSin = spot.sF - o.sF - adjS * m;
+    const adjH = Math.round((spot.hF - o.hF + adjSin) / m);
+    const adjHin = spot.hF - o.hF + adjSin - adjH * m;
+    const adj = { adjH, adjS, adjHin: Math.abs(adjHin) < 1e-9 ? 0 : adjHin, adjSin: Math.abs(adjSin) < 1e-9 ? 0 : adjSin };
+    const r = adjustOpt(S, o, adj.adjH, adj.adjS, adj.adjHin, adj.adjSin);
+    if (r && near(r.sF, spot.sF) && near(r.hF, spot.hF)) return { optIdx: i, adj };
+  }
+  return null;
+}

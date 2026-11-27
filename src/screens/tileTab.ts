@@ -24,11 +24,13 @@ import {
   ext,
   fmt,
   isPlain,
+  keepSpot,
   layout,
   optTitle,
   optionLine,
   snapInfo,
   solve,
+  spotOf,
   worstOf,
   type Layout,
   type Opt,
@@ -247,10 +249,20 @@ export function renderTileTab(c: WallCtx): void {
     // The first solve on opening keeps the saved option and course moves.
     const first = cacheK === '';
     cacheK = k;
+    // Where the niche was, to put it back after the options are worked out again.
+    const was = !first && lastL && !lastL.r.plain ? spotOf(lastL.r) : null;
+    const moved = !!(ui.adjH || ui.adjS || ui.adjHin || ui.adjSin);
     res = solve(S);
     if (first) return;
+    const back = was ? keepSpot(S, res, was) : null;
+    if (back) {
+      ui.optIdx = back.optIdx;
+      Object.assign(ui, back.adj);
+      return;
+    }
     ui.adjH = ui.adjS = ui.adjHin = ui.adjSin = 0;
     if (!keep) ui.optIdx = 0;
+    if (moved) toast('The courses moved, so the niche went back to the planner’s size. Fine-tune it again if needed.');
   }
 
   const viewTabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Drawing' });
@@ -434,7 +446,7 @@ export function renderTileTab(c: WallCtx): void {
                   results(true, true);
                 },
               },
-              'Reset',
+              'Back to original size',
             )
           : null,
       ),
