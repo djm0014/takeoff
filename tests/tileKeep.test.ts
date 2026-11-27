@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fromSaved } from '../src/tile/settings';
-import { keepSpot, layout, solve, spotOf } from '../src/tile/solve';
+import { keepSpot, layout, lineMoves, solve, spotOf } from '../src/tile/solve';
 
 const adj = { adjH: 1, adjS: -1, adjHin: 0, adjSin: 0 };
 
@@ -34,5 +34,34 @@ describe('course moves survive other changes', () => {
     const before = layout(S, 0, adj)!;
     const S2 = { ...S, tileH: 4, tilePreset: '4x12' };
     expect(keepSpot(S2, solve(S2), spotOf(before.r))).toBeNull();
+  });
+});
+
+describe('moving the layout line off center fixes corner slivers', () => {
+  // Half bond, 12″ tile, 1/8″ joint: centered on this wall the corners end in 3/16″ slivers.
+  const S = fromSaved({ wallType: 'plain', base: 'floor', widthRef: 'finished', wallW: 49.1875, center: 'wall' });
+
+  it('finds a quarter-tile move each way', () => {
+    const L = layout(S, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+    const mv = lineMoves(L)!;
+    expect(mv.now).toBeLessThan(1 / 4);
+    expect(Math.abs(mv.left!.shift + 3)).toBeLessThanOrEqual(1 / 4);
+    expect(Math.abs(mv.right!.shift - 3)).toBeLessThanOrEqual(1 / 4);
+    expect(Math.min(mv.left!.min, mv.right!.min)).toBeGreaterThanOrEqual(2.875);
+  });
+
+  it('moves the field and says so on the layout sheet', () => {
+    const S2 = { ...S, shift: 3 };
+    const L = layout(S2, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+    const corners = L.items.filter((i) => /corner/.test(i[0])).map((i) => i[1]);
+    expect(corners.every((v) => v === '' || parseFloat(v) >= 3)).toBe(true);
+    const line = L.sheet.find((r) => r[0] === 'Vertical line')![1];
+    expect(line).toContain('moved 3″ right of the wall’s center'.replace('’', "'"));
+  });
+
+  it('leaves a clean wall alone', () => {
+    const clean = fromSaved({ wallType: 'plain', base: 'floor', widthRef: 'finished', wallW: 60.25, center: 'wall', pattern: 'stack', minFrac: 0.25 });
+    const L = layout(clean, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+    expect(lineMoves(L)).toBeNull();
   });
 });

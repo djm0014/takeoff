@@ -301,6 +301,7 @@ export const ADJ: Field[] = [
     t: 'choice',
     id: 'center',
     label: 'Center the field tile on',
+    on: (S) => void (S.shift = 0),
     opts: [['niche', 'The niche', null, (S) => !isPlain(S)], ['wall', 'The wall'], ['tub', 'The tub', null, (S) => isTub(S) && S.tubPos !== 'full'], ['left', 'Full tile at left corner'], ['right', 'Full tile at right corner']],
   },
   find('tile', 'minFrac'),
