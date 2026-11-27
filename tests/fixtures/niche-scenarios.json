@@ -1,0 +1,2797 @@
+{
+  "note": "Tile walls run through the old Niche Rough-In Planner. 'S' and 'IN' are its answers (merged over its defaults), 'optIdx' and 'adj' the option and course moves picked on its results screen. 'expected' is what it worked out; drawings are sha1 fingerprints of its exact SVG text, with the sheet date fixed to Jan 15, 2026. Recorded by scripts/record-niche-fixtures.cjs.",
+  "scenarios": [
+    {
+      "name": "default tub alcove, niche not framed, one shelf",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 47 7/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 46 7/8″",
+            "worst": "warn",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 1/2″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74 7/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "22 15/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "22 15/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 1/2″, top at 17 5/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 3/4″ above tub (17 3/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 29″ from left corner (30″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 22 15/16″ and 37 1/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74 7/8″, top at 76 3/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 44 7/8″ below and 18 1/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "e902305594177668ca25f45a94ebf6f6c880592f",
+          "framing": "3c5fcefdcea1234e8b24a1da0e9653f0c611c5a8",
+          "a1": "9d1997a522b5b8495772a8accecf3cda668295ff",
+          "a2": "268ecb0faef3a83ab364987bcb12b0aa6bf66b77"
+        }
+      }
+    },
+    {
+      "name": "default, second option, niche up a course and taller",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no"
+      },
+      "optIdx": 1,
+      "adj": {
+        "adjH": 1,
+        "adjS": 1
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 47 7/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 46 7/8″",
+            "worst": "warn",
+            "pinned": false
+          }
+        ],
+        "optIdx": 1,
+        "adjusted": {
+          "adjH": 1,
+          "adjS": 1,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "",
+            "full"
+          ],
+          [
+            "Top course at ceiling",
+            "2 5/8″ tall",
+            "ok"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/8″ wide × 30 1/8″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "51 1/2″ above floor · 36 1/2″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "81 5/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "22 15/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "22 15/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/8″ wide × 28 1/8″ tall"
+          ],
+          [
+            "Shelf",
+            "13 13/16″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Full tile, top at 18 1/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3 1/4″ above tub (18 1/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 29″ from left corner (30″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 22 15/16″ and 37 1/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 51 1/2″ above floor · 36 1/2″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 81 5/8″, top at 83 1/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/8″ wide × 30 1/8″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 48 1/2″ below and 11 3/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 12,
+          "above": 4
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "8199269d94d5d38e937fc866a85b7aac797c21b9",
+          "framing": "3050dcb08d57ce98feba5c1b324b65fe9b01e6e2",
+          "a1": "a0c956842d3c9942f29a97c949b8ac142eaf0ef4",
+          "a2": "1af961ad7615bb89c4e723bee66b92e68f9f2b85"
+        }
+      }
+    },
+    {
+      "name": "already framed niche, 4x12 stacked",
+      "S": {
+        "widthRef": "framing",
+        "framed": "yes",
+        "tilePreset": "4x12",
+        "tileH": 4,
+        "tileW": 12,
+        "pattern": "stack",
+        "rW": 16,
+        "rH": 30,
+        "rSill": 44,
+        "rLeft": 20
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Start with a 3″ course",
+            "line": "Finished 14″ × 28″ · rough sill 44″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 14″ × 28″ · rough sill 44″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 2″ course",
+            "line": "Finished 14″ × 28″ · rough sill 44″",
+            "worst": "bad",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "3″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "3 3/8″ tall",
+            "ok"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "2 9/16″ wide",
+            "bad"
+          ],
+          [
+            "Right corner",
+            "6 9/16″ wide",
+            "ok"
+          ],
+          [
+            "Below niche",
+            "2″ strip",
+            "notch",
+            null
+          ],
+          [
+            "Above niche",
+            "2 7/8″ strip",
+            "notch",
+            null
+          ],
+          [
+            "Left of niche",
+            "5 1/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "5 1/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "3 1/4″ top",
+            "ok",
+            null
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6 15/16″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Your rough opening",
+            "16″ wide × 30″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "44″ above floor · 29″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "20″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "24″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "14″ wide × 28″ tall"
+          ],
+          [
+            "Shelf",
+            "13 3/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 3″, top at 18 1/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3 1/4″ above tub (18 1/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Grout joint at 27″ from left corner (28″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 20″ and 36″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 44″ above floor · 29″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74″, top at 75 1/2″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "16″ wide × 30″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 16″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 41″ below and 19″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 6,
+          "above": 4
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "f25d0051df937cc6397da96ad646b1b87d879406",
+          "framing": "bfe433327000742f0c1d586569a8bfa3847e0927",
+          "a1": "fe9e3c9fae6096b4127ff62d519ef7c463234836",
+          "a2": "2a33ad29f7556c7cc329c595ecb01b0f909b434b"
+        }
+      }
+    },
+    {
+      "name": "plain shower wall, 12x24, slope partway",
+      "S": {
+        "widthRef": "framing",
+        "wallType": "plain",
+        "framed": "",
+        "base": "floor",
+        "wallW": 48,
+        "tilePreset": "12x24",
+        "tileH": 12,
+        "tileW": 24,
+        "ceilLevel": false,
+        "ceilL": 90,
+        "ceilR": 96,
+        "slopeMode": "part",
+        "slopeRun": 20
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Start with a 10 7/8″ course",
+            "line": "First course 10 7/8″ · top 6″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 4 3/4″ course",
+            "line": "First course 4 3/4″ · top 6″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 7 3/4″ course",
+            "line": "First course 7 3/4″ · top 3″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the floor",
+            "line": "First course full · top 4 7/8″",
+            "worst": "warn",
+            "pinned": true
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course",
+            "10 7/8″ tall",
+            "ok"
+          ],
+          [
+            "Top course, left end",
+            "6″ tall",
+            "ok"
+          ],
+          [
+            "Top course, right end",
+            "",
+            "full"
+          ],
+          [
+            "Left corner",
+            "10 3/4″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "10 3/4″ wide",
+            "warn"
+          ]
+        ],
+        "sheet": [
+          [
+            "First course",
+            "Cut to 10 7/8″, on the floor",
+            true
+          ],
+          [
+            "Ledger line",
+            "11 1/8″ above floor, bottom of 2nd course",
+            true
+          ],
+          [
+            "Top course",
+            "6″ at left, full at right"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 23″ from left corner (24″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Cut list",
+            "4 studs at 87″ to 93″<br>Bottom plate and top plate at 48″"
+          ]
+        ],
+        "room": null,
+        "drawings": {
+          "preview": "09d9c1eb6cc6bdd1d241aed84c30b74a13d9e52d",
+          "tile": "7a01d2aad0b07e55bc0d3f7d277563174a3bef87",
+          "framing": "68bf626f27214d80850ce8c2b7ebc70a0c28d539",
+          "a1": "e699334a71885550507a6664e949c1781c7946b9"
+        }
+      }
+    },
+    {
+      "name": "stud bay niche, marble sill, bullnose border, two shelves on courses",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "studs": "bay",
+        "studOC": 16,
+        "bayL": 30,
+        "sillType": "marble",
+        "sillT": 0.75,
+        "sillProj": 1,
+        "frameOn": "yes",
+        "frameW": 2,
+        "shelves": 2,
+        "nPreset": "custom",
+        "nH": 30,
+        "nSill": 42
+      },
+      "IN": {
+        "shelfPos": "auto"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/2″ × 29 7/8″ · rough sill 39 7/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/2″ × 29 7/8″ · rough sill 42 1/2″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1″ course",
+            "line": "Finished 12 1/2″ × 29 7/8″ · rough sill 41″",
+            "worst": "bad",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "",
+            "full"
+          ],
+          [
+            "Top course at ceiling",
+            "2 5/8″ tall",
+            "ok"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "5 3/4″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "3 3/8″ wide",
+            "warn"
+          ],
+          [
+            "Below border",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above border",
+            "1 1/2″ strip",
+            "notch",
+            null
+          ],
+          [
+            "Left of border",
+            "3 11/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of border",
+            "3 11/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside, lower bay",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Inside, middle bay",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Inside, upper bay",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Inside, side pieces",
+            "2 15/16″ wide",
+            "bad"
+          ],
+          [
+            "Border pieces",
+            "shortest 8 3/16″",
+            "ok",
+            null
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/2″ wide × 32 1/4″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "39 1/2″ above floor · 24 1/2″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "71 3/4″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "30″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "15 1/2″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/2″ wide × 29 7/8″ tall"
+          ],
+          [
+            "Shelves",
+            "9 3/8″ and 19 1/2″ above finished sill, to underside"
+          ],
+          [
+            "Marble sill",
+            "3/4″ thick, projects 1″; underside at 40 1/8″ above floor"
+          ],
+          [
+            "Border",
+            "2″ bullnose frame, outside 16 1/2″ × 33 7/8″"
+          ],
+          [
+            "First course",
+            "Full tile, top at 18 1/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3 1/4″ above tub (18 1/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 36 1/4″ from left corner (37 1/4″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from your stud bay"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 30″ and 44 1/2″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 39 1/2″ above floor · 24 1/2″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 71 3/4″, top at 73 1/4″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/2″ wide × 32 1/4″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/2″, laid flat<br>2 full-height side studs at 93″<br>3 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 8,
+          "above": 6
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "68923c8be8ad73ff7ff8bc9968ee0d3620891c78",
+          "framing": "ec6e6b23994fd891c4e0677f842e2fbbf599b383",
+          "a1": "2cfe4d2b6e94a9f5117d3e78ae9e1244acd01ed5",
+          "a2": "03241eb2a4c020ed0fec28de57ca53ca5881c938"
+        }
+      }
+    },
+    {
+      "name": "tub at left, open floor, niche on the tub, bullnose right edge",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "tubPos": "left",
+        "tubL": 60,
+        "wallW": 84,
+        "nPos": "tub",
+        "center": "tub",
+        "edge": "right",
+        "frameW": 2.5
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 5/8″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 46″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 2 1/8″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 47 1/2″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "bad",
+            "pinned": true
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 5/8″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Bottom course beside tub",
+            "2″ tall",
+            "ok"
+          ],
+          [
+            "Bullnose edge",
+            "top piece 10 7/8″",
+            "ok",
+            null
+          ],
+          [
+            "Left corner",
+            "5 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Beside bullnose",
+            "1 13/16″ wide",
+            "bad"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "48″ above floor · 33″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "75″ above floor"
+          ],
+          [
+            "Left side",
+            "23 15/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "45 15/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "Bullnose edge",
+            "2 1/2″ bullnose up the right corner, 12″ pieces from the floor up, top piece 10 7/8″"
+          ],
+          [
+            "First course",
+            "Cut to 2 5/8″, top at 17 3/4″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 7/8″ above tub (17 7/8″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 30″ from left corner (31″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 23 15/16″ and 38 1/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 48″ above floor · 33″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 75″, top at 76 1/2″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 45″ below and 18″ above<br>6 studs at 93″<br>Bottom plate and top plate at 84″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "ba86089b64e8a9629dc3cf239d01306632512adf",
+          "tile": "dac3b058998b980b2692ee4067fbdb7626b1f04a",
+          "framing": "12724970a93df7459991c15c2b9edc5d5b9b16dd",
+          "a1": "ad3f7cee0faa9e24176d91e39f880318bba4943f",
+          "a2": "089354e8c07ad896c2ea64f0a177abb358d3e7c5"
+        }
+      }
+    },
+    {
+      "name": "existing studs listed, side blocks on edge, balanced inside, stacked inside",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "framing": "existing",
+        "studMode": "list",
+        "studList": "15 3/4, 31 1/2, 47 1/4",
+        "nPreset": "14x24",
+        "nW": 14,
+        "nH": 24
+      },
+      "IN": {
+        "sides": "block",
+        "block": "edge",
+        "start": "balance",
+        "side": "joint",
+        "pat": "stack"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 5/16″ × 25″ · rough sill 47 7/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 5/16″ × 25″ · rough sill 48 3/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 12 5/16″ × 25″ · rough sill 46 7/8″",
+            "worst": "warn",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 1/2″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "4 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "5 15/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "5 15/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "1 1/2″ bottom, 1 1/2″ top",
+            "ok",
+            null
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6 1/8″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 5/16″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74 7/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "22 7/8″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "22 7/8″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 5/16″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 1/2″, top at 17 5/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 3/4″ above tub (17 3/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 29″ from left corner (30″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "Existing studs, as entered"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 22 7/8″ and 37 3/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74 7/8″, top at 78 3/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 5/16″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 30″, laid on edge<br>2 side blocks at 27″<br>1 cripple at 42 7/8″ below and 16 1/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "b91eca3149ea8c73455f71b551de0546f27b8ecf",
+          "framing": "6b52a395f982cef1725ec9c66dd46e0610724b9e",
+          "a1": "aefab6732b2f44981a64c6ceb3b9185d8ca68927",
+          "a2": "c6880b563ebdb1f4e1c1737926c6217403e610f9"
+        }
+      }
+    },
+    {
+      "name": "tub won't fit between studs",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "wallW": 59,
+        "tubL": 60
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 47 7/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 46 7/8″",
+            "worst": "bad",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 1/2″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Tub fit",
+            "tub won’t fit",
+            "bad",
+            "Too narrow"
+          ],
+          [
+            "Left corner",
+            "4 1/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "4 1/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74 7/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "The tub won’t fit: the studs are closer together than the tub is long.",
+            true
+          ],
+          [
+            "Left side",
+            "22 7/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "22 7/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 1/2″, top at 17 5/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 3/4″ above tub (17 3/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 28 1/2″ from left corner (29 1/2″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "The tub won’t fit: the studs are closer together than the tub is long.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 22 7/16″ and 36 9/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74 7/8″, top at 76 3/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 44 7/8″ below and 18 1/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 59″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "9479a930188b248af57930a743af4a723081a03e",
+          "tile": "9041c01bc0e4e1e01eb37f7dcf76d0edfb91950a",
+          "framing": "2d280b7a5f9bfe9bc5082f4774c51bf0a0866bfa",
+          "a1": "7eaad84a744733ca59cae3e3def9ebd56d36c017",
+          "a2": "268ecb0faef3a83ab364987bcb12b0aa6bf66b77"
+        }
+      }
+    },
+    {
+      "name": "tub fit needs furring, slid left",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "wallW": 62,
+        "tubL": 60,
+        "tubSlide": "left"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 47 7/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 12 1/8″ × 25″ · rough sill 46 7/8″",
+            "worst": "bad",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 1/2″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "none",
+            "bad",
+            "Furring req."
+          ],
+          [
+            "Left corner",
+            "5 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "5 9/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "6″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "6″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "14 1/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74 7/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 0″ onto the lip (2″ tub to stud). Furring required: fur 1 1/4″ to 1 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "23 15/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "23 15/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "12 1/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 1/2″, top at 17 5/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 3/4″ above tub (17 3/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 30″ from left corner (31″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 0″ onto the lip (2″ tub to stud). Furring required: fur 1 1/4″ to 1 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 23 15/16″ and 38 1/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74 7/8″, top at 76 3/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "14 1/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 14 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 44 7/8″ below and 18 1/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 62″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "191a9f6c43e644c7ce2a31ecba397de090c8847a",
+          "tile": "3e6f97698fea1c2b2a99aacb0297e7d36095fb84",
+          "framing": "f01cf7eb028c721b2446bc9fd7c9bd93db41c102",
+          "a1": "53db721b6a9fd92e5a0b0dcbf928eb6ba3687ee4",
+          "a2": "268ecb0faef3a83ab364987bcb12b0aa6bf66b77"
+        }
+      }
+    },
+    {
+      "name": "plain tub wall, tub in the middle, existing studs 24 on center from the right",
+      "S": {
+        "widthRef": "framing",
+        "wallType": "plain",
+        "framed": "",
+        "tubPos": "center",
+        "tubL": 60,
+        "wallW": 96,
+        "framing": "existing",
+        "studMode": "oc",
+        "stud1": 10,
+        "exOC": 24,
+        "center": "tub",
+        "tilePreset": "3x6",
+        "tileH": 3,
+        "tileW": 6,
+        "pattern": "third"
+      },
+      "IN": {
+        "studStart": "right"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile on the tub",
+            "line": "First course full · top 2 5/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 5/8″ course",
+            "line": "First course 5/8″ · top 1 7/8″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 2 1/8″ course",
+            "line": "First course 2 1/8″ · top 3/8″",
+            "worst": "bad",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "",
+            "full"
+          ],
+          [
+            "Top course at ceiling",
+            "2 5/8″ tall",
+            "ok"
+          ],
+          [
+            "Bottom course beside tub",
+            "2 3/8″ tall",
+            "ok"
+          ],
+          [
+            "Left corner",
+            "1 7/8″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "1 7/8″ wide",
+            "warn"
+          ]
+        ],
+        "sheet": [
+          [
+            "First course",
+            "Full tile, on the tub",
+            true
+          ],
+          [
+            "Ledger line",
+            "3 1/4″ above tub (18 1/4″ above floor), bottom of 2nd course",
+            true
+          ],
+          [
+            "Top course",
+            "Cut to 2 5/8″"
+          ],
+          [
+            "Vertical line",
+            "Grout joint at 47″ from left corner (48″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "Existing studs, 24″ on center from the first at 10″"
+          ],
+          [
+            "Cut list",
+            "6 studs at 93″<br>Bottom plate and top plate at 96″"
+          ]
+        ],
+        "room": null,
+        "drawings": {
+          "preview": "04314ef01182c24d307a87ad7d6dc0abbcdf172b",
+          "tile": "f59d785b5697736eaa2c28276ad106d62a602b75",
+          "framing": "a8f1e123eabe65dc35f60ffd3a94267586d72965",
+          "a1": "56555b12fa39ebdc5c27e02453261a1b2824989b"
+        }
+      }
+    },
+    {
+      "name": "3x6 third offset, two custom shelves, full under head",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "tilePreset": "3x6",
+        "tileH": 3,
+        "tileW": 6,
+        "pattern": "third",
+        "shelves": 2,
+        "minFrac": 0.3333,
+        "nPreset": "12x24"
+      },
+      "IN": {
+        "shelfPos": "custom",
+        "shelf1": 8,
+        "shelf2": 16,
+        "start": "top"
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 10 1/8″ × 25″ · rough sill 47 7/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 10 1/8″ × 25″ · rough sill 48 3/8″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 1/2″ course",
+            "line": "Finished 10 1/8″ × 25″ · rough sill 46 7/8″",
+            "worst": "warn",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 1/2″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "",
+            "full"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "1 1/4″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "1 1/4″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "2″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "2″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside, lower bay",
+            "1 3/4″ bottom",
+            "ok",
+            null
+          ],
+          [
+            "Inside, middle bay",
+            "1 1/4″ bottom",
+            "ok",
+            null
+          ],
+          [
+            "Inside, upper bay",
+            "2 1/4″ bottom",
+            "ok",
+            null
+          ],
+          [
+            "Inside, side pieces",
+            "1 15/16″ wide",
+            "warn"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "12 1/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "74 7/8″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "23 15/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "23 15/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "10 1/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelves",
+            "8″ and 16″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 1/2″, top at 17 5/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "2 3/4″ above tub (17 3/4″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 29″ from left corner (30″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 23 15/16″ and 36 1/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 47 7/8″ above floor · 32 7/8″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 74 7/8″, top at 76 3/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "12 1/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 12 1/8″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 44 7/8″ below and 18 1/8″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 7
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "d96a41101545997de94141dcf31cb681cd170dde",
+          "framing": "a3c5961587246797a5547a578796bb8deba5e662",
+          "a1": "689a49e1ca4aa49a0ed9735afd6759523ddbae60",
+          "a2": "fb65470cb3b1ec513b6a97a9ae3757d4285843b0"
+        }
+      }
+    },
+    {
+      "name": "match grout inside, head snapped to a grout line",
+      "S": {
+        "widthRef": "framing",
+        "framed": "yes",
+        "rW": 15,
+        "rH": 27,
+        "rSill": 45,
+        "rLeft": 22
+      },
+      "IN": {
+        "start": "match"
+      },
+      "adj": {
+        "adjHin": 0.5
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Even cuts top and bottom",
+            "line": "Finished 13″ × 25″ · rough sill 45″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Even cuts top and bottom",
+            "line": "Finished 13″ × 25″ · rough sill 45″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 1 7/8″ course",
+            "line": "Finished 13″ × 25″ · rough sill 45″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 13″ × 25″ · rough sill 45″",
+            "worst": "bad",
+            "pinned": true
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0.5,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 3/4″ tall",
+            "ok"
+          ],
+          [
+            "Top course at ceiling",
+            "2 7/8″ tall",
+            "ok"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "4 1/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "5 1/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "2 5/8″ strip",
+            "notch",
+            null
+          ],
+          [
+            "Left of niche",
+            "5 9/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "5 9/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "1/2″ top",
+            "bad",
+            null
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "3 3/8″ wide",
+            "warn"
+          ]
+        ],
+        "sheet": [
+          [
+            "Your rough opening",
+            "15″ wide × 27 1/2″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "45″ above floor · 30″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "72 1/2″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "22″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "23″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "13″ wide × 25 1/2″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/2″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 3/4″, top at 17 7/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3″ above tub (18″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Center of a tile at 28 1/2″ from left corner (29 1/2″ from the left stud)"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 22″ and 37″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 45″ above floor · 30″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 72 1/2″, top at 74″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "15″ wide × 27 1/2″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 15″, laid flat<br>2 full-height side studs at 93″<br>1 cripple at 42″ below and 20 1/2″ above<br>4 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 9,
+          "above": 6
+        },
+        "drawings": {
+          "preview": "cb83c11fc36d6ce6a7113a81dfd157183ff5ddc9",
+          "tile": "3e34d9a42850808dd90222357c4984912b7f68cd",
+          "framing": "4a86b6008e0a27462f314d7150b1e0e4fed72166",
+          "a1": "f3ed1f85820602d598206c6823d8e37bdc2873cf",
+          "a2": "984c5594f0f94c03ccd620faa7a480ceb7f58cd7"
+        }
+      }
+    },
+    {
+      "name": "floor base niche, butted joint, quarter cuts ok, set left side",
+      "S": {
+        "widthRef": "finished",
+        "framed": "no",
+        "base": "floor",
+        "grout": 0.03125,
+        "minFrac": 0.25,
+        "nPos": "custom",
+        "nLeft": 10,
+        "center": "left",
+        "nPreset": "24x12",
+        "nW": 24,
+        "nH": 12,
+        "nSill": 40,
+        "shelves": 0,
+        "board": 0.25,
+        "thinset": 0.1875,
+        "tileT": 0.3125
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Full tile on the floor",
+            "line": "Finished 23 7/16″ × 12 1/8″ · rough sill 38 3/4″",
+            "worst": "ok",
+            "pinned": false
+          },
+          {
+            "title": "Even cuts top and bottom",
+            "line": "Finished 23 7/16″ × 12 1/8″ · rough sill 38 1/4″",
+            "worst": "ok",
+            "pinned": false
+          },
+          {
+            "title": "Full tile at the ceiling",
+            "line": "Finished 23 7/16″ × 12 1/8″ · rough sill 40 9/16″",
+            "worst": "ok",
+            "pinned": false
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course",
+            "",
+            "full"
+          ],
+          [
+            "Top course at ceiling",
+            "1 13/16″ tall",
+            "ok"
+          ],
+          [
+            "Left corner",
+            "6″ wide",
+            "ok"
+          ],
+          [
+            "Right corner",
+            "5 5/8″ wide",
+            "ok"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "4 5/8″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "2″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Inside, side pieces",
+            "5 11/16″ wide",
+            "ok"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "24 15/16″ wide × 13 5/8″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "38 3/4″ above floor",
+            true
+          ],
+          [
+            "Rough head",
+            "52 3/8″ above floor"
+          ],
+          [
+            "Left side",
+            "10″ from left corner"
+          ],
+          [
+            "Right side",
+            "25 1/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "23 7/16″ wide × 12 1/8″ tall"
+          ],
+          [
+            "First course",
+            "Full tile, top at 3 1/8″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3 3/16″ above floor, bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Full tile at the left corner"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 10″ and 34 15/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 38 3/4″ above floor",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 52 3/8″, top at 53 7/8″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "24 15/16″ wide × 13 5/8″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 24 15/16″, laid flat<br>2 full-height side studs at 93″<br>2 cripples at 35 3/4″ below and 40 5/8″ above<br>3 studs at 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 13,
+          "above": 14
+        },
+        "drawings": {
+          "preview": "8bc335387631e1911de93daa9e4b006e1f02d830",
+          "tile": "7acf498cdc85e8995053829916ec19869819681a",
+          "framing": "af959cd030a3fdccd342c8d16e81bfb67ec3e549",
+          "a1": "19b6fae8ba513174fbf6ebea4cdd39520aba89d2",
+          "a2": "4ef20da83e13dec1c027754c7a5214d6c16784e4"
+        }
+      }
+    },
+    {
+      "name": "sloped ceiling corner to corner, niche, right full tile",
+      "S": {
+        "widthRef": "framing",
+        "framed": "no",
+        "ceilLevel": false,
+        "ceilL": 84,
+        "ceilR": 96,
+        "center": "right",
+        "gap": 0.1875
+      },
+      "expected": {
+        "options": [
+          {
+            "title": "Even cuts top and bottom",
+            "line": "Finished 10 7/8″ × 25″ · rough sill 48 5/16″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 7/8″ course",
+            "line": "Finished 10 7/8″ × 25″ · rough sill 46 5/16″",
+            "worst": "warn",
+            "pinned": false
+          },
+          {
+            "title": "Start with a 2 3/8″ course",
+            "line": "Finished 10 7/8″ × 25″ · rough sill 47 13/16″",
+            "worst": "bad",
+            "pinned": false
+          },
+          {
+            "title": "Full tile on the tub",
+            "line": "Finished 10 7/8″ × 25″ · rough sill 48 7/16″",
+            "worst": "warn",
+            "pinned": true
+          }
+        ],
+        "optIdx": 0,
+        "adjusted": {
+          "adjH": 0,
+          "adjS": 0,
+          "adjHin": 0,
+          "adjSin": 0
+        },
+        "items": [
+          [
+            "Bottom course on tub",
+            "2 7/8″ tall",
+            "ok"
+          ],
+          [
+            "Top course, left end",
+            "",
+            "full"
+          ],
+          [
+            "Top course, right end",
+            "2 5/8″ tall",
+            "ok"
+          ],
+          [
+            "Tile onto tub lip, left end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Tile onto tub lip, right end",
+            "1″",
+            "warn",
+            "Over 1/2″"
+          ],
+          [
+            "Left corner",
+            "3 1/16″ wide",
+            "warn"
+          ],
+          [
+            "Right corner",
+            "5 15/16″ wide",
+            "warn"
+          ],
+          [
+            "Below niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Above niche",
+            "",
+            "full",
+            "On joint"
+          ],
+          [
+            "Left of niche",
+            "2″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Right of niche",
+            "5 3/16″ leg",
+            "notch",
+            null
+          ],
+          [
+            "Inside niche",
+            "",
+            "full",
+            "Full tiles"
+          ],
+          [
+            "Tile behind shelf",
+            "trim in field",
+            "ok",
+            "Field cut"
+          ],
+          [
+            "Inside, side pieces",
+            "5 3/8″ wide",
+            "warn"
+          ]
+        ],
+        "sheet": [
+          [
+            "Frame the rough opening",
+            "12 7/8″ wide × 27″ tall",
+            true
+          ],
+          [
+            "Rough sill",
+            "48 5/16″ above floor · 33 5/16″ above tub",
+            true
+          ],
+          [
+            "Rough head",
+            "75 5/16″ above floor"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Left side",
+            "23 9/16″ from left corner (stud)"
+          ],
+          [
+            "Right side",
+            "23 9/16″ from right corner"
+          ],
+          [
+            "Finished opening",
+            "10 7/8″ wide × 25″ tall"
+          ],
+          [
+            "Shelf",
+            "12 1/4″ above finished sill, to underside"
+          ],
+          [
+            "First course",
+            "Cut to 2 7/8″, top at 18 1/16″ above floor"
+          ],
+          [
+            "Ledger line",
+            "3 3/16″ above tub (18 3/16″ above floor), bottom of 2nd course"
+          ],
+          [
+            "Vertical line",
+            "Full tile at the right corner"
+          ]
+        ],
+        "frRows": [
+          [
+            "Stud layout",
+            "16″ on center from the left corner"
+          ],
+          [
+            "Tub fit",
+            "Left end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″. Right end: tile laps 1″ onto the lip (0″ tub to stud), more than 1/2″.",
+            true
+          ],
+          [
+            "Niche sides",
+            "Inside faces at 23 9/16″ and 36 7/16″ from left corner",
+            true
+          ],
+          [
+            "Sill block",
+            "Top at 48 5/16″ above floor · 33 5/16″ above tub",
+            true
+          ],
+          [
+            "Head block",
+            "Bottom at 75 5/16″, top at 76 13/16″ above floor",
+            true
+          ],
+          [
+            "Framed opening",
+            "12 7/8″ wide × 27″ tall"
+          ],
+          [
+            "Cut list",
+            "2 blocks at 12 7/8″, laid flat<br>2 full-height side studs at 81″ to 93″<br>1 cripple at 45 5/16″ below and 5 11/16″ above<br>4 studs at 81″ to 93″<br>Bottom plate and top plate at 60″"
+          ]
+        ],
+        "room": {
+          "below": 10,
+          "above": 3
+        },
+        "drawings": {
+          "preview": "a4beef5459532bb2fd40b95b3b2aaf499fe5f3fb",
+          "tile": "e2d7d5d939dc89645d691fa2f861a2af99a9a5a8",
+          "framing": "928567d2be10613764fbe9b32724b65726d29329",
+          "a1": "daab84527136915eb28872fdb9d780fb354e2014",
+          "a2": "6ff7fc0727842981cf80c2dd098bb61f406ee81c"
+        }
+      }
+    }
+  ]
+}

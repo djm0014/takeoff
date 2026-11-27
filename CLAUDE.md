@@ -50,7 +50,12 @@ Read first: `docs/combined-app-plan.md` (goals, scope, milestones),
   to Key Dimensions rows).
 - `src/vanity/` — vanity wall: `settings.ts`, `solve.ts` (checks, quick fixes,
   schedule), `draw.ts` (elevation, presentation), `bind.ts` (record ↔ settings).
-- `src/screens/` — `jobs`, `jobHome`, `floorPlan`, `wallScreen`, `shell`.
+- `src/tile/` — tile and niche (the old Niche Rough-In Planner): `settings.ts`
+  (answers, old S and IN merged), `solve.ts` (layout, options, cuts, sheets,
+  framing), `draw.ts` (tile/framing elevations, sheets A-1 and A-2, exact SVG
+  text of the old tool), `fields.ts` (setup steps), `bind.ts` (record ↔ settings).
+- `src/screens/` — `jobs`, `jobHome`, `floorPlan`, `wallScreen` (tabs; route
+  `#/job/:id/wall/:wallId/(vanity|tile)`), `vanityTab`, `tileTab`, `shell`.
 - `src/data/keyDimensions.ts` — mirror of `docs/key-dimensions.xlsx`.
 - `public/legacy/` — the old tools, unchanged, served for comparison.
   Never edit them.
@@ -79,6 +84,10 @@ Read first: `docs/combined-app-plan.md` (goals, scope, milestones),
   never redraw the SVG under a finger on pointerdown; stray clicks after a tap
   are swallowed.
 - Vanity wall: no section view (by request). Presentation is black on white.
+- Tile tab: wall width is stud to stud (floor plan length + 1/2″ each corner),
+  read-only; the tub comes from the floor plan (end walls see the tub's end);
+  build-up is written as the wall's finish thickness. Drawing tests compare
+  sha1 fingerprints of the old tool's SVG text (`record-niche-fixtures.cjs`).
 - Colors/fonts match the old tools (`src/styles/app.css`, Barlow, light/dark).
 
 ## Milestones
@@ -86,8 +95,7 @@ Read first: `docs/combined-app-plan.md` (goals, scope, milestones),
 1. Foundation — done (custom domain still open).
 2. Floor plan — done, in field testing.
 3. Vanity wall — built, in field testing.
-4. Tile and niche (the Niche Rough-In Planner, `public/legacy/niche-planner`,
-   the biggest and most fragile old tool; furring/tub-fit rules still open).
+4. Tile and niche — built, in field testing (furring/tub-fit rules still open).
 5. Survey and job home. 6. Switch over (import old tools' saved jobs; see
    `docs/legacy-tools.md`). 7. Takeoffs. 8. Sync and accounts.
 

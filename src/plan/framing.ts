@@ -41,6 +41,8 @@ export interface WallFraming {
   openings: RoughOpening[];
   /** Distance along the wall from the finished left corner to the framing at that corner. */
   leftFraming: number;
+  /** The same at the right corner. */
+  rightFraming: number;
   /** True when one of the wall's corners isn't square. */
   angled: boolean;
 }
@@ -165,7 +167,7 @@ export function frameWalls(room: RoomGeom, walls: Wall[], items: Item[]): WallFr
       if (!over(st) && !inRO(st)) studs.push(st);
     }
     studs.sort((p, q) => p[0] - q[0]);
-    return { wall: k, depth, u0, u1, studs, openings, leftFraming: cL, angled: !sqL || !sqR };
+    return { wall: k, depth, u0, u1, studs, openings, leftFraming: cL, rightFraming: cR, angled: !sqL || !sqR };
   });
 }
 

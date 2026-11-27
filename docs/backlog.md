@@ -93,6 +93,29 @@ Idea (Nov 25, 2026):
   opening stored, check it on the wall's stud layout: fits the stud bay, or
   needs a stud cut with a header and cripples, and where the bottom lands AFF.
 
+## Tile and niche (Milestone 4)
+
+From building it (Nov 27, 2026):
+
+- [ ] Wall width is read-only on the Tile tab: stud to stud is the floor plan's
+  length plus 1/2″ drywall each corner. If you measure stud to stud after
+  demo, you enter (that − 1″) in the floor plan. Consider typing stud to stud
+  on the Tile tab and writing the floor plan length back.
+- [ ] The floor plan's default tub is 60″ long; in a 60″ stud-to-stud alcove the
+  finished wall is 59″, so the tub is "longer" than the wall in the plan.
+  Check how the floor plan's checks treat that.
+- [ ] Tub placement (wall to wall, left, right, middle) comes from where the
+  tub sits in the floor plan. A tub "in the middle" is laid out centered, like
+  the old tool, even if the plan has it off center.
+- [ ] Furring and tub-fit rules still open (as in the old tool): it says when
+  furring is needed but doesn't add it to the framing.
+- [ ] Changing the shelf position now re-solves the options (the old tool kept
+  the options it had until another answer changed). Deliberate.
+- [ ] Build mode and a dims toggle on the wall screen (also listed for the vanity).
+- [ ] Sheets are hard to read on a phone screen; download opens them full size.
+  Consider pinch-zoom on the drawing, and a PDF export of the sheets.
+- [ ] Plumbing wall type and linked walls sharing a first course (from the plan).
+
 ## 3D and presentation (future milestone, after Survey, before Takeoffs)
 
 Discussed Nov 27, 2026. For showing clients the design.
@@ -134,4 +157,4 @@ separate Android listing if wanted.
 - [ ] More than one bathroom per job: one job with several rooms, or one job per bathroom?
 - [ ] Is an estimate or price a separate record, or part of the job?
 - [ ] Does the contractor see the same app, or a read-only report and sheets?
-- [ ] Furring and tub-fit behavior in the tile screen needs the field rules worked out.
+- [ ] Furring and tub-fit behavior in the tile screen needs the field rules worked out (still open after Milestone 4).
