@@ -565,7 +565,8 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     if (L - e < fieldL(S) + 0.25 || L + w + e > fieldR(S) - 0.25) continue;
     const xc0 = S.center === 'niche' ? L + w / 2 : S.center === 'wall' ? (fieldL(S) + fieldR(S)) / 2 : S.center === 'tub' ? tubCenter(S) : null;
     const xc = xc0 == null ? null : xc0 + (S.shift || 0);
-    const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : [xc - tw / 2, xc + g / 2];
+    // A moved layout line is one exact position: a tile centered on it.
+    const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : [xc - tw / 2, xc + g / 2];
     let inB: { ix: number; mn: number } | null = null;
     const ixs = [L + w / 2 - tw / 2, L + w / 2 + g / 2];
     for (let s = 0; s < mw; s += 1 / 16) ixs.push(L + s);
@@ -631,7 +632,7 @@ function solveHPlain(S: TileS): HFit {
   const mid = (fieldL(S) + fieldR(S)) / 2;
   const xc0 = S.center === 'tub' ? tubCenter(S) : S.center === 'left' || S.center === 'right' ? null : mid;
   const xc = xc0 == null ? null : xc0 + (S.shift || 0);
-  const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : [xc - tw / 2, xc + g / 2];
+  const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : [xc - tw / 2, xc + g / 2];
   let best: HFit | null = null;
   const none: Leg = { aligned: true, leg: 0 };
   for (const x0 of x0s) {
@@ -728,17 +729,13 @@ function cornerMin(S: TileS, xc: number): number {
   const g = S.grout;
   const mw = tw + g;
   const c = shiftCount(S);
-  let best = 0;
-  for (const x0 of [xc - tw / 2, xc + g / 2]) {
-    let mn = tw;
-    for (let k = 0; k < c; k++) {
-      const ps = rowPieces(S, x0, (k * mw) / c);
-      if (!ps.length) continue;
-      mn = Math.min(mn, ps[0]!.w, ps[ps.length - 1]!.w);
-    }
-    best = Math.max(best, mn);
+  let mn = tw;
+  for (let k = 0; k < c; k++) {
+    const ps = rowPieces(S, xc - tw / 2, (k * mw) / c);
+    if (!ps.length) continue;
+    mn = Math.min(mn, ps[0]!.w, ps[ps.length - 1]!.w);
   }
-  return best;
+  return mn;
 }
 
 export interface LineMove {
@@ -754,21 +751,42 @@ export interface LineMove {
  * biggest smallest corner piece. Null when the corners are already fine, or
  * the field starts from a corner.
  */
-export function lineMoves(L: Layout): { now: number; left: LineMove | null; right: LineMove | null } | null {
+export function lineMoves(S0: TileS, L: Layout): { now: number; left: LineMove | null; right: LineMove | null } | null {
   const S = L.S;
   const h = L.r.h;
   if (h.xc == null) return null;
   const base = h.xc - (S.shift || 0);
-  const now = cornerMin(S, h.xc);
   const tw = S.tileW;
   const want = S.minFrac * tw;
+  const minOf = (x: Layout) => Math.min(x.r.h.cL, x.r.h.cR, tw);
+  // What the layout on screen has now (the same numbers as the Cuts list).
+  const now = minOf(L);
   if (now >= want - 1e-6 && !S.shift) return null;
+  /** The layout as it would be with the line moved: same option and niche, worked out in full. */
+  const real = (shift: number): number | null => {
+    const S1 = { ...S0, shift };
+    const res = solve(S1);
+    let optIdx = L.optIdx;
+    let adj: Adjust = NO_ADJ;
+    if (!L.r.plain) {
+      const back = keepSpot(S1, res, spotOf(L.r));
+      if (back) ({ optIdx, adj } = back);
+    }
+    const L1 = layout(S1, optIdx, adj, res);
+    return L1 ? minOf(L1) : null;
+  };
   const pick = (dir: -1 | 1): LineMove | null => {
-    let best: LineMove | null = null;
+    // Rank every position across one tile by its corner pieces, then check the best few in full.
+    const cands: LineMove[] = [];
     for (let i = 1; i <= Math.round(((tw + S.grout) / 2) * 16); i++) {
       const d = (dir * i) / 16;
-      const m = cornerMin(S, base + d);
-      if (!best || m > best.min + 1 / 32) best = { shift: d, min: m };
+      cands.push({ shift: d, min: cornerMin(S, base + d) });
+    }
+    cands.sort((a, b) => b.min - a.min || Math.abs(a.shift) - Math.abs(b.shift));
+    let best: LineMove | null = null;
+    for (const c of cands.slice(0, 3)) {
+      const m = real(c.shift);
+      if (m != null && (!best || m > best.min + 1 / 32)) best = { shift: c.shift, min: m };
     }
     return best && best.min > now + 1 / 32 ? best : null;
   };

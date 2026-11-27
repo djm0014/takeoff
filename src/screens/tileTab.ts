@@ -571,7 +571,7 @@ export function renderTileTab(c: WallCtx): void {
   }
 
   function lineFix(L: Layout): HTMLElement | null {
-    const mv = lineMoves(L);
+    const mv = lineMoves(S, L);
     if (!mv) return null;
     const what = centerName(L.S);
     const go = (shift: number) => () => {
@@ -590,7 +590,13 @@ export function renderTileTab(c: WallCtx): void {
           { class: 'note' },
           `The layout line is moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'} of the ${what}’s center. Smallest corner piece: ${fmt(mv.now)}.`,
         )
-      : h('p', { class: 'note' }, `Centered on the ${what}, the corner pieces get down to ${fmt(mv.now)}. Moving the layout line off center fixes that; the tile size and the wall stay the same.`);
+      : h(
+          'p',
+          { class: 'note' },
+          mv.left || mv.right
+            ? `Centered on the ${what}, the corner pieces get down to ${fmt(mv.now)}. Moving the layout line off center gives bigger ones; the tile size and the wall stay the same.`
+            : `Centered on the ${what}, the corner pieces get down to ${fmt(mv.now)}. That’s as big as they get on this wall with this pattern: moving the layout line doesn’t help.`,
+        );
     return h(
       'div',
       { class: 'stack line-fix' },

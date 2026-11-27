@@ -107,6 +107,12 @@ From the first phone test (Nov 27, 2026):
   about a quarter tile for half bond (3″ on 12″ tile), about a sixth for 1/3
   offset, left or right, showing the corner pieces each way. Built (Nov 27):
   the Cuts card offers it when a corner piece is under your smallest cut.
+- [x] Second phone test (Nov 27): "the 1/3 offset doesn't seem to recognize
+  sliver cuts... the cut list shows it though." The quick fix measured a
+  different tile position than the layout used, so it showed 4 9/16″ while the
+  Cuts list had a 1/2″ sliver. Fixed: a moved line is one exact position, and
+  the fix checks each move in full before showing it. (The Tile drawing does
+  color slivers red; Presentation hides cut colors on purpose.)
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
