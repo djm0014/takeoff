@@ -15,20 +15,34 @@ const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balance
 describe('looks keep their rules', () => {
   it('every layout a look gives passes every rule, checked on its own', () => {
     let fits = 0;
+    let closest = 0;
     let tries = 0;
     let slowest = 0;
     for (const tile of TILES)
       for (let W = 44; W <= 72; W += 3.3125)
-        for (const base of ['tub', 'floor'] as const) {
-          const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, base, ...tile });
+        for (const base of ['tub', 'floor'] as const)
+        for (const studs of ['free', 'bay'] as const) {
+          const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, base, studs, bayL: Math.round((W / 2 - 7.25) * 16) / 16, ...tile });
           for (const look of LOOKS)
             for (const shape of SHAPES) {
               tries++;
               const t = performance.now();
               const R = solveLook(look, S, shape);
               slowest = Math.max(slowest, performance.now() - t);
+              if (look === 'simple' && studs === 'free') {
+                expect(R.hidden).toBe(true);
+                continue;
+              }
+              // Classic and Balanced always give a layout; Simple too, except a linear niche (wider than a bay).
+              if (look !== 'simple' || shape !== 'linear') expect(R.L).not.toBeNull();
               if (!R.L) {
                 expect(R.reason).not.toBe('');
+                continue;
+              }
+              // A closest fit says which rules it breaks; only a full fit is checked rule by rule.
+              expect(R.broken).toEqual(R.check!.fails);
+              if (R.broken.length) {
+                closest++;
                 continue;
               }
               fits++;
@@ -62,15 +76,15 @@ describe('looks keep their rules', () => {
               expect(solve(R.S!)[R.optIdx]!.p).toBe(R.options[R.optIdx]!.p);
             }
         }
-    expect(fits).toBeGreaterThan(tries / 2);
+    expect(fits).toBeGreaterThan(tries / 3);
     expect(slowest).toBeLessThan(3000);
-    console.log(`looks: ${fits} of ${tries} fit; slowest ${Math.round(slowest)} ms`);
+    console.log(`looks: ${fits} keep every rule, ${closest} closest fits, of ${tries}; slowest ${Math.round(slowest)} ms`);
   }, 120000);
 
   it('keeps a fixed grout joint', () => {
     const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: 51.5, tilePreset: '3x12', grout: 0.03125, groutFixed: true });
     for (const look of LOOKS) {
-      const R = solveLook(look, S, 'tall');
+      const R = solveLook(look, { ...S, studs: 'bay', bayL: 17.5 }, 'tall');
       if (R.L) expect(R.L.S.grout).toBe(0.03125);
     }
   });
@@ -79,8 +93,27 @@ describe('looks keep their rules', () => {
     const pats = new Set<string>();
     for (let W = 48; W <= 72; W += 0.5) {
       const R = solveLook('classic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: W }), 'tall');
-      if (R.L) pats.add(R.L.S.pattern);
+      if (R.L && !R.broken.length) pats.add(R.L.S.pattern);
     }
     expect([...pats].sort()).toEqual(['half', 'stack']);
   });
+});
+
+describe('every wall gets Classic and Balanced', () => {
+  const hard: [string, Partial<TileS>][] = [
+    ['already-framed niche off center', { framed: 'yes', rW: 16, rH: 30, rSill: 44, rLeft: 8 }],
+    ['short wall, long tile', { framed: 'no', wallW: 30, tilePreset: '6x24', tileH: 6, tileW: 24 }],
+    ['low sloped ceiling', { framed: 'no', ceilLevel: false, ceilL: 70, ceilR: 84 }],
+    ['plain wall', { wallType: 'plain', framed: '' }],
+  ];
+  for (const [name, extra] of hard)
+    it(name, () => {
+      const S = fromSaved({ widthRef: 'framing', wallW: 61, ...extra });
+      for (const look of ['classic', 'balanced'] as const) {
+        const R = solveLook(look, S, S.framed === 'no' ? 'tall' : null);
+        expect(R.L, `${look}: ${R.reason}`).not.toBeNull();
+        expect(R.broken).toEqual(R.check!.fails);
+      }
+      expect(solveLook('simple', S, 'tall').hidden).toBe(true);
+    });
 });

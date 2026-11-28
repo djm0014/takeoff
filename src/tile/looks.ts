@@ -151,8 +151,12 @@ export interface LookResult {
   L: Layout | null;
   options: Opt[];
   check: Check | null;
-  /** Why it didn't fit, when it didn't. */
+  /** Rules the layout breaks: empty when it keeps them all (the closest fit otherwise). */
+  broken: string[];
+  /** Why there's no layout at all. */
   reason: string;
+  /** True when this look doesn't apply to the wall at all (Simple without a stud bay): no card, no mention. */
+  hidden?: boolean;
 }
 
 /** The smallest corner piece with the layout line at xc (a tile centered on it). */
@@ -185,7 +189,7 @@ function lineShift(V: TileS, max: number): number {
 }
 
 /** Stud bay (left stud face, from the left corner framing) whose middle is nearest the wall's middle. */
-function centerBay(V: TileS): number | null {
+export function centerBay(V: TileS): number | null {
   const W = V.wallW;
   const OC = V.framing === 'existing' && V.studMode === 'oc' ? V.exOC : 16;
   const T = { ...V, studs: 'free' as const };
@@ -237,7 +241,9 @@ function tryVariant(look: LookKey, V: TileS, shape: Shape | null, base: TileS, k
 export function solveLook(look: LookKey, base: TileS, shape: Shape | null): LookResult {
   const niche = !isPlain(base) && base.framed !== '';
   const framed = base.framed === 'yes';
-  const none = (reason: string): LookResult => ({ look, S: null, optIdx: 0, adj: NO_ADJ, L: null, options: [], check: null, reason });
+  const none = (reason: string, hidden = false): LookResult => ({ look, S: null, optIdx: 0, adj: NO_ADJ, L: null, options: [], check: null, broken: [], reason, hidden });
+  // Simple is only for a niche going in an existing stud bay (the setup's "It must fit an existing stud bay").
+  if (look === 'simple' && !(niche && !framed && base.studs === 'bay')) return none('Only when the niche goes in an existing stud bay.', true);
 
   // The answers' own pattern first when the look allows it; the next only if that one can't keep the rules.
   const allowed: TileS['pattern'][] = look === 'classic' ? ['half', 'stack'] : look === 'balanced' ? ['half', 'stack', 'quarter'] : ['half', 'third', 'quarter', 'stack'];
@@ -254,9 +260,7 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
   if (niche && !framed) {
     if (look === 'simple') {
       if (shape === 'linear') return none('A linear niche is wider than a stud bay, so it needs a header.');
-      const bay = centerBay(base);
-      if (bay == null) return none('No regular stud bay near the middle of this wall.');
-      Object.assign(N, { studs: 'bay', bayL: bay });
+      Object.assign(N, { studs: 'bay', bayL: base.bayL });
     } else Object.assign(N, { studs: 'free', nPos: 'wall' });
   }
 
@@ -289,9 +293,22 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
     if (keep.best) break; // the first pattern that works
   }
   const b = keep.best;
-  if (b) return { look, S: b.S, optIdx: b.optIdx, adj: b.adj, L: b.L, options: b.options, check: b.check, reason: '' };
+  if (b) return { look, S: b.S, optIdx: b.optIdx, adj: b.adj, L: b.L, options: b.options, check: b.check, broken: [], reason: '' };
+  // No layout keeps every rule: give the closest one, saying which rules it breaks.
+  if (!keep.miss) {
+    const pattern = uniq[0]!;
+    const V0: TileS = { ...base, ...N, pattern, grout: base.grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false };
+    if (look === 'classic') {
+      tryVariant(look, { ...V0, onCenter: 'tile' }, shape, base, keep);
+      tryVariant(look, { ...V0, onCenter: 'joint' }, shape, base, keep);
+    } else {
+      const d = lineShift(V0, look === 'balanced' ? V0.tileW / 4 : (V0.tileW + V0.grout) / 2);
+      tryVariant(look, { ...V0, shift: d }, shape, base, keep);
+    }
+  }
   const m = keep.miss;
-  return none(m ? m.check.fails[0]! : cornerMiss || 'No layout fits this wall.');
+  if (m) return { look, S: m.S, optIdx: m.optIdx, adj: m.adj, L: m.L, options: m.options, check: m.check, broken: m.check.fails, reason: '' };
+  return none(cornerMiss || 'No layout fits this wall.');
 }
 
 /** One line for a look's card. */

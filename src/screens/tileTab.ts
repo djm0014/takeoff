@@ -330,27 +330,29 @@ export function renderTileTab(c: WallCtx): void {
 
   function paintLooks() {
     const shape = curShape();
-    const done = LOOKS.filter((l) => looks.has(l.key));
+    const done = LOOKS.filter((l) => looks.has(l.key) && !looks.get(l.key)!.hidden);
     const fit = done.filter((l) => looks.get(l.key)!.L);
     const sameAs = (a: LookResult, b: LookResult | undefined) => !!b?.L && !!a.L && JSON.stringify([a.S, a.optIdx, a.adj]) === JSON.stringify([b.S, b.optIdx, b.adj]);
     const cards = fit.map((l, i) => {
       const R = looks.get(l.key)!;
       const dup = fit.slice(0, i).find((p) => sameAs(R, looks.get(p.key)));
       const on = ui.look === l.key && ui.lookShape === (shape ?? '');
+      const close = R.broken.length > 0;
       return h(
         'button',
         { type: 'button', class: 'opt look', 'aria-pressed': String(on), onclick: () => applyLook(R) },
-        h('small', {}, on && modified() ? 'In use, modified' : on ? 'In use' : 'Look'),
+        h('small', {}, on && modified() ? 'In use, modified' : on ? 'In use' : close ? 'Closest fit' : 'Look'),
         h('b', {}, (on && modified() ? 'Modified ' : '') + l.name),
         h('span', {}, lookLine(R) + (dup ? ` · same as ${dup.name} on this wall` : '')),
-        h('i', { class: 'dot ok', 'aria-label': 'Keeps the rules' }),
+        close ? h('span', { class: 'breaks' }, (R.broken.length > 1 ? 'Breaks these rules: ' : 'Breaks a rule: ') + R.broken.join('; ')) : null,
+        h('i', { class: `dot ${close ? 'warn' : 'ok'}`, 'aria-label': close ? 'Breaks a rule' : 'Keeps the rules' }),
       );
     });
     const missing = done.filter((l) => !looks.get(l.key)!.L);
     const busy = LOOKS.find((l) => !looks.has(l.key));
     const parts: (HTMLElement | null)[] = [
       h('h2', {}, 'Looks'),
-      h('p', { class: 'muted small', style: 'margin:0' }, 'Each look keeps your rules on this wall: corner pieces a quarter tile or more, niche top and bottom on grout lines, at least 3/4 of a tile on the tub and half at the ceiling. Tap one to use it.'),
+      h('p', { class: 'muted small', style: 'margin:0' }, 'Each look is the best layout of its kind for this wall, keeping your rules: corner pieces a quarter tile or more, niche top and bottom on grout lines, at least 3/4 of a tile on the tub and half at the ceiling. When a wall can’t keep them all, the card says which rule it breaks. Tap one to use it.'),
       shape
         ? h(
             'div',
