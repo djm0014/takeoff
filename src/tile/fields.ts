@@ -10,6 +10,7 @@
  * - the saved-jobs list on the first step is gone (the app keeps jobs)
  */
 import { PF_GAP, PREFABS, isPrefab, type TileS } from './settings';
+import { LOOKS, STYLE_PATTERNS, lookName, studBound } from './looks';
 import { bu, cRv, finW, fitText, fmt, isPlain, slopeRun, tubFit } from './solve';
 
 type Txt = string | ((S: TileS) => string);
@@ -188,8 +189,20 @@ export const STEPS: Step[] = [
   {
     id: 'tile',
     title: 'Tile',
-    sub: 'Sizes are height × length, laid horizontally.',
+    sub: 'The style the tile was ordered for comes first; the niche is fitted to it. Sizes are height × length, laid horizontally.',
     fields: [
+      {
+        t: 'choice',
+        id: 'style',
+        big: true,
+        label: 'Style',
+        opts: LOOKS.map((l): [string, string, string, ((S: TileS) => boolean)?] => [l.key, l.name, l.blurb, l.key === 'simple' ? studBound : undefined]),
+        // Keep the pattern to one the style allows.
+        on: (S, v) => {
+          const ok = STYLE_PATTERNS[v as keyof typeof STYLE_PATTERNS];
+          if (ok && !ok.includes(S.pattern)) S.pattern = ok[0]!;
+        },
+      },
       {
         t: 'choice',
         id: 'tilePreset',
@@ -206,7 +219,21 @@ export const STEPS: Step[] = [
         opts: [[0.03125, 'Butted, no spacers'], [0.0625, '1/16″'], [0.125, '1/8″'], [0.1875, '3/16″']],
         hint: (S) => (S.grout < 0.05 ? 'Planned as a 1/32″ joint, about what stacked tile leaves with no spacers. Over many courses it adds up, so it still counts.' : ''),
       },
-      { t: 'choice', id: 'pattern', label: 'Pattern', opts: [['half', 'Running bond 1/2'], ['third', '1/3 offset'], ['quarter', '1/4 offset'], ['stack', 'Stacked']] },
+      {
+        t: 'choice',
+        id: 'pattern',
+        label: 'Pattern',
+        hint: 'Only the patterns this style allows.',
+        opts: (
+          [
+            ['half', 'Running bond 1/2'],
+            ['third', '1/3 offset'],
+            ['quarter', '1/4 offset'],
+            ['stack', 'Stacked'],
+          ] as [TileS['pattern'], string][]
+        ).map(([v, l]): [string, string, null, (S: TileS) => boolean] => [v, l, null, (S) => !S.style || (STYLE_PATTERNS[S.style] ?? []).includes(v)]),
+        show: (S) => S.style !== 'organic',
+      },
       { t: 'check', id: 'groutFixed', label: 'Grout joint can’t change (handmade or zellige tile)' },
       { t: 'choice', id: 'minFrac', label: 'Smallest cut you accept', opts: [[0.5, 'Half a tile'], [0.3333, 'A third'], [0.25, 'A quarter']] },
     ],
@@ -365,7 +392,7 @@ export function answers(S: TileS): [number, string, string][] {
 }
 function allAnswers(S: TileS): [number, string, string][] {
   const tub = isTub(S);
-  const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
+  const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked', random: 'random offset' };
   return [
     [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : isPrefab(S) ? 'Prefabricated niche' : S.studs === 'bay' ? 'Niche, between existing studs' : 'Niche, new blocking'],
     [
@@ -375,7 +402,7 @@ function allAnswers(S: TileS): [number, string, string][] {
         (tub ? `${S.tubPos === 'full' ? 'wall-to-wall' : fmt(S.tubL)} tub ${fmt(S.tubH)} high` : 'no tub') +
         (S.edge !== 'none' ? `, bullnose on the ${S.edge} outside corner` : ''),
     ],
-    [2, 'Tile', `${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout < 0.05 ? 'butted joint' : fmt(S.grout) + ' joint'}, ${PATN[S.pattern]}`],
+    [2, 'Tile', `${S.style ? lookName(S.style) + ' style, ' : ''}${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout < 0.05 ? 'butted joint' : fmt(S.grout) + ' joint'}, ${PATN[S.pattern]}`],
     [3, 'Build-up', `${fmt(bu(S))} per face`],
     ...(isPlain(S)
       ? []

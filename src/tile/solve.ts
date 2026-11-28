@@ -49,7 +49,7 @@ export function mod(a: number, m: number): number {
   return r;
 }
 
-export const PATN: Record<TileS['pattern'], string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
+export const PATN: Record<TileS['pattern'], string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked', random: 'random offset' };
 
 /* ---------- build-up, tub fit, finished width ---------- */
 
@@ -262,8 +262,100 @@ export function shiftCount(S: TileS): number {
   return S.pattern === 'stack' ? 1 : S.pattern === 'half' ? 2 : S.pattern === 'quarter' ? 4 : 3;
 }
 export function rowShift(S: TileS, i: number): number {
+  if (S.pattern === 'random') return randomShift(S, i);
   const c = shiftCount(S);
   return (mod(i, c) * (S.tileW + S.grout)) / c;
+}
+/** Every row offset the pattern uses: one per row of a repeating pattern; every row of a random one. */
+export function patternShifts(S: TileS): number[] {
+  if (S.pattern === 'random') return randomShifts(S).list;
+  const c = shiftCount(S);
+  const mw = S.tileW + S.grout;
+  const out: number[] = [];
+  for (let k = 0; k < c; k++) out.push((k * mw) / c);
+  return out;
+}
+
+/* ---------- random-looking pattern (Organic; new, not in the old tool) ---------- */
+
+/** Smallest step between a course's joints and the course below's (owner: 4″; a third of the tile for small tile). */
+export const randomMinStep = (S: TileS) => Math.min(4, S.tileW / 3);
+/** Largest step: long tile (over 18″) steps no more than a third of the tile, for bow and lippage. */
+export const randomMaxStep = (S: TileS) => (S.tileW > 18 ? S.tileW / 3 : (S.tileW + S.grout) / 2);
+
+function mulberry32(a: number) {
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const RANDOM_FROM = -4;
+const randomMemo = new Map<string, { shifts: number[]; list: number[] }>();
+/**
+ * The row offsets of a random-looking wall, from course RANDOM_FROM up past the
+ * ceiling, measured from the field's left edge. Each course steps at least the
+ * smallest step from the one below and, on long tile, no more than a third;
+ * both corner pieces are kept to a quarter tile or more when the wall allows.
+ * The same seed always gives the same wall.
+ */
+function randomShifts(S: TileS): { shifts: number[]; list: number[] } {
+  const tw = S.tileW;
+  const mw = tw + S.grout;
+  const L = fieldL(S);
+  const R = fieldR(S);
+  // Courses from RANDOM_FROM to well past the ceiling (rows past the end wrap around).
+  const rows = Math.ceil(Math.max(S.ceilL, cRv(S)) / (S.tileH + S.grout)) + 16;
+  const key = [S.seed, L, R, tw, S.grout, S.tileH, rows].join('|');
+  const hit = randomMemo.get(key);
+  if (hit) return hit;
+  const rnd = mulberry32(S.seed * 7919 + 17);
+  const lo = randomMinStep(S);
+  const hi = randomMaxStep(S);
+  const q = tw / 4;
+  const grid: number[] = [];
+  for (let j = 0; j < Math.round(mw * 16); j++) grid.push(j / 16);
+  const cornersOk = (sh: number) => {
+    const ps = rowPieces(S, L, sh, L, R);
+    if (!ps.length) return true;
+    const ok = (w: number) => w >= tw - EPS || w >= q - 1e-9;
+    return ok(ps[0]!.w) && ok(ps[ps.length - 1]!.w);
+  };
+  const step = (a: number, b: number) => {
+    const d = mod(a - b, mw);
+    return Math.min(d, mw - d);
+  };
+  const shifts: number[] = [];
+  let prev: number | null = null;
+  for (let i = 0; i < rows; i++) {
+    const tiers = [
+      (s: number) => prev == null || (step(s, prev) >= lo - 1e-9 && step(s, prev) <= hi + 1e-9),
+      (s: number) => prev == null || step(s, prev) >= lo - 1e-9,
+      () => true,
+    ];
+    let pick: number | null = null;
+    for (const fits of tiers) {
+      let c = grid.filter((s) => fits(s) && cornersOk(s));
+      if (!c.length) c = grid.filter(fits);
+      if (c.length) {
+        pick = c[Math.floor(rnd() * c.length)]!;
+        break;
+      }
+    }
+    shifts.push(pick!);
+    prev = pick;
+  }
+  const out = { shifts, list: [...new Set(shifts)] };
+  if (randomMemo.size > 200) randomMemo.clear();
+  randomMemo.set(key, out);
+  return out;
+}
+function randomShift(S: TileS, i: number): number {
+  const { shifts } = randomShifts(S);
+  const k = i - RANDOM_FROM;
+  return shifts[((k % shifts.length) + shifts.length) % shifts.length]!;
 }
 export interface Piece {
   x: number;
@@ -537,7 +629,6 @@ function solveH(S: TileS, o: VOpt): HFit | null {
   const mw = tw + g;
   const e = ext(S);
   const B = bu(S);
-  const c = shiftCount(S);
   const G = o.G;
   let widths: number[];
   let leftOf: (w: number) => number;
@@ -573,14 +664,15 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     const xc0 = S.center === 'niche' ? L + w / 2 : S.center === 'wall' ? (fieldL(S) + fieldR(S)) / 2 : S.center === 'tub' ? tubCenter(S) : null;
     const xc = xc0 == null ? null : xc0 + (S.shift || 0);
     // A moved layout line is one exact position: a tile centered on it.
-    const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
+    // A random-looking wall's rows are laid out from the field's left edge.
+    const x0s = S.pattern === 'random' ? [fieldL(S)] : xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
     let inB: { ix: number; mn: number } | null = null;
     const ixs = [L + w / 2 - tw / 2, L + w / 2 + g / 2];
     for (let s = 0; s < mw; s += 1 / 16) ixs.push(L + s);
     for (const ix of ixs) {
       let mn = Infinity;
-      for (let k = 0; k < c; k++) {
-        const ps = rowPieces(S, ix, (k * mw) / c, L, L + w);
+      for (const sh of patternShifts(S)) {
+        const ps = rowPieces(S, ix, sh, L, L + w);
         if (ps.length > 1) for (const q of [ps[0]!, ps[ps.length - 1]!]) if (q.w < tw - EPS) mn = Math.min(mn, q.w);
       }
       if (!inB || mn > inB.mn + 0.25) inB = { ix, mn };
@@ -595,8 +687,8 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     for (const x0 of x0s) {
       let cL = Infinity;
       let cR = Infinity;
-      for (let k = 0; k < c; k++) {
-        const ps = rowPieces(S, x0, (k * mw) / c);
+      for (const sh of patternShifts(S)) {
+        const ps = rowPieces(S, x0, sh);
         if (!ps.length) continue;
         if (ps[0]!.w < tw - EPS) cL = Math.min(cL, ps[0]!.w);
         const l = ps[ps.length - 1]!;
@@ -632,20 +724,17 @@ function solveH(S: TileS, o: VOpt): HFit | null {
 
 function solveHPlain(S: TileS): HFit {
   const tw = S.tileW;
-  const g = S.grout;
-  const mw = tw + g;
-  const c = shiftCount(S);
   const mid = (fieldL(S) + fieldR(S)) / 2;
   const xc0 = S.center === 'tub' ? tubCenter(S) : S.center === 'left' || S.center === 'right' ? null : mid;
   const xc = xc0 == null ? null : xc0 + (S.shift || 0);
-  const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
+  const x0s = S.pattern === 'random' ? [fieldL(S)] : xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
   let best: HFit | null = null;
   const none: Leg = { aligned: true, leg: 0 };
   for (const x0 of x0s) {
     let cL = Infinity;
     let cR = Infinity;
-    for (let k = 0; k < c; k++) {
-      const ps = rowPieces(S, x0, (k * mw) / c);
+    for (const sh of patternShifts(S)) {
+      const ps = rowPieces(S, x0, sh);
       if (!ps.length) continue;
       if (ps[0]!.w < tw - EPS) cL = Math.min(cL, ps[0]!.w);
       const l = ps[ps.length - 1]!;
@@ -716,6 +805,7 @@ export function cutsPlain(S: TileS, r: Opt): CutItem[] {
 }
 
 function verticalLine(S: TileS, h: HFit): string {
+  if (S.pattern === 'random') return 'None: each course starts with its own left piece (Course starts)';
   return h.xc == null
     ? `Full tile at the ${S.center === 'right' ? 'right' : 'left'} corner`
     : (Math.abs(h.x0 - (h.xc - S.tileW / 2)) < 1e-6 ? 'Center of a tile' : 'Grout joint') +
@@ -733,18 +823,29 @@ function onCenterX(S: TileS, xc: number): number[] {
   return S.onCenter === 'tile' ? [tile] : S.onCenter === 'joint' ? [joint] : [tile, joint];
 }
 
+/** Random-looking wall: the left piece of each course, from the first course up (what the setter cuts to start each one). */
+export function courseStarts(S: TileS, r: Opt): string {
+  const G = r.G;
+  const top = Math.max(S.ceilL, cRv(S)) - S.gap;
+  const out: string[] = [];
+  for (let i = 0; i < 400 && G.T0 + i * G.m - G.t < top; i++) {
+    const ps = rowPieces(S, r.h.x0, rowShift(S, i));
+    if (!ps.length) continue;
+    const w = ps[0]!.w;
+    out.push(`${i + 1}: ${w >= S.tileW - EPS ? 'full' : fmt(w)}`);
+  }
+  return out.join(' · ');
+}
+
 /** What the field tile centers on, in words. */
 export const centerName = (S: TileS) => (S.center === 'niche' && !isPlain(S) ? 'niche' : S.center === 'tub' ? 'tub' : 'wall');
 
 /** The smallest piece at either corner, over every row of the pattern, with the layout line at xc. */
 function cornerMin(S: TileS, xc: number): number {
   const tw = S.tileW;
-  const g = S.grout;
-  const mw = tw + g;
-  const c = shiftCount(S);
   let mn = tw;
-  for (let k = 0; k < c; k++) {
-    const ps = rowPieces(S, xc - tw / 2, (k * mw) / c);
+  for (const sh of patternShifts(S)) {
+    const ps = rowPieces(S, xc - tw / 2, sh);
     if (!ps.length) continue;
     mn = Math.min(mn, ps[0]!.w, ps[ps.length - 1]!.w);
   }
@@ -827,6 +928,7 @@ export function sheetPlainRows(S: TileS, r: Opt): SheetRow[] {
       : `${r.cl < S.tileH - EPS ? fmt(r.cl) : 'Full'} at left, ${r.cr < S.tileH - EPS ? fmt(r.cr) : 'full'} at right`,
   ]);
   rows.push(['Vertical line', verticalLine(S, h)]);
+  if (S.pattern === 'random') rows.push(['Course starts', 'Left piece, from the first course up: ' + courseStarts(S, r)]);
   const ep = edgeParts(S);
   if (ep) rows.push(['Bullnose edge', `${fmt(S.frameW)} bullnose up the ${S.edge} corner` + (ep.top < S.tileW - EPS ? `, top piece ${fmt(ep.top)}` : '')]);
   return rows;
@@ -1111,8 +1213,8 @@ export function interiorX(S: TileS, L: number, w: number): { ix: number; mn: num
   let best: { ix: number; mn: number } | null = null;
   for (const ix of cands) {
     let mn = Infinity;
-    for (let k = 0; k < c; k++) {
-      const ps = rowPieces(S, ix, (k * mw) / c, L, L + w);
+    for (const sh of c === 1 ? [0] : patternShifts(S)) {
+      const ps = rowPieces(S, ix, sh, L, L + w);
       if (ps.length > 1) for (const q of [ps[0]!, ps[ps.length - 1]!]) if (q.w < tw - EPS) mn = Math.min(mn, q.w);
     }
     if (!best || mn > best.mn + 0.25) best = { ix, mn };
@@ -1180,6 +1282,7 @@ function sheetPrefab(S: TileS, r: Opt): SheetRow[] {
   rows.push(['First course', (r.p < S.tileH - EPS ? 'Cut to ' + fmt(r.p) : 'Full tile') + ', top at ' + fmt(r.G.T0) + ' above floor']);
   rows.push(['Ledger line', (tub ? `${fmt(r.G.T0 + r.G.g - S.tubH)} above tub (${fmt(r.G.T0 + r.G.g)} above floor)` : fmt(r.G.T0 + r.G.g) + ' above floor') + ', bottom of 2nd course']);
   rows.push(['Vertical line', verticalLine(S, h)]);
+  if (S.pattern === 'random') rows.push(['Course starts', 'Left piece, from the first course up: ' + courseStarts(S, r)]);
   return rows;
 }
 
@@ -1214,6 +1317,7 @@ export function sheetFor(S: TileS, r: Opt): SheetRow[] {
   rows.push(['First course', (r.p < S.tileH - EPS ? 'Cut to ' + fmt(r.p) : 'Full tile') + ', top at ' + fmt(r.G.T0) + ' above floor']);
   rows.push(['Ledger line', (tub ? `${fmt(r.G.T0 + r.G.g - S.tubH)} above tub (${fmt(r.G.T0 + r.G.g)} above floor)` : fmt(r.G.T0 + r.G.g) + ' above floor') + ', bottom of 2nd course']);
   rows.push(['Vertical line', verticalLine(S, h)]);
+  if (S.pattern === 'random') rows.push(['Course starts', 'Left piece, from the first course up: ' + courseStarts(S, r)]);
   return rows;
 }
 

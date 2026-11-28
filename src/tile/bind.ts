@@ -36,8 +36,10 @@ export interface TileUI extends Adjust {
   /** Niche shape the looks use ('' = from the answers), and the one the applied look used. */
   shape: string;
   lookShape: string;
+  /** What the style's layout was worked out from, to know when to put it on the wall again. */
+  lookBase: string;
 }
-export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '' };
+export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '', lookBase: '' };
 
 /** Where the wall's shared numbers came from, for the screen to explain. */
 export interface TileSource {
@@ -101,6 +103,8 @@ export function readTile(doc: JobDoc, wallId: Id): { S: TileS; ui: TileUI; src: 
   const tl = wall.tileLayout;
   const saved = (tl?.settings ?? {}) as Record<string, unknown>;
   const S = fromSaved(saved);
+  // Walls laid out before the style question: no style until it's picked (their layout stays as it was).
+  if (tl && saved.style === undefined) S.style = '';
   // Walls saved before "How is the niche built?": an already-framed niche means between existing studs (owner, Nov 28).
   if (saved.build === undefined && S.framed) {
     if (S.framed === 'yes') {

@@ -97,3 +97,28 @@ describe('how the niche is built (replaces "Is the niche framed yet?")', () => {
     expect([S.framed, S.studs]).toEqual(['no', 'free']);
   });
 });
+
+describe('style', () => {
+  it('a wall laid out before the style question has no style until one is picked', () => {
+    const { doc, ids } = job();
+    const wall = doc.walls.find((w) => w.id === ids[0])!;
+    wall.tileLayout = { tileWidth: 12, tileHeight: 3, grout: 0.125, niche: null, settings: { framed: 'no', studs: 'free', cur: 6 } };
+    expect(readTile(doc, ids[0]!).S.style).toBe('');
+  });
+  it('a new wall starts on Classic, and the style is saved', () => {
+    const { doc, ids } = job();
+    const { S, ui } = readTile(doc, ids[0]!);
+    expect(S.style).toBe('classic');
+    S.style = 'organic';
+    writeTile(doc, ids[0]!, S, ui);
+    expect(readTile(doc, ids[0]!).S.style).toBe('organic');
+  });
+  it('picking a style keeps the pattern to one it allows', () => {
+    const f = STEPS.find((s) => s.id === 'tile')!.fields.find((x) => 'id' in x && x.id === 'style') as ChoiceF;
+    const S = fromSaved({ pattern: 'third' });
+    f.on!(S, 'classic');
+    expect(S.pattern).toBe('half');
+    f.on!(S, 'organic');
+    expect(S.pattern).toBe('random');
+  });
+});

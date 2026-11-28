@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { solveLook, type LookKey, type Shape } from '../src/tile/looks';
 import { fromSaved, type TileS } from '../src/tile/settings';
-import { solve } from '../src/tile/solve';
+import { rowShift, solve } from '../src/tile/solve';
 
 const TILES: Partial<TileS>[] = [
   { tilePreset: '3x12', tileH: 3, tileW: 12 },
   { tilePreset: '4x12', tileH: 4, tileW: 12, pattern: 'third' },
   { tilePreset: '6x24', tileH: 6, tileW: 24, grout: 0.0625 },
 ];
-const LOOKS: LookKey[] = ['classic', 'balanced', 'simple'];
+const LOOKS: LookKey[] = ['classic', 'balanced', 'organic', 'simple'];
 const SHAPES: Shape[] = ['square', 'tall', 'linear'];
-const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balanced: ['half', 'stack', 'quarter'], simple: ['half', 'third', 'quarter', 'stack'] };
+const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balanced: ['half', 'stack', 'quarter'], organic: ['random'], simple: ['half', 'third', 'quarter', 'stack'] };
 
 describe('looks keep their rules', () => {
   it('every layout a look gives passes every rule, checked on its own', () => {
@@ -33,8 +33,10 @@ describe('looks keep their rules', () => {
                 expect(R.hidden).toBe(true);
                 continue;
               }
-              // Classic and Balanced always give a layout; Simple too, except a linear niche (wider than a bay).
-              if (look !== 'simple' || shape !== 'linear') expect(R.L).not.toBeNull();
+              // A linear niche can't go in a stud bay (the screen doesn't offer it there).
+              if (studs === 'bay' && shape === 'linear') continue;
+              // Every style gives a layout.
+              expect(R.L).not.toBeNull();
               if (!R.L) {
                 expect(R.reason).not.toBe('');
                 continue;
@@ -69,11 +71,12 @@ describe('looks keep their rules', () => {
                 expect(Math.abs(Math.min(r.h.cL, tw) - Math.min(r.h.cR, tw))).toBeLessThanOrEqual(1 / 32);
               }
               if (look === 'balanced') expect(Math.abs(V.shift)).toBeLessThanOrEqual(tw / 4 + 1e-6);
-              if (look !== 'simple') {
+              if (studs === 'free' && (look === 'classic' || look === 'balanced')) {
                 const mid = V.wallW / 2; // tiled wall: finished width, centered
                 expect(Math.abs(r.h.L + r.h.w / 2 - mid)).toBeLessThanOrEqual(0.25 + 1e-6);
               }
-              if (look === 'simple') expect(V.studs).toBe('bay');
+              // A niche bound by studs stays in its bay whatever the style.
+              if (studs === 'bay') expect([V.studs, V.bayL]).toEqual(['bay', S.bayL]);
               // The look's settings give the same layout when solved fresh (what the screen does on opening).
               expect(solve(R.S!)[R.optIdx]!.p).toBe(R.options[R.optIdx]!.p);
             }
@@ -141,5 +144,35 @@ describe('the niche lands on grout lines in every look', () => {
         expect(R.broken.filter((b) => /grout line/.test(b))).toEqual([]);
       }
     }
+  });
+});
+
+describe('Organic: random-looking offsets keep the rules', () => {
+  it('each course steps 4″ (a third of small tile) to a third of long tile from the one below; corners a quarter tile or more', () => {
+    for (const [tileW, tileH] of [[12, 3], [16, 4], [24, 6], [24, 12], [6, 3]] as [number, number][])
+      for (let W = 44; W <= 72; W += 4.4375)
+        for (const seed of [1, 2, 3]) {
+          const R = solveLook('organic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, tilePreset: 'custom', tileW, tileH, seed }), 'tall');
+          expect(R.L).not.toBeNull();
+          const T = R.L!.S;
+          const mw = tileW + T.grout;
+          const lo = Math.min(4, tileW / 3);
+          const hi = tileW > 18 ? tileW / 3 : mw / 2;
+          for (let i = 0; i < 20; i++) {
+            const d = (((rowShift(T, i) - rowShift(T, i - 1)) % mw) + mw) % mw;
+            const step = Math.min(d, mw - d);
+            expect(step).toBeGreaterThanOrEqual(lo - 1e-9);
+            expect(step).toBeLessThanOrEqual(hi + 1e-9);
+          }
+          expect(Math.min(R.L!.r.h.cL, R.L!.r.h.cR)).toBeGreaterThanOrEqual(tileW / 4 - 1e-6);
+          expect(R.L!.sheet.find((r) => r[0] === 'Course starts')?.[1]).toMatch(/^Left piece, from the first course up: 1: /);
+        }
+  });
+
+  it('the same seed gives the same wall; Shuffle (a new seed) gives another', () => {
+    const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: 61, pattern: 'random', seed: 5 });
+    const a = solveLook('organic', S, 'tall').L!.sheet.find((r) => r[0] === 'Course starts')![1];
+    expect(solveLook('organic', { ...S }, 'tall').L!.sheet.find((r) => r[0] === 'Course starts')![1]).toBe(a);
+    expect(solveLook('organic', { ...S, seed: 6 }, 'tall').L!.sheet.find((r) => r[0] === 'Course starts')![1]).not.toBe(a);
   });
 });

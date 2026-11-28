@@ -26,7 +26,7 @@ export interface TileS {
   tileH: number;
   tileW: number;
   grout: number;
-  pattern: 'half' | 'third' | 'quarter' | 'stack';
+  pattern: 'half' | 'third' | 'quarter' | 'stack' | 'random';
   minFrac: number;
   board: number;
   thinset: number;
@@ -87,6 +87,10 @@ export interface TileS {
   groutFixed: boolean;
   /** How the niche is built: new blocking anywhere, or between existing studs ('' until answered). New; sets framed and studs. */
   build: '' | 'new' | 'bay' | 'prefab';
+  /** The style the tile was ordered for; the planner fits the niche to it. New. */
+  style: '' | 'classic' | 'balanced' | 'organic' | 'simple';
+  /** Random-looking pattern: which arrangement (Shuffle picks another). New. */
+  seed: number;
   /** Prefabricated niche (build 'prefab'): model, inside opening, lip the tile butts to, and the rough opening it needs. */
   pfModel: string;
   pfW: number;
@@ -119,6 +123,8 @@ export const DEF: TileS = {
   groutFixed: false,
   sideLegs: true,
   build: '',
+  style: 'classic',
+  seed: 1,
   pfModel: 'kb12x28',
   pfW: 12,
   pfH: 28,
