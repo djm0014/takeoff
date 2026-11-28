@@ -3,23 +3,25 @@
 From the owner's questionnaire answers (Nov 28, 2026). This is the spec the
 auto mode is built from. Items marked **Open** still need an answer.
 
-## How it works
+## How it works (style first, Nov 28)
 
-- The Tile tab's results open in **Auto**: a card for every look on every
-  wall (changed Nov 28: "all walls should have all options except for the
-  Simple look"). When a wall can't keep every rule, the card shows the
-  closest layout and says which rule it breaks.
-- **Simple** shows only when the niche goes between studs: the setup's
-  "How is the niche built? Between existing studs", in the bay you measured.
-- Each card is the best layout for the wall that keeps that look's rules,
-  with the planner's own fixes (moving the layout line, picking tile or joint
-  on center, sizing the niche, adjusting the grout) applied by itself.
-- Tapping a card opens it in today's screen. Any change after that marks it
-  **Modified**, e.g. "Modified Classic".
-- The look's name prints on the sheets.
-- A look suggests a niche shape; you can change it.
-- Later, parts of this may become a questionnaire the client fills in early
-  on, so names and descriptions should read well to a client.
+- "The tiles are ordered to look and feel the classic, balanced, and organic
+  styles. then the niche goes in. the rule makes the style after all. we just
+  need to make the niche fit." The **Style** is the first question on the Tile
+  step: Classic, Balanced, Organic, and Simple for a niche bound by studs
+  (between existing studs, or a prefab). The pattern choices are the ones the
+  style allows.
+- The results open on that style's layout, already applied: the best layout
+  that keeps the style's rules, with the niche fitted to it. The Style card at
+  the top switches style; Organic has **Shuffle the offsets**.
+- When a wall can't keep every rule in that style, it shows the closest fit
+  and names the rules it breaks.
+- Any change after that shows **Modified Classic**, with **Back to Classic**.
+- A niche bound by studs stays in its bay whatever the style; on new blocking
+  it's centered on the wall.
+- The style's name prints on the sheets.
+- Walls laid out before the style question keep their layout until a style
+  is picked.
 
 ## Rules every look keeps
 
@@ -58,8 +60,8 @@ Checked over every wall width from 48″ to 72″ (1/16″ steps), 12″ and 24�
 | --- | --- | --- | --- | --- |
 | **Classic** (symmetrical) | half bond or stacked | centered on the wall (a niche never goes above or below a valve) | tile or joint on center, whichever cuts better; never moved off center | exactly equal both ends |
 | **Balanced** | half bond, stacked or 1/4 offset | stays centered; only the tile moves | may move up to a quarter tile off center | at least a quarter tile |
-| **Offset** | random-looking (no repeating step): each row at least 4″ from the row below; a joint may line up with the one two rows up; long tile (over 18″) steps no more than 1/3 of the tile | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
-| **Simple** (fits the framing) | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
+| **Organic** | random-looking (no repeating step), or a 1/4 offset (Nov 28: "set the smallest of organic to 2″ and allow a 4th step"): each course's joints at least 2″ from the course below; a joint may line up with the one two courses up; long tile (over 18″) steps no more than 1/3 of the tile; corners a quarter tile or more. Shuffle picks another arrangement. The layout sheet lists each course's left piece | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
+| **Simple** (only for a niche bound by studs) | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
 
 Simple is the budget option: less planning, the tile lines up as it falls.
 A linear niche is wider than a bay, so it isn't Simple.
@@ -112,3 +114,12 @@ design option (later).
   where its height puts it. Looks only move it by whole courses.
 - Simple puts it centered in your stud bay; Classic and Balanced center it on
   the wall with new blocking. No niche-shape buttons.
+
+## Organic: what to expect (Nov 28)
+
+- Random offsets: each course steps 2″ or more from the one below (a third of
+  the tile for tile under 6″), and long tile no more than a third.
+- 1/4 offset can keep corner pieces of a quarter tile on only some wall
+  widths (about 1 in 5 with 12″ tile, 1 in 25 with 24″ tile): its four kinds
+  of courses end a quarter tile apart. When it can't, Organic uses random
+  offsets and the Style card says so.

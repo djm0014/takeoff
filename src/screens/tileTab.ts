@@ -38,7 +38,7 @@ import {
   type Opt,
   type SheetRow,
 } from '../tile/solve';
-import { LOOKS, SHAPES, lookLine, lookName, shapeOf, solveLook, type LookKey, type LookResult, type Shape } from '../tile/looks';
+import { LOOKS, SHAPES, lookLine, lookName, shapeOf, solveLook, studBound, type LookKey, type LookResult, type Shape } from '../tile/looks';
 import type { WallCtx } from './wallScreen';
 
 const landscape = matchMedia('(orientation: landscape) and (min-width: 600px)');
@@ -280,24 +280,50 @@ export function renderTileTab(c: WallCtx): void {
   const grid = h('div', { class: 'plan-layout' }, pinned, side);
   let lastL: Layout | null = null;
 
-  /* ---------- looks (auto mode) ---------- */
+  /* ---------- style (auto mode) ---------- */
 
   const solveKey = () => JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) ? undefined : v));
-  /** Settings a look chooses; changing them doesn't change what the looks start from. */
-  const LOOK_KEYS = ['pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
+  /** Settings a style chooses; changing them doesn't change what the styles start from. */
+  const LOOK_KEYS = ['style', 'pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
   const fingerprint = () => JSON.stringify([S, ui.optIdx, ui.adjH, ui.adjS, ui.adjHin, ui.adjSin]);
   const modified = () => !!ui.look && fingerprint() !== ui.lookKey;
-  /** "Classic", "Modified Classic", or '' when no look is in use. */
+  /** "Classic", "Modified Classic", or '' when no style is in use. */
   const lookLabel = () => (ui.look ? (modified() ? 'Modified ' : '') + lookName(ui.look) : '');
   const nicheLooks = () => !isPlain(S) && S.framed === 'no' && !isPrefab(S);
-  const curShape = (): Shape | null => (nicheLooks() ? ((ui.shape as Shape) || shapeOf(S)) : null);
+  /** Shapes on offer: a niche in a stud bay can't be linear. */
+  const shapesOn = (): Shape[] => (studBound(S) ? ['square', 'tall'] : (Object.keys(SHAPES) as Shape[]));
+  const curShape = (): Shape | null => {
+    if (!nicheLooks()) return null;
+    const sh = (ui.shape as Shape) || shapeOf(S);
+    return shapesOn().includes(sh) ? sh : 'tall';
+  };
+  /** Styles on offer: Simple only for a niche bound by studs. */
+  const stylesOn = () => LOOKS.filter((l) => l.key !== 'simple' || studBound(S));
   let looksKey = '';
   let looksBase: TileS = S;
   const looks = new Map<LookKey, LookResult>();
   let looksTimer: ReturnType<typeof setTimeout> | undefined;
   const looksEl = h('section', { class: 'card stack looks' });
+  const style = (): LookKey | null => {
+    const k = S.style as LookKey | '';
+    return k && stylesOn().some((l) => l.key === k) ? k : null;
+  };
+  /** The chosen style's layout needs putting on the wall: just picked, or the answers it starts from changed. */
+  const needsApply = () => !!style() && (ui.look !== style() || ui.lookBase !== looksKey);
+  let applying = false;
+  function autoApply() {
+    const k = style();
+    const R = k ? looks.get(k) : undefined;
+    if (!R || !R.L || applying || !needsApply()) return;
+    applying = true;
+    // After the current redraw finishes.
+    setTimeout(() => {
+      applying = false;
+      if (needsApply() && looks.get(k!) === R) applyLook(R);
+    }, 0);
+  }
 
-  /** Work the looks out again when the answers they start from change, one look at a time so the screen stays live. */
+  /** Work the styles out again when the answers they start from change: the chosen style first, one at a time so the screen stays live. */
   function refreshLooks() {
     const key = JSON.stringify([S, curShape()], (k, v) => (LOOK_KEYS.includes(k) || DRAW_ONLY.includes(k) ? undefined : v));
     if (key !== looksKey) {
@@ -305,27 +331,31 @@ export function renderTileTab(c: WallCtx): void {
       looksBase = { ...S };
       looks.clear();
       clearTimeout(looksTimer);
-      const todo = LOOKS.map((l) => l.key);
+      const first = style();
+      const todo = LOOKS.map((l) => l.key).sort((a, b) => (a === first ? -1 : b === first ? 1 : 0));
       const next = () => {
         const k = todo.shift();
         if (!k) return;
         looks.set(k, solveLook(k, looksBase, curShape()));
         paintLooks();
+        autoApply();
         looksTimer = setTimeout(next, 0);
       };
       looksTimer = setTimeout(next, 0);
     }
     paintLooks();
+    autoApply();
   }
 
   function applyLook(R: LookResult) {
     if (!R.S) return;
-    S = { ...R.S };
+    S = { ...R.S, style: R.look };
     normalize(S);
     ui.optIdx = R.optIdx;
     Object.assign(ui, R.adj);
     ui.look = R.look;
     ui.lookShape = curShape() ?? '';
+    ui.lookBase = looksKey;
     cacheK = solveKey();
     res = R.options;
     ui.lookKey = fingerprint();
@@ -334,29 +364,28 @@ export function renderTileTab(c: WallCtx): void {
 
   function paintLooks() {
     const shape = curShape();
-    const done = LOOKS.filter((l) => looks.has(l.key) && !looks.get(l.key)!.hidden);
-    const fit = done.filter((l) => looks.get(l.key)!.L);
-    const sameAs = (a: LookResult, b: LookResult | undefined) => !!b?.L && !!a.L && JSON.stringify([a.S, a.optIdx, a.adj]) === JSON.stringify([b.S, b.optIdx, b.adj]);
-    const cards = fit.map((l, i) => {
-      const R = looks.get(l.key)!;
-      const dup = fit.slice(0, i).find((p) => sameAs(R, looks.get(p.key)));
-      const on = ui.look === l.key && ui.lookShape === (shape ?? '');
-      const close = R.broken.length > 0;
-      return h(
-        'button',
-        { type: 'button', class: 'opt look', 'aria-pressed': String(on), onclick: () => applyLook(R) },
-        h('small', {}, on && modified() ? 'In use, modified' : on ? 'In use' : close ? 'Closest fit' : 'Look'),
-        h('b', {}, (on && modified() ? 'Modified ' : '') + l.name),
-        h('span', {}, lookLine(R) + (dup ? ` · same as ${dup.name} on this wall` : '')),
-        close ? h('span', { class: 'breaks' }, (R.broken.length > 1 ? 'Breaks these rules: ' : 'Breaks a rule: ') + R.broken.join('; ')) : null,
-        h('i', { class: `dot ${close ? 'warn' : 'ok'}`, 'aria-label': close ? 'Breaks a rule' : 'Keeps the rules' }),
-      );
-    });
-    const missing = done.filter((l) => !looks.get(l.key)!.L);
-    const busy = LOOKS.find((l) => !looks.has(l.key));
+    const k = style();
+    const R = k ? looks.get(k) : undefined;
+    const name = k ? lookName(k) : '';
+    const close = !!R?.L && R.broken.length > 0;
+    const inUse = !!k && ui.look === k && !needsApply();
     const parts: (HTMLElement | null)[] = [
-      h('h2', {}, 'Looks'),
-      h('p', { class: 'muted small', style: 'margin:0' }, 'Each look is the best layout of its kind for this wall, keeping your rules: corner pieces a quarter tile or more, niche top and bottom on grout lines, at least 3/4 of a tile on the tub and half at the ceiling. When a wall can’t keep them all, the card says which rule it breaks. Tap one to use it.'),
+      h('h2', {}, 'Style'),
+      h(
+        'div',
+        { class: 'field wide' },
+        chips(
+          'Style',
+          stylesOn().map((l) => [l.key, l.name]),
+          k ?? '',
+          (v) => {
+            S.style = v as TileS['style'];
+            save();
+            refreshLooks();
+          },
+        ),
+        h('small', { class: 'muted' }, k ? LOOKS.find((l) => l.key === k)!.blurb : 'Pick the style the tile was ordered for. The planner fits the niche to it.'),
+      ),
       shape
         ? h(
             'div',
@@ -364,7 +393,7 @@ export function renderTileTab(c: WallCtx): void {
             h('span', {}, 'Niche shape'),
             chips(
               'Niche shape',
-              (Object.keys(SHAPES) as Shape[]).map((k) => [k, `${SHAPES[k].name} ${fmt(SHAPES[k].w, false)} × ${fmt(SHAPES[k].h, false)}`]),
+              shapesOn().map((s2) => [s2, `${SHAPES[s2].name} ${fmt(SHAPES[s2].w, false)} × ${fmt(SHAPES[s2].h, false)}`]),
               shape,
               (v) => {
                 ui.shape = String(v);
@@ -374,12 +403,43 @@ export function renderTileTab(c: WallCtx): void {
             ),
           )
         : null,
-      h('div', { class: 'opts' }, cards),
-      busy ? h('p', { class: 'note' }, `Working out ${busy.name}…`) : null,
-      !busy && !fit.length ? h('p', { class: 'note' }, 'None of the looks can keep the rules on this wall. Use the options below and fine-tune by hand.') : null,
-      !busy && missing.length
-        ? h('p', { class: 'muted small', style: 'margin:0' }, 'Not on this wall: ' + missing.map((l) => `${l.name} (${looks.get(l.key)!.reason.replace(/\.$/, '')})`).join('; ') + '.')
-        : null,
+      !k
+        ? null
+        : !R
+          ? h('p', { class: 'note' }, `Working out ${name}…`)
+          : !R.L
+            ? h('p', { class: 'note' }, R.reason)
+            : h(
+                'div',
+                { class: 'opt look', 'aria-pressed': String(inUse) },
+                h('small', {}, inUse && modified() ? 'In use, modified' : inUse ? 'In use' : 'Putting it on the wall…'),
+                h('b', {}, (inUse && modified() ? 'Modified ' : '') + name),
+                h('span', {}, lookLine(R)),
+                close ? h('span', { class: 'breaks' }, (R.broken.length > 1 ? 'Breaks these rules: ' : 'Breaks a rule: ') + R.broken.join('; ')) : null,
+                h('i', { class: `dot ${close ? 'warn' : 'ok'}`, 'aria-label': close ? 'Breaks a rule' : 'Keeps the rules' }),
+              ),
+      h(
+        'div',
+        { class: 'row' },
+        R?.L && inUse && modified() ? h('button', { class: 'btn small-btn', type: 'button', onclick: () => applyLook(R) }, `Back to ${name}`) : null,
+        k === 'organic'
+          ? h(
+              'button',
+              {
+                class: 'btn small-btn',
+                type: 'button',
+                onclick: () => {
+                  S.seed = (S.seed || 1) + 1;
+                  save();
+                  refreshLooks();
+                },
+              },
+              'Shuffle the offsets',
+            )
+          : null,
+      ),
+      close ? h('p', { class: 'muted small', style: 'margin:0' }, 'This wall can’t keep every rule in this style; this is the closest fit.') : null,
+      R?.note ? h('p', { class: 'muted small', style: 'margin:0' }, R.note) : null,
     ];
     looksEl.replaceChildren(...parts.filter((x): x is HTMLElement => !!x));
   }

@@ -151,6 +151,20 @@ From the first phone test (Nov 27, 2026):
 - [ ] Check the Schluter rough-opening sizes: the planner starts from 14 3/8″
   wide and the same allowance on the height (e.g. 30 3/8″ for 12×28). Fix the
   presets once you have the box or spec sheet in hand.
+- [x] **Style first** (Nov 28): "perhaps we should name the look we want
+  first. the tiles are ordered to look and feel the classic, balanced, and
+  organic styles. then the niche goes in. the rule makes the style after all.
+  we just need to make the niche fit." Plan: Style on the Tile step (Classic,
+  Balanced, Organic); results open on that style's layout; the niche fits it;
+  Simple becomes the "Between existing studs" framing choice, not a style.
+  Answers: "we can build the organic style in and amongst the changes. keep
+  simple... but not for niches that aren't bound by studs." Built: Style on
+  the Tile step; results open on that style; Organic (random-looking) added;
+  Simple only for a niche between existing studs or a prefab.
+- [x] Nov 28, before merging: "let's set the smallest of organic to 2″ and
+  allow a 4th step" (mix in 1/4 offset). Done: random steps 2″ and up; Organic
+  may use a 1/4 offset, falling back to random offsets (with a note) where a
+  1/4 offset can't keep the corners a quarter tile.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

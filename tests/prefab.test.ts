@@ -45,15 +45,14 @@ describe('prefabricated niche', () => {
     expect(sheetA1(L.S, L.r, L.fr, { date: 'Jan 15, 2026' })).toContain('Prefabricated niche 12″ × 28″ inside, not tiled.');
   });
 
-  it('every look keeps the prefab’s size with its bottom on a grout line; Simple stays in the bay', () => {
-    for (const look of ['classic', 'balanced', 'simple'] as const) {
+  it('every style keeps the prefab’s size with its bottom on a grout line, in its bay', () => {
+    for (const look of ['classic', 'balanced', 'organic', 'simple'] as const) {
       const R = solveLook(look, base(), null);
       expect(R.L, look).not.toBeNull();
       expect([R.L!.r.h.w, R.L!.r.hF]).toEqual([12, 28]);
       expect(R.L!.r.sill.aligned).toBe(true);
       expect(R.broken.filter((b) => /grout line/.test(b))).toEqual([]);
     }
-    expect(solveLook('simple', base(), null).S!.studs).toBe('bay');
-    expect(solveLook('classic', base(), null).S!.studs).toBe('free');
+    for (const look of ['classic', 'simple'] as const) expect(solveLook(look, base(), null).S!.studs).toBe('bay');
   });
 });
