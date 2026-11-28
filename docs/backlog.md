@@ -113,6 +113,12 @@ From the first phone test (Nov 27, 2026):
   Cuts list had a 1/2″ sliver. Fixed: a moved line is one exact position, and
   the fix checks each move in full before showing it. (The Tile drawing does
   color slivers red; Presentation hides cut colors on purpose.)
+- [ ] **Auto mode with named looks** (idea, Nov 28, 2026): "present several
+  options that we could name that follow certain visual rules", e.g.
+  Symmetrical, Balanced, Offset (1/3, "more organic feel"), Fit the framing;
+  each finds the best fit for the wall, keeps the sliver rules and applies the
+  fixes on its own. Niche size and shape too (square, tall, linear). Manual
+  mode keeps today's quick fixes. Rules being collected in a questionnaire.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
