@@ -308,7 +308,7 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
   };
   for (const pattern of uniq) {
     for (const grout of grouts) {
-      const V0: TileS = { ...base, ...N, pattern, grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false };
+      const V0: TileS = { ...base, ...N, pattern, grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false, nWTol: 0 };
       const tw = V0.tileW;
       if (pattern === 'random') {
         // Organic: the courses' offsets keep the corners clear themselves.
@@ -338,7 +338,7 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
   // No layout keeps every rule: give the closest one, saying which rules it breaks.
   if (!keep.miss) {
     const pattern = uniq[0]!;
-    const V0: TileS = { ...base, ...N, pattern, grout: base.grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false };
+    const V0: TileS = { ...base, ...N, pattern, grout: base.grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false, nWTol: 0 };
     if (pattern === 'random') tryVariant(look, V0, shape, base, keep);
     else {
       tryVariant(look, { ...V0, onCenter: 'tile' }, shape, base, keep);

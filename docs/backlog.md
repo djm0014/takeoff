@@ -169,6 +169,18 @@ From the first phone test (Nov 27, 2026):
   same thing... every wall should be able to portray each of the looks."
   Classic is running bond only, Balanced stacked (or 1/3, 1/4 offset), each
   style in its own patterns on every wall.
+- [x] Nov 28: "the organic style noticeably slows down all adjustments and
+  views." Cause: every course of a random wall has its own offset, so checks
+  that look at 2 kinds of course for running bond looked at ~40, and the
+  line-move quick fix tried 6 full layouts on every redraw. Fixed: checks
+  inside the niche use only its own courses, corner pieces are worked out once
+  per position, and Organic skips the line-move fix (no single layout line).
+  A course move now takes about as long as Classic.
+- [x] Nov 28: "quick edits to the niche width... more like increase by 25%,
+  50%, 100% or custom", wider and narrower, "with the option to revert to
+  original". Fine-tune has a Width row: −50%, −25%, +25%, +50%, +100%, a
+  custom width, and Back to original width. A width set this way stays within
+  1/2″ of what was asked (the planner's own targets still move up to 2″).
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

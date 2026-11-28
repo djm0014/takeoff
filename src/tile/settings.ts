@@ -87,6 +87,8 @@ export interface TileS {
   groutFixed: boolean;
   /** How the niche is built: new blocking anywhere, or between existing studs ('' until answered). New; sets framed and studs. */
   build: '' | 'new' | 'bay' | 'prefab';
+  /** How far the niche width may move from nW to fit the tile (0 = the old tool's 2″). New. */
+  nWTol: number;
   /** The style the tile was ordered for; the planner fits the niche to it. New. */
   style: '' | 'classic' | 'balanced' | 'organic' | 'simple';
   /** Random-looking pattern: which arrangement (Shuffle picks another). New. */
@@ -124,6 +126,7 @@ export const DEF: TileS = {
   sideLegs: true,
   build: '',
   style: 'classic',
+  nWTol: 0,
   seed: 1,
   pfModel: 'kb12x28',
   pfW: 12,

@@ -284,7 +284,7 @@ export function renderTileTab(c: WallCtx): void {
 
   const solveKey = () => JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) ? undefined : v));
   /** Settings a style chooses; changing them doesn't change what the styles start from. */
-  const LOOK_KEYS = ['style', 'pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
+  const LOOK_KEYS = ['style', 'nWTol', 'pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
   const fingerprint = () => JSON.stringify([S, ui.optIdx, ui.adjH, ui.adjS, ui.adjHin, ui.adjSin]);
   const modified = () => !!ui.look && fingerprint() !== ui.lookKey;
   /** "Classic", "Modified Classic", or '' when no style is in use. */
@@ -354,6 +354,8 @@ export function renderTileTab(c: WallCtx): void {
     ui.optIdx = R.optIdx;
     Object.assign(ui, R.adj);
     ui.look = R.look;
+    ui.widthFrom = 0;
+    ui.presetFrom = '';
     ui.lookShape = curShape() ?? '';
     ui.lookBase = looksKey;
     cacheK = solveKey();
@@ -579,6 +581,71 @@ export function renderTileTab(c: WallCtx): void {
     return h('section', { class: 'card stack tile-view tile-legend-colors' }, headline, ...extra);
   }
 
+  /** Niche on new blocking: quick width changes by a percent of its width, or a typed width (owner, Nov 28). */
+  function widthRow(L: Layout): HTMLElement | null {
+    if (S.framed !== 'no' || S.studs === 'bay' || isPrefab(S) || L.r.plain) return null;
+    const w = L.r.h.w;
+    const setWidth = (target: number) => {
+      if (!ui.widthFrom) {
+        ui.widthFrom = S.nW;
+        ui.presetFrom = S.nPreset;
+      }
+      const before = { nW: S.nW, nPreset: S.nPreset, nWTol: S.nWTol };
+      S.nPreset = 'custom';
+      S.nW = Math.max(4, Math.round(target * 16) / 16);
+      S.nWTol = 0.5;
+      results(true, true);
+      if (!lastL) {
+        Object.assign(S, before);
+        results(true, true);
+        toast('That width doesn’t fit on this wall.', 'error');
+      }
+    };
+    const pct = (p: number) => h('button', { class: 'btn small-btn', type: 'button', onclick: () => setWidth(w * (1 + p / 100)) }, `${p > 0 ? '+' : '−'}${Math.abs(p)}%`);
+    // Applied when you finish typing (this card is redrawn after every change, which would take the cursor away).
+    const custom = h('input', { type: 'text', autocomplete: 'off', spellcheck: 'false', value: fmt(w, false), ...keypadAttrs({ nudge: true }) });
+    custom.addEventListener('input', () => {
+      const v = parseInches(custom.value);
+      custom.setAttribute('aria-invalid', String(custom.value.trim() !== '' && (v === null || v < 4 || v > 72)));
+    });
+    custom.addEventListener('blur', () => {
+      const v = parseInches(custom.value);
+      if (v !== null && v >= 4 && v <= 72 && Math.abs(v - w) > 1 / 32) setWidth(v);
+      else custom.value = fmt(w, false);
+    });
+    return h(
+      'div',
+      { class: 'stack' },
+      h(
+        'div',
+        { class: 'tune' },
+        h('span', { class: 'lab' }, 'Width'),
+        h('div', { class: 'row' }, pct(-50), pct(-25)),
+        h('b', {}, `${fmt(w)} finished`),
+        h('div', { class: 'row' }, pct(25), pct(50), pct(100)),
+      ),
+      h('label', { class: 'field' }, h('span', {}, 'Custom width, about'), custom, h('small', { class: 'muted' }, 'Finished width. The planner fits it to the tile, so it may land a little off.')),
+      ui.widthFrom
+        ? h(
+            'button',
+            {
+              class: 'btn small-btn',
+              type: 'button',
+              onclick: () => {
+                S.nW = ui.widthFrom;
+                S.nPreset = ui.presetFrom || 'custom';
+                S.nWTol = 0;
+                ui.widthFrom = 0;
+                ui.presetFrom = '';
+                results(true, true);
+              },
+            },
+            'Back to original width',
+          )
+        : null,
+    );
+  }
+
   /** Niche in an existing stud bay: move it a bay left or right. */
   function bayRow(): HTMLElement | null {
     if (S.framed === 'yes' || S.studs !== 'bay') return null;
@@ -688,6 +755,7 @@ export function renderTileTab(c: WallCtx): void {
         h('b', {}, `Rough sill ${fmt(isPrefab(TS) ? L.fr.ys : r.sF - bu(TS))}`),
         btn('Up 1 course', canAdjust(TS, L.r0, a(0, 1)), move(0, 1)),
       ),
+      widthRow(L),
       bayRow(),
       h(
         'p',
@@ -1040,6 +1108,8 @@ export function renderTileTab(c: WallCtx): void {
     normalize(S);
     const st = STEPS[ui.cur]!;
     if (st.id === 'results') {
+      // The niche shape the styles use is set once, so width changes can't flip it.
+      if (!ui.shape && !isPlain(S) && S.framed === 'no' && !isPrefab(S)) ui.shape = shapeOf(S);
       results(true, true, false);
       return;
     }
