@@ -32,8 +32,8 @@ export type LookKey = 'classic' | 'balanced' | 'organic' | 'simple';
 export type Shape = 'square' | 'tall' | 'linear';
 
 export const LOOKS: { key: LookKey; name: string; blurb: string }[] = [
-  { key: 'classic', name: 'Classic', blurb: 'Symmetrical: niche and tile centered on the wall, the same piece at both corners.' },
-  { key: 'balanced', name: 'Balanced', blurb: 'Niche centered; the tile may move up to a quarter tile off center to clear corner slivers.' },
+  { key: 'classic', name: 'Classic', blurb: 'Running bond, the familiar subway pattern. Centered on the wall; the tile moves up to a quarter tile where that keeps slivers off the corners.' },
+  { key: 'balanced', name: 'Balanced', blurb: 'An even grid: stacked courses centered on the wall, or a 1/3 or 1/4 offset.' },
   { key: 'organic', name: 'Organic', blurb: 'Random-looking offsets (each course at least 2″ from the one below) or a 1/4 offset; no slivers at the corners.' },
   { key: 'simple', name: 'Simple', blurb: 'The niche goes in your stud bay; less planning, the tile lines up as it falls.' },
 ];
@@ -41,8 +41,8 @@ export const PATTERN_NAMES: Record<TileS['pattern'], string> = { half: 'Half bon
 
 /** Patterns each style may use (docs/tile-looks.md). */
 export const STYLE_PATTERNS: Record<LookKey, TileS['pattern'][]> = {
-  classic: ['half', 'stack'],
-  balanced: ['half', 'stack', 'quarter'],
+  classic: ['half'],
+  balanced: ['stack', 'third', 'quarter'],
   organic: ['random', 'quarter'],
   simple: ['half', 'third', 'quarter', 'stack'],
 };
@@ -113,11 +113,8 @@ export function checkLook(look: LookKey, L: Layout, shape: Shape | null, base: T
   const corner = minCorner(L);
   if (corner < tw / 4 - 1e-6) fails.push(`corner pieces down to ${fmt(corner)} (under a quarter tile)`);
   score += ((tw - corner) / tw) * 5;
-  if (look === 'classic') {
-    const a = Math.min(r.h.cL, tw);
-    const b = Math.min(r.h.cR, tw);
-    if (Math.abs(a - b) > 1 / 32) fails.push(`corners not equal (${fmt(a)} and ${fmt(b)})`);
-  }
+  // Classic and Balanced like the same piece at both corners (not a rule: every wall gets every style, Nov 28).
+  if (look === 'classic' || look === 'balanced') score += Math.abs(Math.min(r.h.cL, tw) - Math.min(r.h.cR, tw)) * 0.5;
   other = fails.length;
 
   const top = Math.min(r.cl, r.cr);
@@ -270,6 +267,9 @@ function tryVariant(look: LookKey, V: TileS, shape: Shape | null, base: TileS, k
   });
 }
 
+/** How far a style may move the layout line off center: a quarter tile, or anywhere for Simple. */
+const moveMax = (look: LookKey, V: TileS) => (look === 'simple' ? (V.tileW + V.grout) / 2 : V.tileW / 4);
+
 /** The best layout for a look on this wall, or why there isn't one. */
 export function solveLook(look: LookKey, base: TileS, shape: Shape | null): LookResult {
   const niche = !isPlain(base) && base.framed !== '';
@@ -313,15 +313,15 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
       if (pattern === 'random') {
         // Organic: the courses' offsets keep the corners clear themselves.
         tryVariant(look, V0, shape, base, keep);
-      } else if (look === 'classic') {
+      } else {
+        // Centered on the wall: a tile or a joint on the centerline.
         if (cornersOk(V0, 0)) tryVariant(look, { ...V0, onCenter: 'tile' }, shape, base, keep);
         if (cornersOk(V0, grout / 2 + tw / 2)) tryVariant(look, { ...V0, onCenter: 'joint' }, shape, base, keep);
-      } else if (cornersOk(V0, 0)) {
-        tryVariant(look, { ...V0, onCenter: 'tile' }, shape, base, keep);
-        if (pattern === 'stack') tryVariant(look, { ...V0, onCenter: 'joint' }, shape, base, keep);
-      } else {
-        const d = lineShift(V0, look === 'balanced' ? tw / 4 : (tw + grout) / 2);
-        if (cornersOk(V0, d)) tryVariant(look, { ...V0, shift: d }, shape, base, keep);
+        // Neither keeps the corners: move the layout line (up to a quarter tile; Simple, anywhere).
+        if (!keep.best) {
+          const d = lineShift(V0, moveMax(look, V0));
+          if (d && cornersOk(V0, d)) tryVariant(look, { ...V0, shift: d }, shape, base, keep);
+        }
       }
       if (keep.best) break; // the least grout change that works
     }
@@ -340,12 +340,11 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
     const pattern = uniq[0]!;
     const V0: TileS = { ...base, ...N, pattern, grout: base.grout, center: 'wall', shift: 0, onCenter: 'auto', sideLegs: false };
     if (pattern === 'random') tryVariant(look, V0, shape, base, keep);
-    else if (look === 'classic') {
+    else {
       tryVariant(look, { ...V0, onCenter: 'tile' }, shape, base, keep);
       tryVariant(look, { ...V0, onCenter: 'joint' }, shape, base, keep);
-    } else {
-      const d = lineShift(V0, look === 'balanced' ? V0.tileW / 4 : (V0.tileW + V0.grout) / 2);
-      tryVariant(look, { ...V0, shift: d }, shape, base, keep);
+      const d = lineShift(V0, moveMax(look, V0));
+      if (d) tryVariant(look, { ...V0, shift: d }, shape, base, keep);
     }
   }
   const m = keep.miss;

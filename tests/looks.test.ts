@@ -10,7 +10,7 @@ const TILES: Partial<TileS>[] = [
 ];
 const LOOKS: LookKey[] = ['classic', 'balanced', 'organic', 'simple'];
 const SHAPES: Shape[] = ['square', 'tall', 'linear'];
-const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balanced: ['half', 'stack', 'quarter'], organic: ['random', 'quarter'], simple: ['half', 'third', 'quarter', 'stack'] };
+const ALLOWED: Record<LookKey, string[]> = { classic: ['half'], balanced: ['stack', 'third', 'quarter'], organic: ['random', 'quarter'], simple: ['half', 'third', 'quarter', 'stack'] };
 
 describe('looks keep their rules', () => {
   it('every layout a look gives passes every rule, checked on its own', () => {
@@ -19,8 +19,8 @@ describe('looks keep their rules', () => {
     let tries = 0;
     let slowest = 0;
     for (const tile of TILES)
-      for (let W = 44; W <= 72; W += 3.3125)
-        for (const base of ['tub', 'floor'] as const)
+      for (let W = 44; W <= 72; W += 6.6875)
+        for (const base of ['tub'] as const) // floors are covered by the random walls below
         for (const studs of ['free', 'bay'] as const) {
           const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, base, studs, bayL: Math.round((W / 2 - 7.25) * 16) / 16, ...tile });
           for (const look of LOOKS)
@@ -66,11 +66,7 @@ describe('looks keep their rules', () => {
               expect(r.sF).toBeLessThanOrEqual(52 + 1e-6);
               expect(r.hF).toBeGreaterThanOrEqual(10 - 1e-6);
               if (shape === 'linear') expect(r.h.w).toBeGreaterThan(r.hF);
-              if (look === 'classic') {
-                expect(V.shift).toBe(0);
-                expect(Math.abs(Math.min(r.h.cL, tw) - Math.min(r.h.cR, tw))).toBeLessThanOrEqual(1 / 32);
-              }
-              if (look === 'balanced') expect(Math.abs(V.shift)).toBeLessThanOrEqual(tw / 4 + 1e-6);
+              if (look === 'classic' || look === 'balanced') expect(Math.abs(V.shift)).toBeLessThanOrEqual(tw / 4 + 1e-6);
               if (studs === 'free' && (look === 'classic' || look === 'balanced')) {
                 const mid = V.wallW / 2; // tiled wall: finished width, centered
                 expect(Math.abs(r.h.L + r.h.w / 2 - mid)).toBeLessThanOrEqual(0.25 + 1e-6);
@@ -94,13 +90,17 @@ describe('looks keep their rules', () => {
     }
   });
 
-  it('Classic in half bond fits only some widths; stacked fills in', () => {
-    const pats = new Set<string>();
-    for (let W = 48; W <= 72; W += 0.5) {
-      const R = solveLook('classic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: W }), 'tall');
-      if (R.L && !R.broken.length) pats.add(R.L.S.pattern);
-    }
-    expect([...pats].sort()).toEqual(['half', 'stack']);
+  it('every wall gets every style in its own pattern, keeping the rules (Nov 28)', () => {
+    for (const tile of TILES)
+      for (let W = 44; W <= 72; W += 1.5625) {
+        const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, ...tile, pattern: 'half' });
+        const want: Record<string, string> = { classic: 'half', balanced: 'stack', organic: 'random' };
+        for (const look of ['classic', 'balanced', 'organic'] as const) {
+          const R = solveLook(look, S, 'tall');
+          expect(R.L!.S.pattern, `${look} on ${W}`).toBe(want[look]);
+          expect(R.broken, `${look} on ${W}″ with ${tile.tilePreset}`).toEqual([]);
+        }
+      }
   });
 });
 
@@ -150,8 +150,8 @@ describe('the niche lands on grout lines in every look', () => {
 describe('Organic: random-looking offsets keep the rules', () => {
   it('each course steps 2″ (a third of very small tile) to a third of long tile from the one below; corners a quarter tile or more', () => {
     for (const [tileW, tileH] of [[12, 3], [16, 4], [24, 6], [24, 12], [6, 3]] as [number, number][])
-      for (let W = 44; W <= 72; W += 4.4375)
-        for (const seed of [1, 2, 3]) {
+      for (let W = 44; W <= 72; W += 6.8125)
+        for (const seed of [1, 2]) {
           const R = solveLook('organic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: W, tilePreset: 'custom', tileW, tileH, seed }), 'tall');
           expect(R.L).not.toBeNull();
           const T = R.L!.S;

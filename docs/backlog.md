@@ -165,6 +165,10 @@ From the first phone test (Nov 27, 2026):
   allow a 4th step" (mix in 1/4 offset). Done: random steps 2″ and up; Organic
   may use a 1/4 offset, falling back to random offsets (with a note) where a
   1/4 offset can't keep the corners a quarter tile.
+- [x] Nov 28: "I kept noticing that balanced and classic were becoming the
+  same thing... every wall should be able to portray each of the looks."
+  Classic is running bond only, Balanced stacked (or 1/3, 1/4 offset), each
+  style in its own patterns on every wall.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
