@@ -130,11 +130,27 @@ From the first phone test (Nov 27, 2026):
   snap the sill and head to grout lines, moving an already-framed niche's
   sill or head block when needed ("reframe: …" on the card); niche sizes are
   targets, not limits.
-- [ ] When a look moves an already-framed niche's blocking, the rough-in
-  sheet still calls it "Your rough opening". Say "Reframe the rough opening
-  to …" and list the block moves.
-- [ ] An already-framed niche off center still breaks Classic and Balanced
-  ("niche not centered"): looks don't move framing sideways. Should they?
+- [ ] **"Already framed" means "between existing studs"** (Nov 28): "when I
+  select 'niche is already framed' that should be treated as 'follow
+  existing stud spacing'... we aren't going to encounter an already framed
+  niche that we reuse for a new project. we may however, encounter a pre
+  fabricated niche whose size can't change but will always be able to be fit
+  between 2 existing studs as long as they are at least 14.5″ wide."
+  Done (Nov 28): the first question is now "How is the niche built?" (New
+  blocking / Between existing studs); walls saved as "Already framed" open as
+  between existing studs.
+- [x] **Prefabricated niche** (Nov 28): "those prefab niches sit flush with
+  the 1/2″ schluter board. they do have rough framing on all sides. I'd still
+  assume a 1/16th″ gap on all sides for tolerance... others I have seen are
+  framed the same way but can have up to a 1″ lip as the frame." Built: third
+  answer to "How is the niche built?"; Schluter KERDI-BOARD-SN 12×6, 12×12,
+  12×20, 12×28 or your own sizes; lip (0 for Schluter: tile runs to the
+  opening); rough opening from the box, framed 1/16″ larger each side; inside
+  not tiled; the bottom lands on a grout line; the rough-in sheet says when the
+  opening is wider than the bay (trim or move a stud).
+- [ ] Check the Schluter rough-opening sizes: the planner starts from 14 3/8″
+  wide and the same allowance on the height (e.g. 30 3/8″ for 12×28). Fix the
+  presets once you have the box or spec sheet in hand.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

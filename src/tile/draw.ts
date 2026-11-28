@@ -8,7 +8,7 @@
  * Drawings use the old tool's CSS variables and classes (see the tile part of
  * src/styles/app.css); the sheets carry their own black-on-white style.
  */
-import type { TileS } from './settings';
+import { PF_GAP, isPrefab, type TileS } from './settings';
 import {
   EPS,
   PATN,
@@ -150,6 +150,11 @@ export function drawTile(S: TileS, r: Opt | null): Svg {
       }
     }
     o += R(x1, y1, h.w, r.hF, null, 'fill="var(--recess)"');
+    // A prefab's lip, the frame the tile butts to.
+    if (isPrefab(S) && S.pfLip > 0) {
+      const l = S.pfLip;
+      o += R(x1, y1, h.w, r.hF, 'marble') + R(x1 + l, y1 + l, h.w - 2 * l, r.hF - 2 * l, null, 'fill="var(--recess)"');
+    }
     let yb = y1;
     r.int.bays.forEach((b) => {
       let y = yb;
@@ -597,7 +602,9 @@ function sheetNiche(S: TileS, r: Opt, fr: Framing, info: SheetInfo): string {
   // sheet frame
   const notes = [
     'Dimensions are from the finished floor and the left inside corner unless noted. Verify in field before cutting.',
-    `Rough opening is framing. Finished opening is smaller by ${fmt(B)} per face (board, thinset, tile).`,
+    isPrefab(S)
+      ? `Prefabricated niche ${fmt(S.pfW)} × ${fmt(S.pfH)} inside, not tiled. Frame its ${fmt(S.pfRW)} × ${fmt(S.pfRH)} rough opening ${fmt(PF_GAP)} larger on every side.`
+      : `Rough opening is framing. Finished opening is smaller by ${fmt(B)} per face (board, thinset, tile).`,
     `Set a ledger with its top at ${fmt(G.T0 + G.g)} above floor (bottom of 2nd course). First course ${r.p < S.tileH - EPS ? 'cut to ' + fmt(r.p) : 'full tile'}.`,
     `Field tile ${fmt(S.tileH)} × ${fmt(S.tileW)}, ${S.grout < 0.05 ? 'butted joint' : fmt(S.grout) + ' joint'}, ${PATN[S.pattern]}.`,
     `Niche sides: ${fr.full ? 'full-height studs' : 'blocks between sill and head'}. Blocking 2×4 laid ${S.block === 'edge' ? 'on edge' : 'flat'}.`,

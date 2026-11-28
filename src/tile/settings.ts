@@ -85,6 +85,15 @@ export interface TileS {
   onCenter: 'auto' | 'tile' | 'joint';
   /** The grout joint can't change (handmade / zellige laid with a minimal joint). New. */
   groutFixed: boolean;
+  /** How the niche is built: new blocking anywhere, or between existing studs ('' until answered). New; sets framed and studs. */
+  build: '' | 'new' | 'bay' | 'prefab';
+  /** Prefabricated niche (build 'prefab'): model, inside opening, lip the tile butts to, and the rough opening it needs. */
+  pfModel: string;
+  pfW: number;
+  pfH: number;
+  pfLip: number;
+  pfRW: number;
+  pfRH: number;
   /** Avoid thin pieces beside the niche (the old tool always did). Looks turn it off: sides don't matter. New. */
   sideLegs: boolean;
   /* set by tileS(): the finished tile wall */
@@ -109,6 +118,13 @@ export const DEF: TileS = {
   onCenter: 'auto',
   groutFixed: false,
   sideLegs: true,
+  build: '',
+  pfModel: 'kb12x28',
+  pfW: 12,
+  pfH: 28,
+  pfLip: 0,
+  pfRW: 14.375,
+  pfRH: 30.375,
 };
 
 /** Keys the old tool kept in IN rather than S. */
@@ -127,3 +143,19 @@ export function fromSaved(saved: Record<string, unknown> | null | undefined): Ti
 export function normalize(S: TileS): void {
   if (S.sillType === 'marble') S.shelfT = S.sillT;
 }
+
+/** Framing gap around a prefabricated niche, each side (owner, Nov 28). */
+export const PF_GAP = 1 / 16;
+
+/** Prefabricated niches to pick from: inside opening W × H. Schluter KERDI-BOARD-SN sits flush with 1/2″ board (no lip). */
+export const PREFABS: { key: string; name: string; w: number; h: number; lip: number }[] = [
+  { key: 'kb12x6', name: 'Schluter KERDI-BOARD-SN 12 × 6', w: 12, h: 6, lip: 0 },
+  { key: 'kb12x12', name: 'Schluter KERDI-BOARD-SN 12 × 12', w: 12, h: 12, lip: 0 },
+  { key: 'kb12x20', name: 'Schluter KERDI-BOARD-SN 12 × 20', w: 12, h: 20, lip: 0 },
+  { key: 'kb12x28', name: 'Schluter KERDI-BOARD-SN 12 × 28', w: 12, h: 28, lip: 0 },
+];
+
+export const isPrefab = (S: TileS) => S.build === 'prefab' && S.framed !== 'yes' && S.wallType !== 'plain';
+/** Where the wall tile stops around a prefab: its opening plus the lip on each side. */
+export const pfStopW = (S: TileS) => S.pfW + 2 * S.pfLip;
+export const pfStopH = (S: TileS) => S.pfH + 2 * S.pfLip;

@@ -101,6 +101,15 @@ export function readTile(doc: JobDoc, wallId: Id): { S: TileS; ui: TileUI; src: 
   const tl = wall.tileLayout;
   const saved = (tl?.settings ?? {}) as Record<string, unknown>;
   const S = fromSaved(saved);
+  // Walls saved before "How is the niche built?": an already-framed niche means between existing studs (owner, Nov 28).
+  if (saved.build === undefined && S.framed) {
+    if (S.framed === 'yes') {
+      S.framed = 'no';
+      S.studs = 'bay';
+      if (typeof saved.bayL !== 'number') S.bayL = S.rLeft;
+    }
+    S.build = S.studs === 'bay' ? 'bay' : 'new';
+  }
   if (tl) {
     S.tileW = tl.tileWidth;
     S.tileH = tl.tileHeight;

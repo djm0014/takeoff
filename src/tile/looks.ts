@@ -9,7 +9,7 @@
  * already had (or the new shift / onCenter / quarter / groutFixed ones), so a
  * look's layout is an ordinary layout you can keep fine-tuning by hand.
  */
-import type { TileS } from './settings';
+import { isPrefab, type TileS } from './settings';
 import {
   fieldL,
   fieldR,
@@ -116,11 +116,12 @@ export function checkLook(look: LookKey, L: Layout, shape: Shape | null, base: T
   other = fails.length;
 
   if (!r.plain) {
-    if (!r.sill.aligned || !r.head.aligned) fails.push('niche top or bottom not on a grout line');
+    // A prefab's height is fixed: its bottom goes on a grout line and the head lands where it lands (owner, Nov 28).
+    if (isPrefab(S) ? !r.sill.aligned : !r.sill.aligned || !r.head.aligned) fails.push(isPrefab(S) ? 'niche bottom not on a grout line' : 'niche top or bottom not on a grout line');
     if (r.sF < SILL_MIN - 1e-6 || r.sF > SILL_MAX + 1e-6) fails.push(`niche sill at ${fmt(r.sF)} (outside 40″ to 52″)`);
     score += Math.max(0, SILL_LO - r.sF, r.sF - SILL_HI) * 1;
     const bays = bayHeights(S, r);
-    if (bays.some((b) => b < BAY_MIN - 1e-6)) fails.push(`a niche bay under ${BAY_MIN}″ tall`);
+    if (!isPrefab(S) && bays.some((b) => b < BAY_MIN - 1e-6)) fails.push(`a niche bay under ${BAY_MIN}″ tall`);
     if (shape && S.framed !== 'yes') {
       const sh = SHAPES[shape];
       const m = r.G.m;
@@ -226,7 +227,7 @@ function tryVariant(look: LookKey, V: TileS, shape: Shape | null, base: TileS, k
     // The niche lands its sill and head on grout lines: try the snaps Fine-tune offers, with the course moves.
     // Setup sizes aren't limits (owner, Nov 28), so this includes moving an already-framed sill or head block.
     let snaps: [number, number][] = [[0, 0]];
-    if (!o.plain) {
+    if (!o.plain && !isPrefab(V)) {
       const L0 = layout(V, i, NO_ADJ, options);
       if (L0) {
         const sn = snapInfo(L0.S, L0.r);
@@ -235,7 +236,9 @@ function tryVariant(look: LookKey, V: TileS, shape: Shape | null, base: TileS, k
         snaps = his.flatMap((hi) => sis.map((si): [number, number] => [hi, si]));
       }
     }
-    const tries = snaps.flatMap(([hi, si]) => MOVES.map((m): Adjust => (hi || si ? { ...m, adjHin: hi, adjSin: si } : m)));
+    // A prefab only moves up or down by whole courses; its height can't change.
+    const moves = isPrefab(V) ? MOVES.filter((m) => m.adjH === 0) : MOVES;
+    const tries = snaps.flatMap(([hi, si]) => moves.map((m): Adjust => (hi || si ? { ...m, adjHin: hi, adjSin: si } : m)));
     for (const adj of tries) {
       const L = layout(V, i, adj, options);
       if (!L || (adj !== NO_ADJ && !L.adjusted)) continue;

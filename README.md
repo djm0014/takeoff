@@ -14,6 +14,7 @@ scope and milestones.
 - [x] Tile, presentation and framing drawings; sheets A-1 (elevations, niche detail, notes) and A-2 (niche section), downloadable as SVG for 11×17
 - [x] Added since the first field test: niche course moves stay put when other answers change ("Back to original size" to undo); move a stud-bay niche left or right one bay; a quick fix that moves the layout line off center to get rid of corner slivers
 - [x] Looks (auto mode): Classic, Balanced and Simple cards, each the best layout that keeps the rules in `docs/tile-looks.md`; niche shapes square, tall, linear; "Modified" after a change; the look's name on the sheets
+- [x] Setup: "How is the niche built?" New blocking, Between existing studs, or a prefabricated niche (Schluter KERDI-BOARD-SN sizes or your own)
 - [x] Matches the old tool on 14 walls, down to the exact drawings (`tests/fixtures/niche-scenarios.json`)
 - [x] On the shared record: wall width (stud to stud) and ceiling from the floor plan; the tub from the floor plan, including the tub end on each end wall of an alcove; tub height kept on the tub; stud depth and first stud on the wall (shared with the vanity); build-up saved as the wall's finish thickness
 

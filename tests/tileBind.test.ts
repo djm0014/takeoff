@@ -4,6 +4,8 @@ import { newPlanItem } from '../src/plan/items';
 import { ensureRoom, makeRectangle, roomWalls } from '../src/plan/room';
 import { readTile, writeTile } from '../src/tile/bind';
 import { layout } from '../src/tile/solve';
+import { STEPS, type ChoiceF } from '../src/tile/fields';
+import { fromSaved } from '../src/tile/settings';
 
 /** 5′ × 8′ room with a 60″ tub along wall 1 (a tub alcove). */
 function job(): { doc: JobDoc; ids: string[] } {
@@ -67,5 +69,31 @@ describe('tile settings on the shared record', () => {
     expect(readTile(doc, ids[0]!).S.tubPos).toBe('right');
     tub.position = 10;
     expect(readTile(doc, ids[0]!).S.tubPos).toBe('center');
+  });
+});
+
+describe('how the niche is built (replaces "Is the niche framed yet?")', () => {
+  it('opens a wall saved as "Already framed" as between existing studs', () => {
+    const { doc, ids } = job();
+    const wall = doc.walls.find((w) => w.id === ids[0])!;
+    wall.tileLayout = { tileWidth: 12, tileHeight: 3, grout: 0.125, niche: null, settings: { framed: 'yes', rLeft: 22, cur: 6 } };
+    const { S } = readTile(doc, ids[0]!);
+    expect([S.build, S.framed, S.studs, S.bayL]).toEqual(['bay', 'no', 'bay', 22]);
+  });
+
+  it('keeps older "not framed yet" walls as they were', () => {
+    const { doc, ids } = job();
+    const wall = doc.walls.find((w) => w.id === ids[0])!;
+    wall.tileLayout = { tileWidth: 12, tileHeight: 3, grout: 0.125, niche: null, settings: { framed: 'no', studs: 'free', cur: 6 } };
+    expect(readTile(doc, ids[0]!).S.build).toBe('new');
+  });
+
+  it('the answer sets the stud-bay setup', () => {
+    const f = STEPS[0]!.fields.find((x) => 'id' in x && x.id === 'build') as ChoiceF;
+    const S = fromSaved({});
+    f.on!(S, 'bay');
+    expect([S.framed, S.studs]).toEqual(['no', 'bay']);
+    f.on!(S, 'new');
+    expect([S.framed, S.studs]).toEqual(['no', 'free']);
   });
 });
