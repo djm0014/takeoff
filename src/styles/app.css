@@ -774,7 +774,8 @@ label.check input { width: 22px; height: 22px; accent-color: var(--accent); }
 .opt small { grid-column: 1; color: var(--ink-2); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 .opt b { grid-column: 1; font: 600 18px var(--font-head); }
 .opt span { grid-column: 1; color: var(--ink-2); font-size: 14px; }
-.opt .dot { grid-column: 2; grid-row: 1 / 4; align-self: center; }
+.opt .dot { grid-column: 2; grid-row: 1 / 5; align-self: center; }
+.opt .breaks { grid-column: 1; color: var(--warn); font-size: 13.5px; font-weight: 600; }
 .headline { font: 600 17px var(--font-head); display: flex; align-items: center; gap: 8px; }
 .tile-view .legend, .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }

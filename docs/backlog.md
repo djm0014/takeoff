@@ -119,6 +119,11 @@ From the first phone test (Nov 27, 2026):
   each finds the best fit for the wall, keeps the sliver rules and applies the
   fixes on its own. Niche size and shape too (square, tall, linear). Manual
   mode keeps today's quick fixes. Rules: `docs/tile-looks.md` (from the questionnaire, Nov 28).
+- [x] Nov 28: "perhaps our rules were too limiting. in actuality, all walls
+  should have all options except for the Simple look. the simple look should
+  be an option only if the niche is positioned between studs." Classic and
+  Balanced now always show (closest fit with the broken rule named); Simple
+  only for a niche that must fit an existing stud bay.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
