@@ -439,6 +439,7 @@ export function renderTileTab(c: WallCtx): void {
           : null,
       ),
       close ? h('p', { class: 'muted small', style: 'margin:0' }, 'This wall can’t keep every rule in this style; this is the closest fit.') : null,
+      R?.note ? h('p', { class: 'muted small', style: 'margin:0' }, R.note) : null,
     ];
     looksEl.replaceChildren(...parts.filter((x): x is HTMLElement => !!x));
   }

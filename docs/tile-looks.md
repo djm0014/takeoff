@@ -60,7 +60,7 @@ Checked over every wall width from 48″ to 72″ (1/16″ steps), 12″ and 24�
 | --- | --- | --- | --- | --- |
 | **Classic** (symmetrical) | half bond or stacked | centered on the wall (a niche never goes above or below a valve) | tile or joint on center, whichever cuts better; never moved off center | exactly equal both ends |
 | **Balanced** | half bond, stacked or 1/4 offset | stays centered; only the tile moves | may move up to a quarter tile off center | at least a quarter tile |
-| **Organic** | random-looking (no repeating step): each course's joints at least 4″ from the course below (a third of the tile for tile under 12″); a joint may line up with the one two courses up; long tile (over 18″) steps no more than 1/3 of the tile; corners a quarter tile or more. Shuffle picks another arrangement. The layout sheet lists each course's left piece | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
+| **Organic** | random-looking (no repeating step), or a 1/4 offset (Nov 28: "set the smallest of organic to 2″ and allow a 4th step"): each course's joints at least 2″ from the course below; a joint may line up with the one two courses up; long tile (over 18″) steps no more than 1/3 of the tile; corners a quarter tile or more. Shuffle picks another arrangement. The layout sheet lists each course's left piece | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
 | **Simple** (only for a niche bound by studs) | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
 
 Simple is the budget option: less planning, the tile lines up as it falls.
@@ -114,3 +114,12 @@ design option (later).
   where its height puts it. Looks only move it by whole courses.
 - Simple puts it centered in your stud bay; Classic and Balanced center it on
   the wall with new blocking. No niche-shape buttons.
+
+## Organic: what to expect (Nov 28)
+
+- Random offsets: each course steps 2″ or more from the one below (a third of
+  the tile for tile under 6″), and long tile no more than a third.
+- 1/4 offset can keep corner pieces of a quarter tile on only some wall
+  widths (about 1 in 5 with 12″ tile, 1 in 25 with 24″ tile): its four kinds
+  of courses end a quarter tile apart. When it can't, Organic uses random
+  offsets and the Style card says so.

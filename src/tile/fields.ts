@@ -230,9 +230,9 @@ export const STEPS: Step[] = [
             ['third', '1/3 offset'],
             ['quarter', '1/4 offset'],
             ['stack', 'Stacked'],
+            ['random', 'Random offsets'],
           ] as [TileS['pattern'], string][]
-        ).map(([v, l]): [string, string, null, (S: TileS) => boolean] => [v, l, null, (S) => !S.style || (STYLE_PATTERNS[S.style] ?? []).includes(v)]),
-        show: (S) => S.style !== 'organic',
+        ).map(([v, l]): [string, string, null, (S: TileS) => boolean] => [v, l, null, (S) => (!S.style ? v !== 'random' : (STYLE_PATTERNS[S.style] ?? []).includes(v))]),
       },
       { t: 'check', id: 'groutFixed', label: 'Grout joint can’t change (handmade or zellige tile)' },
       { t: 'choice', id: 'minFrac', label: 'Smallest cut you accept', opts: [[0.5, 'Half a tile'], [0.3333, 'A third'], [0.25, 'A quarter']] },

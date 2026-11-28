@@ -34,14 +34,16 @@ export type Shape = 'square' | 'tall' | 'linear';
 export const LOOKS: { key: LookKey; name: string; blurb: string }[] = [
   { key: 'classic', name: 'Classic', blurb: 'Symmetrical: niche and tile centered on the wall, the same piece at both corners.' },
   { key: 'balanced', name: 'Balanced', blurb: 'Niche centered; the tile may move up to a quarter tile off center to clear corner slivers.' },
-  { key: 'organic', name: 'Organic', blurb: 'Random-looking offsets, each course at least 4″ from the one below; no slivers at the corners.' },
+  { key: 'organic', name: 'Organic', blurb: 'Random-looking offsets (each course at least 2″ from the one below) or a 1/4 offset; no slivers at the corners.' },
   { key: 'simple', name: 'Simple', blurb: 'The niche goes in your stud bay; less planning, the tile lines up as it falls.' },
 ];
+export const PATTERN_NAMES: Record<TileS['pattern'], string> = { half: 'Half bond', third: '1/3 offset', quarter: '1/4 offset', stack: 'Stacked', random: 'Random offsets' };
+
 /** Patterns each style may use (docs/tile-looks.md). */
 export const STYLE_PATTERNS: Record<LookKey, TileS['pattern'][]> = {
   classic: ['half', 'stack'],
   balanced: ['half', 'stack', 'quarter'],
-  organic: ['random'],
+  organic: ['random', 'quarter'],
   simple: ['half', 'third', 'quarter', 'stack'],
 };
 /** Simple is a style only for a niche bound by studs (between existing studs, or a prefab). */
@@ -171,6 +173,8 @@ export interface LookResult {
   reason: string;
   /** True when this look doesn't apply to the wall at all (Simple without a stud bay): no card, no mention. */
   hidden?: boolean;
+  /** Said when the style couldn't use the pattern picked in the setup. */
+  note?: string;
 }
 
 /** The smallest corner piece with the layout line at xc (a tile centered on it). */
@@ -324,7 +328,13 @@ export function solveLook(look: LookKey, base: TileS, shape: Shape | null): Look
     if (keep.best) break; // the first pattern that works
   }
   const b = keep.best;
-  if (b) return { look, S: b.S, optIdx: b.optIdx, adj: b.adj, L: b.L, options: b.options, check: b.check, broken: [], reason: '' };
+  if (b) {
+    const note =
+      allowed.includes(base.pattern) && b.S.pattern !== base.pattern
+        ? `${PATTERN_NAMES[base.pattern]} can’t keep every rule on this wall, so this uses ${PATTERN_NAMES[b.S.pattern].toLowerCase()}.`
+        : undefined;
+    return { look, S: b.S, optIdx: b.optIdx, adj: b.adj, L: b.L, options: b.options, check: b.check, broken: [], reason: '', note };
+  }
   // No layout keeps every rule: give the closest one, saying which rules it breaks.
   if (!keep.miss) {
     const pattern = uniq[0]!;
@@ -348,7 +358,7 @@ export function lookLine(R: LookResult): string {
   if (!R.L || !R.S) return R.reason;
   const L = R.L;
   const S = L.S;
-  const parts = [`${({ half: 'Half bond', third: '1/3 offset', quarter: '1/4 offset', stack: 'Stacked', random: 'Random offset' } as const)[S.pattern]}, ${fmt(S.grout)} joint`];
+  const parts = [`${PATTERN_NAMES[S.pattern]}, ${fmt(S.grout)} joint`];
   if (!L.r.plain) parts.push(`niche ${fmt(L.r.h.w)} × ${fmt(L.r.hF)}, sill ${fmt(L.r.sF)} AFF`);
   parts.push(`corners ${fmt(minCorner(L))} and up`);
   if (S.shift) parts.push(`tile moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'}`);

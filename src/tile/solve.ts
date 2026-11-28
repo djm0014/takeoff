@@ -278,8 +278,8 @@ export function patternShifts(S: TileS): number[] {
 
 /* ---------- random-looking pattern (Organic; new, not in the old tool) ---------- */
 
-/** Smallest step between a course's joints and the course below's (owner: 4″; a third of the tile for small tile). */
-export const randomMinStep = (S: TileS) => Math.min(4, S.tileW / 3);
+/** Smallest step between a course's joints and the course below's (owner: 2″, Nov 28; a third of the tile for very small tile). */
+export const randomMinStep = (S: TileS) => Math.min(2, S.tileW / 3);
 /** Largest step: long tile (over 18″) steps no more than a third of the tile, for bow and lippage. */
 export const randomMaxStep = (S: TileS) => (S.tileW > 18 ? S.tileW / 3 : (S.tileW + S.grout) / 2);
 

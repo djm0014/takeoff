@@ -161,9 +161,10 @@ From the first phone test (Nov 27, 2026):
   simple... but not for niches that aren't bound by studs." Built: Style on
   the Tile step; results open on that style; Organic (random-looking) added;
   Simple only for a niche between existing studs or a prefab.
-- [ ] Organic on 12″ tile looks like a loose running bond: with joints 4″ or
-  more from the course below and only 12″ between joints, each course can only
-  step 4″ to 8″. Longer tile (16″, 24″) gives more variety.
+- [x] Nov 28, before merging: "let's set the smallest of organic to 2″ and
+  allow a 4th step" (mix in 1/4 offset). Done: random steps 2″ and up; Organic
+  may use a 1/4 offset, falling back to random offsets (with a note) where a
+  1/4 offset can't keep the corners a quarter tile.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

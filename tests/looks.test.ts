@@ -10,7 +10,7 @@ const TILES: Partial<TileS>[] = [
 ];
 const LOOKS: LookKey[] = ['classic', 'balanced', 'organic', 'simple'];
 const SHAPES: Shape[] = ['square', 'tall', 'linear'];
-const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balanced: ['half', 'stack', 'quarter'], organic: ['random'], simple: ['half', 'third', 'quarter', 'stack'] };
+const ALLOWED: Record<LookKey, string[]> = { classic: ['half', 'stack'], balanced: ['half', 'stack', 'quarter'], organic: ['random', 'quarter'], simple: ['half', 'third', 'quarter', 'stack'] };
 
 describe('looks keep their rules', () => {
   it('every layout a look gives passes every rule, checked on its own', () => {
@@ -148,7 +148,7 @@ describe('the niche lands on grout lines in every look', () => {
 });
 
 describe('Organic: random-looking offsets keep the rules', () => {
-  it('each course steps 4″ (a third of small tile) to a third of long tile from the one below; corners a quarter tile or more', () => {
+  it('each course steps 2″ (a third of very small tile) to a third of long tile from the one below; corners a quarter tile or more', () => {
     for (const [tileW, tileH] of [[12, 3], [16, 4], [24, 6], [24, 12], [6, 3]] as [number, number][])
       for (let W = 44; W <= 72; W += 4.4375)
         for (const seed of [1, 2, 3]) {
@@ -156,7 +156,7 @@ describe('Organic: random-looking offsets keep the rules', () => {
           expect(R.L).not.toBeNull();
           const T = R.L!.S;
           const mw = tileW + T.grout;
-          const lo = Math.min(4, tileW / 3);
+          const lo = Math.min(2, tileW / 3);
           const hi = tileW > 18 ? tileW / 3 : mw / 2;
           for (let i = 0; i < 20; i++) {
             const d = (((rowShift(T, i) - rowShift(T, i - 1)) % mw) + mw) % mw;
@@ -167,6 +167,19 @@ describe('Organic: random-looking offsets keep the rules', () => {
           expect(Math.min(R.L!.r.h.cL, R.L!.r.h.cR)).toBeGreaterThanOrEqual(tileW / 4 - 1e-6);
           expect(R.L!.sheet.find((r) => r[0] === 'Course starts')?.[1]).toMatch(/^Left piece, from the first course up: 1: /);
         }
+  });
+
+  it('uses a 1/4 offset when that is the pattern picked and it keeps the rules', () => {
+    const R = solveLook('organic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: 44.5, pattern: 'quarter' }), 'tall');
+    expect(R.L!.S.pattern).toBe('quarter');
+    expect(R.note).toBeUndefined();
+    expect(Math.min(R.L!.r.h.cL, R.L!.r.h.cR)).toBeGreaterThanOrEqual(3 - 1e-6);
+  });
+
+  it('says so when the 1/4 offset picked can’t keep the rules and random steps are used', () => {
+    const R = solveLook('organic', fromSaved({ framed: 'no', widthRef: 'framing', wallW: 61, pattern: 'quarter' }), 'tall');
+    expect(R.L!.S.pattern).toBe('random');
+    expect(R.note).toBe('1/4 offset can’t keep every rule on this wall, so this uses random offsets.');
   });
 
   it('the same seed gives the same wall; Shuffle (a new seed) gives another', () => {
