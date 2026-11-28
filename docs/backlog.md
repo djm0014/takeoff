@@ -118,7 +118,7 @@ From the first phone test (Nov 27, 2026):
   Symmetrical, Balanced, Offset (1/3, "more organic feel"), Fit the framing;
   each finds the best fit for the wall, keeps the sliver rules and applies the
   fixes on its own. Niche size and shape too (square, tall, linear). Manual
-  mode keeps today's quick fixes. Rules being collected in a questionnaire.
+  mode keeps today's quick fixes. Rules: `docs/tile-looks.md` (from the questionnaire, Nov 28).
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
