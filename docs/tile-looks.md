@@ -25,9 +25,9 @@ auto mode is built from. Items marked **Open** still need an answer.
 | Niche top and bottom | on a grout joint, or a full tile; no strips above or below |
 | Niche sides | slivers allowed (not a priority) |
 | Top course at the ceiling | at least half the tile height |
-| Bottom course on the tub | full tile preferred; may be cut down to 3/4 of the tile height when that brings the ceiling course to at least half |
+| Bottom course on the tub or shower pan | full tile preferred; may be cut down to 3/4 of the tile height when that brings the ceiling course to at least half |
 | Splitting a sliver with the next tile | not used |
-| Grout joint | may change to make a look work, **unless the tile is marked "joint fixed"** (handmade / zellige, stacked with a minimal joint) |
+| Grout joint | may change between 1/16″ and 3/16″ to make a look work, **unless the tile is marked "joint fixed"** (handmade / zellige, stacked with a minimal joint) |
 | Niche sill (bottom), AFF | 40″ to 52″, aim for 42″ to 48″ |
 | Niche height | whole courses; width free |
 | Niche clear space | every bay (above and below a shelf too) at least 10″ tall: shampoo bottles |
@@ -52,13 +52,13 @@ Checked over every wall width from 48″ to 72″ (1/16″ steps), 12″ and 24�
 
 | Look | Pattern | Niche | Layout line | Corners |
 | --- | --- | --- | --- | --- |
-| **Classic** (symmetrical) | half bond or stacked | centered on the tub/valve when there is one, otherwise the wall | tile or joint on center, whichever cuts better; never moved off center | exactly equal both ends |
-| **Balanced** | half bond or stacked (**Open**: also 1/4?) | stays centered; only the tile moves | may move up to a quarter tile off center | at least a quarter tile |
-| **Offset** | random-looking (no repeating step) (**Open**: rules below) | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
-| **Stud bay** (working name for "Fit the framing") | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
+| **Classic** (symmetrical) | half bond or stacked | centered on the wall (a niche never goes above or below a valve) | tile or joint on center, whichever cuts better; never moved off center | exactly equal both ends |
+| **Balanced** | half bond, stacked or 1/4 offset | stays centered; only the tile moves | may move up to a quarter tile off center | at least a quarter tile |
+| **Offset** | random-looking (no repeating step): each row at least 4″ from the row below; a joint may line up with the one two rows up; long tile (over 18″) steps no more than 1/3 of the tile | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
+| **Simple** (fits the framing) | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
 
-"Fit the framing" is the budget option: less planning, the tile lines up as
-it falls. It needs a name that doesn't sound cheap (**Open**).
+Simple is the budget option: less planning, the tile lines up as it falls.
+A linear niche is wider than a bay, so it isn't Simple.
 
 ## Niche shapes
 
@@ -71,18 +71,29 @@ it falls. It needs a name that doesn't sound cheap (**Open**).
 Shelves are asked in the setup. An accent tile on the niche's back wall is a
 design option (later).
 
-## Open questions
+## Answered (Nov 28, 2026)
 
-1. **Classic with the niche on the valve.** When the niche is centered on the
-   tub or valve and that isn't the wall's center, the corners can only be
-   equal if the tile is centered on the wall, not on the niche. Which wins:
-   equal corners (tile centered on the wall), or tile centered on the niche?
-2. **Random-looking pattern.** Rules for the steps between rows: the smallest
-   step between one row and the next (e.g. 4″, or a quarter tile), and how
-   close a joint may come to the joint two rows up. Long tile (over 18″) is
-   usually laid with no more than a 1/3 offset because of bow and lippage: cap
-   the steps at 1/3 for long tile?
-3. **Grout range** when a look may change it: e.g. 1/16″ to 3/16″?
-4. **Balanced patterns**: half bond and stacked, plus 1/4 offset?
-5. **Name for Fit the framing.**
-6. **Floor base** (shower pan, no tub): same bottom-course rule as the tub?
+1. A niche never goes above or below a valve, so Classic centers it on the wall.
+2. Random-looking: rows step at least 4″; a joint may line up two rows up;
+   long tile steps no more than 1/3.
+3. Grout 1/16″ to 3/16″.
+4. Balanced may use 1/4 offset.
+5. "Fit the framing" is called **Simple**.
+6. A shower pan follows the same bottom-course rule as a tub.
+
+## Build steps
+
+1. Look cards for Classic, Balanced and Simple; niche shapes; grout; Modified
+   label; name on the sheets. **Built** (`src/tile/looks.ts`, Nov 28).
+2. Offset with the random-looking pattern.
+3. Later: accent back wall, deeper niche, client questionnaire.
+
+## Notes from building step 1
+
+- Looks don't fight for the niche sides (your answer: sides don't matter).
+  The Cuts list still shows a thin piece beside the niche, marked "Allowed".
+- When a look gives the same layout as another, its card says "same as
+  Classic on this wall".
+- Simple uses the stud bay nearest the wall's middle, from the studs on the
+  Build-up step (new framing: 16″ on center from the left corner).
+- The cards show first; nothing changes until you tap one.

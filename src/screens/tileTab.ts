@@ -38,6 +38,7 @@ import {
   type Opt,
   type SheetRow,
 } from '../tile/solve';
+import { LOOKS, SHAPES, lookLine, lookName, shapeOf, solveLook, type LookKey, type LookResult, type Shape } from '../tile/looks';
 import type { WallCtx } from './wallScreen';
 
 const landscape = matchMedia('(orientation: landscape) and (min-width: 600px)');
@@ -246,7 +247,7 @@ export function renderTileTab(c: WallCtx): void {
   let res: Opt[] = [];
   /** Solve again when an answer that changes the options changed; keep = keep the picked option. */
   function solveIfChanged(keep: boolean) {
-    const k = JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) ? undefined : v));
+    const k = solveKey();
     if (k === cacheK) return;
     // The first solve on opening keeps the saved option and course moves.
     const first = cacheK === '';
@@ -274,6 +275,108 @@ export function renderTileTab(c: WallCtx): void {
   const side = h('div', { class: 'plan-side stack' });
   const grid = h('div', { class: 'plan-layout' }, pinned, side);
   let lastL: Layout | null = null;
+
+  /* ---------- looks (auto mode) ---------- */
+
+  const solveKey = () => JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) ? undefined : v));
+  /** Settings a look chooses; changing them doesn't change what the looks start from. */
+  const LOOK_KEYS = ['pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
+  const fingerprint = () => JSON.stringify([S, ui.optIdx, ui.adjH, ui.adjS, ui.adjHin, ui.adjSin]);
+  const modified = () => !!ui.look && fingerprint() !== ui.lookKey;
+  /** "Classic", "Modified Classic", or '' when no look is in use. */
+  const lookLabel = () => (ui.look ? (modified() ? 'Modified ' : '') + lookName(ui.look) : '');
+  const nicheLooks = () => !isPlain(S) && S.framed === 'no';
+  const curShape = (): Shape | null => (nicheLooks() ? ((ui.shape as Shape) || shapeOf(S)) : null);
+  let looksKey = '';
+  let looksBase: TileS = S;
+  const looks = new Map<LookKey, LookResult>();
+  let looksTimer: ReturnType<typeof setTimeout> | undefined;
+  const looksEl = h('section', { class: 'card stack looks' });
+
+  /** Work the looks out again when the answers they start from change, one look at a time so the screen stays live. */
+  function refreshLooks() {
+    const key = JSON.stringify([S, curShape()], (k, v) => (LOOK_KEYS.includes(k) || DRAW_ONLY.includes(k) ? undefined : v));
+    if (key !== looksKey) {
+      looksKey = key;
+      looksBase = { ...S };
+      looks.clear();
+      clearTimeout(looksTimer);
+      const todo = LOOKS.map((l) => l.key);
+      const next = () => {
+        const k = todo.shift();
+        if (!k) return;
+        looks.set(k, solveLook(k, looksBase, curShape()));
+        paintLooks();
+        looksTimer = setTimeout(next, 0);
+      };
+      looksTimer = setTimeout(next, 0);
+    }
+    paintLooks();
+  }
+
+  function applyLook(R: LookResult) {
+    if (!R.S) return;
+    S = { ...R.S };
+    normalize(S);
+    ui.optIdx = R.optIdx;
+    Object.assign(ui, R.adj);
+    ui.look = R.look;
+    ui.lookShape = curShape() ?? '';
+    cacheK = solveKey();
+    res = R.options;
+    ui.lookKey = fingerprint();
+    results(true, true);
+  }
+
+  function paintLooks() {
+    const shape = curShape();
+    const done = LOOKS.filter((l) => looks.has(l.key));
+    const fit = done.filter((l) => looks.get(l.key)!.L);
+    const sameAs = (a: LookResult, b: LookResult | undefined) => !!b?.L && !!a.L && JSON.stringify([a.S, a.optIdx, a.adj]) === JSON.stringify([b.S, b.optIdx, b.adj]);
+    const cards = fit.map((l, i) => {
+      const R = looks.get(l.key)!;
+      const dup = fit.slice(0, i).find((p) => sameAs(R, looks.get(p.key)));
+      const on = ui.look === l.key && ui.lookShape === (shape ?? '');
+      return h(
+        'button',
+        { type: 'button', class: 'opt look', 'aria-pressed': String(on), onclick: () => applyLook(R) },
+        h('small', {}, on && modified() ? 'In use, modified' : on ? 'In use' : 'Look'),
+        h('b', {}, (on && modified() ? 'Modified ' : '') + l.name),
+        h('span', {}, lookLine(R) + (dup ? ` · same as ${dup.name} on this wall` : '')),
+        h('i', { class: 'dot ok', 'aria-label': 'Keeps the rules' }),
+      );
+    });
+    const missing = done.filter((l) => !looks.get(l.key)!.L);
+    const busy = LOOKS.find((l) => !looks.has(l.key));
+    const parts: (HTMLElement | null)[] = [
+      h('h2', {}, 'Looks'),
+      h('p', { class: 'muted small', style: 'margin:0' }, 'Each look keeps your rules on this wall: corner pieces a quarter tile or more, niche top and bottom on grout lines, at least 3/4 of a tile on the tub and half at the ceiling. Tap one to use it.'),
+      shape
+        ? h(
+            'div',
+            { class: 'field wide' },
+            h('span', {}, 'Niche shape'),
+            chips(
+              'Niche shape',
+              (Object.keys(SHAPES) as Shape[]).map((k) => [k, `${SHAPES[k].name} ${fmt(SHAPES[k].w, false)} × ${fmt(SHAPES[k].h, false)}`]),
+              shape,
+              (v) => {
+                ui.shape = String(v);
+                save();
+                refreshLooks();
+              },
+            ),
+          )
+        : null,
+      h('div', { class: 'opts' }, cards),
+      busy ? h('p', { class: 'note' }, `Working out ${busy.name}…`) : null,
+      !busy && !fit.length ? h('p', { class: 'note' }, 'None of the looks can keep the rules on this wall. Use the options below and fine-tune by hand.') : null,
+      !busy && missing.length
+        ? h('p', { class: 'muted small', style: 'margin:0' }, 'Not on this wall: ' + missing.map((l) => `${l.name} (${looks.get(l.key)!.reason.replace(/\.$/, '')})`).join('; ') + '.')
+        : null,
+    ];
+    looksEl.replaceChildren(...parts.filter((x): x is HTMLElement => !!x));
+  }
 
   function rowsDl(rows: SheetRow[]) {
     return h(
@@ -324,7 +427,8 @@ export function renderTileTab(c: WallCtx): void {
     return h(
       'section',
       { class: 'card stack' },
-      h('h2', {}, L.options.length > 1 ? 'Best options' : 'Best option'),
+      h('h2', {}, L.options.length > 1 ? 'Planner’s options' : 'Planner’s option'),
+      h('p', { class: 'muted small', style: 'margin:0' }, 'The planner’s own picks, to fine-tune by hand.'),
       h(
         'div',
         { class: 'opts' },
@@ -565,7 +669,7 @@ export function renderTileTab(c: WallCtx): void {
     return h(
       'section',
       { class: 'card stack' },
-      h('div', { class: 'row' }, h('h2', {}, PL ? 'Layout sheet' : 'Rough-in sheet'), h('span', { class: 'spacer' }), h('button', { class: 'btn small-btn', type: 'button', onclick: () => void copySheet(L) }, 'Copy')),
+      h('div', { class: 'row' }, h('h2', {}, (PL ? 'Layout sheet' : 'Rough-in sheet') + (lookLabel() ? ' · ' + lookLabel() : '')), h('span', { class: 'spacer' }), h('button', { class: 'btn small-btn', type: 'button', onclick: () => void copySheet(L) }, 'Copy')),
       rowsDl(L.sheet),
     );
   }
@@ -732,7 +836,7 @@ export function renderTileTab(c: WallCtx): void {
   }
 
   const sheetDate = () => new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-  const sheetInfo = () => ({ date: sheetDate(), job: `${doc.job.name}, wall ${number}` });
+  const sheetInfo = () => ({ date: sheetDate(), job: `${doc.job.name}, wall ${number}`, look: lookLabel() });
 
   function paintDrawing(L: Layout) {
     const PL = !!L.r.plain;
@@ -768,7 +872,7 @@ export function renderTileTab(c: WallCtx): void {
 
   async function copySheet(L: Layout) {
     const rows = L.sheet.concat([['FRAMING', '']], L.frRows);
-    const text = [`${L.r.plain ? 'Tile layout' : 'Niche rough-in'} — ${doc.job.name}, wall ${number}`]
+    const text = [`${L.r.plain ? 'Tile layout' : 'Niche rough-in'} — ${doc.job.name}, wall ${number}${lookLabel() ? ' · ' + lookLabel() : ''}`]
       .concat(rows.map(([a, v]) => (v ? a + ': ' + String(v).replace(/<br>/g, '; ') : a)))
       .join('\n');
     try {
@@ -814,7 +918,8 @@ export function renderTileTab(c: WallCtx): void {
       keepAdjust = adjustCard();
       keepInside = L.r.plain ? null : insideCard(L);
     }
-    place(side, [optionsCard(L), viewCard(L), ...(L.r.plain ? [] : [tuneCard(L), keepInside!]), sheetCard(L), cutsCard(L), keepAdjust, answersCard(), howCard()]);
+    refreshLooks();
+    place(side, [looksEl, optionsCard(L), viewCard(L), ...(L.r.plain ? [] : [tuneCard(L), keepInside!]), sheetCard(L), cutsCard(L), keepAdjust, answersCard(), howCard()]);
     layoutPinned();
   }
 

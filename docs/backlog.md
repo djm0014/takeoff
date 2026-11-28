@@ -113,7 +113,7 @@ From the first phone test (Nov 27, 2026):
   Cuts list had a 1/2″ sliver. Fixed: a moved line is one exact position, and
   the fix checks each move in full before showing it. (The Tile drawing does
   color slivers red; Presentation hides cut colors on purpose.)
-- [ ] **Auto mode with named looks** (idea, Nov 28, 2026): "present several
+- [x] **Auto mode with named looks** (step 1 built Nov 28: Classic, Balanced, Simple; Offset next) (idea, Nov 28, 2026): "present several
   options that we could name that follow certain visual rules", e.g.
   Symmetrical, Balanced, Offset (1/3, "more organic feel"), Fit the framing;
   each finds the best fit for the wall, keeps the sliver rules and applies the

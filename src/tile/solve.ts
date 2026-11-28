@@ -49,7 +49,7 @@ export function mod(a: number, m: number): number {
   return r;
 }
 
-export const PATN: Record<TileS['pattern'], string> = { half: 'running bond 1/2', third: '1/3 offset', stack: 'stacked' };
+export const PATN: Record<TileS['pattern'], string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
 
 /* ---------- build-up, tub fit, finished width ---------- */
 
@@ -259,7 +259,7 @@ export function grid(S: TileS, p: number): Grid {
   return { t, g, m: t + g, b, T0: b + p, p };
 }
 export function shiftCount(S: TileS): number {
-  return S.pattern === 'stack' ? 1 : S.pattern === 'half' ? 2 : 3;
+  return S.pattern === 'stack' ? 1 : S.pattern === 'half' ? 2 : S.pattern === 'quarter' ? 4 : 3;
 }
 export function rowShift(S: TileS, i: number): number {
   const c = shiftCount(S);
@@ -566,7 +566,7 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     const xc0 = S.center === 'niche' ? L + w / 2 : S.center === 'wall' ? (fieldL(S) + fieldR(S)) / 2 : S.center === 'tub' ? tubCenter(S) : null;
     const xc = xc0 == null ? null : xc0 + (S.shift || 0);
     // A moved layout line is one exact position: a tile centered on it.
-    const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : [xc - tw / 2, xc + g / 2];
+    const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
     let inB: { ix: number; mn: number } | null = null;
     const ixs = [L + w / 2 - tw / 2, L + w / 2 + g / 2];
     for (let s = 0; s < mw; s += 1 / 16) ixs.push(L + s);
@@ -611,8 +611,7 @@ function solveH(S: TileS, o: VOpt): HFit | null {
       const sc =
         (cL < Infinity ? cutPen(S, cL, tw) : 0) +
         (cR < Infinity ? cutPen(S, cR, tw) : 0) +
-        legPen(S, lL, tw) +
-        legPen(S, lR, tw) +
+        (S.sideLegs ? legPen(S, lL, tw) + legPen(S, lR, tw) : 0) +
         inPen +
         frPen +
         (widths.length > 1 ? 1.5 * Math.abs(w - S.nW) : 0);
@@ -632,7 +631,7 @@ function solveHPlain(S: TileS): HFit {
   const mid = (fieldL(S) + fieldR(S)) / 2;
   const xc0 = S.center === 'tub' ? tubCenter(S) : S.center === 'left' || S.center === 'right' ? null : mid;
   const xc = xc0 == null ? null : xc0 + (S.shift || 0);
-  const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : [xc - tw / 2, xc + g / 2];
+  const x0s = xc == null ? [S.center === 'right' ? fieldR(S) - tw : fieldL(S)] : S.shift ? [xc - tw / 2] : onCenterX(S, xc);
   let best: HFit | null = null;
   const none: Leg = { aligned: true, leg: 0 };
   for (const x0 of x0s) {
@@ -718,6 +717,13 @@ function verticalLine(S: TileS, h: HFit): string {
         ' from left corner' +
         (S.widthRef === 'framing' ? ` (${fmt(h.xc + (S._offL || 0))} from the left stud)` : '') +
         (S.shift ? `, moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'} of the ${centerName(S)}'s center` : '');
+}
+
+/** Tile and joint positions to try with the layout line on center. */
+function onCenterX(S: TileS, xc: number): number[] {
+  const tile = xc - S.tileW / 2;
+  const joint = xc + S.grout / 2;
+  return S.onCenter === 'tile' ? [tile] : S.onCenter === 'joint' ? [joint] : [tile, joint];
 }
 
 /** What the field tile centers on, in words. */
@@ -1123,7 +1129,9 @@ export function cutsFor(S: TileS, r: Opt): CutItem[] {
   const items = cutsPlain(S, r);
   const nm = ext(S) ? 'border' : 'niche';
   const lg = (lab: string, l: Leg, dim: number, word: string): CutItem => [lab, l.aligned ? '' : fmt(l.leg) + ' ' + word, legStat(S, l, dim), l.aligned ? 'On joint' : null];
-  items.push(lg('Below ' + nm, r.sill, t, 'strip'), lg('Above ' + nm, r.head, t, 'strip'), lg('Left of ' + nm, h.lL, tw, 'leg'), lg('Right of ' + nm, h.lR, tw, 'leg'));
+  // With side legs allowed (a look's rule), a thin piece beside the niche is shown but not counted as a sliver.
+  const side = (lab: string, l: Leg): CutItem => (S.sideLegs || l.aligned || legStat(S, l, tw) !== 'bad' ? lg(lab, l, tw, 'leg') : [lab, fmt(l.leg) + ' leg', 'ok', 'Allowed']);
+  items.push(lg('Below ' + nm, r.sill, t, 'strip'), lg('Above ' + nm, r.head, t, 'strip'), side('Left of ' + nm, h.lL), side('Right of ' + nm, h.lR));
   const B = r.int.bays;
   const names = B.length === 1 ? ['Inside niche'] : B.length === 2 ? ['Inside, lower bay', 'Inside, upper bay'] : ['Inside, lower bay', 'Inside, middle bay', 'Inside, upper bay'];
   B.forEach((b, i) => items.push([names[i]!, b.desc != null ? b.desc : b.top < t - EPS ? 'top piece ' + fmt(b.top) : '', b.st, b.st === 'full' ? 'Full tiles' : null]));

@@ -49,6 +49,8 @@ export interface SheetInfo {
   date: string;
   /** Job name for the title block; the old tool's defaults when blank. */
   job?: string;
+  /** The look's name, e.g. "Classic" or "Modified Classic", added to the sheet name. */
+  look?: string;
 }
 
 export const esc = (s: unknown) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -497,7 +499,7 @@ function sheetPlain(S: TileS, r: Opt, fr: Framing, info: SheetInfo): string {
   const tbs = titleBlock(
     [
       ['PROJECT', esc(info.job || 'Tile wall')],
-      ['SHEET', 'Tile wall: framing and tile'],
+      ['SHEET', 'Tile wall: framing and tile' + (info.look ? ' · ' + esc(info.look) : '')],
       ['DATE', info.date],
       ['DRAWN', 'Niche Rough-In Planner'],
     ],
@@ -609,7 +611,7 @@ function sheetNiche(S: TileS, r: Opt, fr: Framing, info: SheetInfo): string {
   const tbs = titleBlock(
     [
       ['PROJECT', esc(info.job || 'Tub wall with niche')],
-      ['SHEET', 'Tub wall: niche framing and tile'],
+      ['SHEET', 'Tub wall: niche framing and tile' + (info.look ? ' · ' + esc(info.look) : '')],
       ['DATE', info.date],
       ['DRAWN', 'Niche Rough-In Planner'],
     ],
@@ -872,7 +874,7 @@ export function sheetA2(S: TileS, r: Opt, fr: Framing, info: SheetInfo): string 
   const tbs = titleBlock(
     [
       ['PROJECT', esc(info.job || 'Tub wall with niche')],
-      ['SHEET', 'Niche section'],
+      ['SHEET', 'Niche section' + (info.look ? ' · ' + esc(info.look) : '')],
       ['DATE', info.date],
       ['DRAWN', 'Niche Rough-In Planner'],
     ],

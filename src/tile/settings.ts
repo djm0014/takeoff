@@ -26,7 +26,7 @@ export interface TileS {
   tileH: number;
   tileW: number;
   grout: number;
-  pattern: 'half' | 'third' | 'stack';
+  pattern: 'half' | 'third' | 'quarter' | 'stack';
   minFrac: number;
   board: number;
   thinset: number;
@@ -81,6 +81,12 @@ export interface TileS {
   sides: 'full' | 'block';
   /** Layout line moved off center (new, not in the old tool): inches, negative is left. */
   shift: number;
+  /** With the line on center: let the planner pick, or force a tile or a joint on it (new; looks use it). */
+  onCenter: 'auto' | 'tile' | 'joint';
+  /** The grout joint can't change (handmade / zellige laid with a minimal joint). New. */
+  groutFixed: boolean;
+  /** Avoid thin pieces beside the niche (the old tool always did). Looks turn it off: sides don't matter. New. */
+  sideLegs: boolean;
   /* set by tileS(): the finished tile wall */
   _tile?: boolean;
   _frW?: number;
@@ -100,6 +106,9 @@ export const DEF: TileS = {
   framing: 'new', studMode: 'oc', stud1: 16, exOC: 16, studList: '', sillType: 'tile', sillT: 0.75, sillProj: 1,
   start: 'bottom', shelfPos: 'center', shelf1: 6, shelf2: 12, pat: 'wall', side: 'auto', studStart: 'left', block: 'flat', sides: 'full',
   shift: 0,
+  onCenter: 'auto',
+  groutFixed: false,
+  sideLegs: true,
 };
 
 /** Keys the old tool kept in IN rather than S. */
