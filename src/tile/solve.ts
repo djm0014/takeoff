@@ -624,6 +624,7 @@ function pickOptions<T extends { sc: number; p: number; sF: number; hF: number; 
 }
 
 function solveH(S: TileS, o: VOpt): HFit | null {
+  const cornerCache = new Map<number, { cL: number; cR: number }>();
   const tw = S.tileW;
   const g = S.grout;
   const mw = tw + g;
@@ -645,7 +646,7 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     leftOf = () => S.bayL + B - (S._offL || 0);
   } else {
     widths = [];
-    for (let w = Math.max(3, S.nW - 2); w <= S.nW + 2 + 1e-9; w += 1 / 16) widths.push(Math.round(w * 16) / 16);
+    for (let w = Math.max(3, S.nW - nWTol(S)); w <= S.nW + nWTol(S) + 1e-9; w += 1 / 16) widths.push(Math.round(w * 16) / 16);
     const ref = S.nPos === 'tub' ? tubCenter(S) : (fieldL(S) + fieldR(S)) / 2;
     leftOf = (w) => (S.nPos === 'custom' ? S.nLeft + B - (S._offL || 0) : ref - w / 2);
   }
@@ -669,9 +670,10 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     let inB: { ix: number; mn: number } | null = null;
     const ixs = [L + w / 2 - tw / 2, L + w / 2 + g / 2];
     for (let s = 0; s < mw; s += 1 / 16) ixs.push(L + s);
+    const inShifts = insideShifts(S, o.hF);
     for (const ix of ixs) {
       let mn = Infinity;
-      for (const sh of patternShifts(S)) {
+      for (const sh of inShifts) {
         const ps = rowPieces(S, ix, sh, L, L + w);
         if (ps.length > 1) for (const q of [ps[0]!, ps[ps.length - 1]!]) if (q.w < tw - EPS) mn = Math.min(mn, q.w);
       }
@@ -685,15 +687,20 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     }
     const frPen = frMin === Infinity ? 0 : cutPen(S, frMin, tw);
     for (const x0 of x0s) {
-      let cL = Infinity;
-      let cR = Infinity;
-      for (const sh of patternShifts(S)) {
-        const ps = rowPieces(S, x0, sh);
-        if (!ps.length) continue;
-        if (ps[0]!.w < tw - EPS) cL = Math.min(cL, ps[0]!.w);
-        const l = ps[ps.length - 1]!;
-        if (l.w < tw - EPS) cR = Math.min(cR, l.w);
+      // The corner pieces depend only on where the rows start: work them out once per start.
+      let cc = cornerCache.get(x0);
+      if (!cc) {
+        cc = { cL: Infinity, cR: Infinity };
+        for (const sh of patternShifts(S)) {
+          const ps = rowPieces(S, x0, sh);
+          if (!ps.length) continue;
+          if (ps[0]!.w < tw - EPS) cc.cL = Math.min(cc.cL, ps[0]!.w);
+          const l = ps[ps.length - 1]!;
+          if (l.w < tw - EPS) cc.cR = Math.min(cc.cR, l.w);
+        }
+        cornerCache.set(x0, cc);
       }
+      const { cL, cR } = cc;
       let mL = Infinity;
       let mR = Infinity;
       const q1 = L - e;
@@ -719,6 +726,9 @@ function solveH(S: TileS, o: VOpt): HFit | null {
   }
   return best;
 }
+
+/** How far the planner may move the niche width from the one asked for: 2″ (the old tool), ½″ for a width set by hand. */
+const nWTol = (S: TileS) => (S.nWTol > 0 ? S.nWTol : 2);
 
 /* ---------- plain tile wall ---------- */
 
@@ -868,7 +878,8 @@ export interface LineMove {
 export function lineMoves(S0: TileS, L: Layout): { now: number; left: LineMove | null; right: LineMove | null } | null {
   const S = L.S;
   const h = L.r.h;
-  if (h.xc == null) return null;
+  // A random-looking wall has no single layout line to move.
+  if (h.xc == null || S.pattern === 'random') return null;
   const base = h.xc - (S.shift || 0);
   const tw = S.tileW;
   const want = S.minFrac * tw;
@@ -1203,7 +1214,16 @@ export function interiorD(S: TileS, hF: number, sF: number | null, G: Grid | nul
   return { shelves: sh, bays: hbs.map((hb, i) => bayD(S, hb, sF == null ? null : starts[i]!, G)) };
 }
 
-export function interiorX(S: TileS, L: number, w: number): { ix: number; mn: number } {
+/** Row offsets to check inside a niche hF tall: a repeating pattern's few, or a random wall's rows that fall inside it. */
+function insideShifts(S: TileS, hF: number): number[] {
+  if (S.pattern !== 'random' || S.pat === 'stack') return patternShifts(S);
+  const n = Math.ceil(hF / (S.tileH + S.grout)) + 1;
+  const out: number[] = [];
+  for (let k = 0; k < n; k++) out.push(rowShift(S, k));
+  return [...new Set(out)];
+}
+
+export function interiorX(S: TileS, L: number, w: number, hF = Infinity): { ix: number; mn: number } {
   const tw = S.tileW;
   const g = S.grout;
   const mw = tw + g;
@@ -1213,7 +1233,7 @@ export function interiorX(S: TileS, L: number, w: number): { ix: number; mn: num
   let best: { ix: number; mn: number } | null = null;
   for (const ix of cands) {
     let mn = Infinity;
-    for (const sh of c === 1 ? [0] : patternShifts(S)) {
+    for (const sh of c === 1 ? [0] : hF < Infinity ? insideShifts(S, hF) : patternShifts(S)) {
       const ps = rowPieces(S, ix, sh, L, L + w);
       if (ps.length > 1) for (const q of [ps[0]!, ps[ps.length - 1]!]) if (q.w < tw - EPS) mn = Math.min(mn, q.w);
     }
@@ -1386,7 +1406,7 @@ export function layout(S0: TileS, optIdx: number, adj: Adjust, options?: Opt[]):
     const a = adjustOpt(S, r0, adj.adjH, adj.adjS, adj.adjHin, adj.adjSin);
     if (a) r = a;
     else adjusted = false;
-    const ixb = isPrefab(S) ? { ix: r.h.L, mn: Infinity } : interiorX(S, r.h.L, r.h.w);
+    const ixb = isPrefab(S) ? { ix: r.h.L, mn: Infinity } : interiorX(S, r.h.L, r.h.w, r.hF);
     r = { ...r, int: isPrefab(S) ? { bays: [], shelves: [] } : interiorD(S, r.hF, r.sF, r.G), h: { ...r.h, ix: ixb.ix, inMin: ixb.mn } };
   }
   const PL = !!r.plain;

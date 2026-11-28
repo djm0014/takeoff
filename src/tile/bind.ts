@@ -38,8 +38,11 @@ export interface TileUI extends Adjust {
   lookShape: string;
   /** What the style's layout was worked out from, to know when to put it on the wall again. */
   lookBase: string;
+  /** The niche's target width before quick width changes (0 = not changed), to go back to. */
+  widthFrom: number;
+  presetFrom: string;
 }
-export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '', lookBase: '' };
+export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '', lookBase: '', widthFrom: 0, presetFrom: '' };
 
 /** Where the wall's shared numbers came from, for the screen to explain. */
 export interface TileSource {

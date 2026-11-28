@@ -93,3 +93,15 @@ describe('the line-move quick fix tells the truth', () => {
     expect(checked).toBeGreaterThan(20);
   });
 });
+
+describe('quick width changes', () => {
+  it('a width set by hand stays within 1/2″ of what was asked for; a rough target may move 2″', () => {
+    const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: 61, nPreset: 'custom', nH: 28 });
+    for (const nW of [10.75, 15.375, 20, 24.625]) {
+      const tight = layout({ ...S, nW, nWTol: 0.5 }, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+      expect(Math.abs(tight.r.h.w - nW)).toBeLessThanOrEqual(0.5 + 1e-9);
+      const loose = layout({ ...S, nW }, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+      expect(Math.abs(loose.r.h.w - nW)).toBeLessThanOrEqual(2 + 1e-9);
+    }
+  });
+});
