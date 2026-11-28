@@ -101,3 +101,14 @@ design option (later).
 - Simple uses the stud bay nearest the wall's middle, from the studs on the
   Build-up step (new framing: 16″ on center from the left corner).
 - The cards show first; nothing changes until you tap one.
+
+## Prefabricated niche (Nov 28)
+
+- Fixed size: entered by its inside opening, the lip the tile butts to (0 when
+  it sits flush with the 1/2″ board, like Schluter KERDI-BOARD-SN; up to 1″
+  for a framed lip) and the rough opening it needs. Framed 1/16″ larger on
+  every side. Not tiled inside.
+- Its bottom (where the tile stops) lands on a grout line; the head lands
+  where its height puts it. Looks only move it by whole courses.
+- Simple puts it centered in your stud bay; Classic and Balanced center it on
+  the wall with new blocking. No niche-shape buttons.

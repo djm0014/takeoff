@@ -139,12 +139,18 @@ From the first phone test (Nov 27, 2026):
   Done (Nov 28): the first question is now "How is the niche built?" (New
   blocking / Between existing studs); walls saved as "Already framed" open as
   between existing studs.
-- [ ] **Prefabricated niche** (Nov 28 answers): entered by the rough opening it
-  needs (most common 14 3/8″ wide), framed tight on all four sides with 1/16″
-  each side; inside not tiled; the sill goes on a grout line, the head lands
-  where the prefab's height puts it; in a wider bay, blocked down to fit.
-  Waiting on: where the wall tile stops around it (the prefab's inside
-  opening, or a flange on its face).
+- [x] **Prefabricated niche** (Nov 28): "those prefab niches sit flush with
+  the 1/2″ schluter board. they do have rough framing on all sides. I'd still
+  assume a 1/16th″ gap on all sides for tolerance... others I have seen are
+  framed the same way but can have up to a 1″ lip as the frame." Built: third
+  answer to "How is the niche built?"; Schluter KERDI-BOARD-SN 12×6, 12×12,
+  12×20, 12×28 or your own sizes; lip (0 for Schluter: tile runs to the
+  opening); rough opening from the box, framed 1/16″ larger each side; inside
+  not tiled; the bottom lands on a grout line; the rough-in sheet says when the
+  opening is wider than the bay (trim or move a stud).
+- [ ] Check the Schluter rough-opening sizes: the planner starts from 14 3/8″
+  wide and the same allowance on the height (e.g. 30 3/8″ for 12×28). Fix the
+  presets once you have the box or spec sheet in hand.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

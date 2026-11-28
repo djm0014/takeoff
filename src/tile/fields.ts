@@ -9,7 +9,7 @@
  *   width at" question is gone)
  * - the saved-jobs list on the first step is gone (the app keeps jobs)
  */
-import type { TileS } from './settings';
+import { PF_GAP, PREFABS, isPrefab, type TileS } from './settings';
 import { bu, cRv, finW, fitText, fmt, isPlain, slopeRun, tubFit } from './solve';
 
 type Txt = string | ((S: TileS) => string);
@@ -123,10 +123,11 @@ export const STEPS: Step[] = [
         opts: [
           ['new', 'New blocking', 'Frame it wherever the tile layout wants it, any size'],
           ['bay', 'Between existing studs', 'It goes in a stud bay you measure'],
+          ['prefab', 'Prefabricated niche', 'A fixed size (like Schluter KERDI-BOARD-SN), in an existing stud bay'],
         ],
         on: (S, v) => {
           S.framed = 'no';
-          S.studs = v === 'bay' ? 'bay' : 'free';
+          S.studs = v === 'new' ? 'free' : 'bay';
         },
       },
     ],
@@ -231,8 +232,13 @@ export const STEPS: Step[] = [
   {
     id: 'niche',
     skip: isPlain,
-    title: (S) => (S.framed === 'yes' ? 'The framed opening' : 'The niche you want'),
-    sub: (S) => (S.framed === 'yes' ? 'Measure the framing as it is now.' : 'Give rough targets. The planner nudges them to land on grout lines and whole tiles.'),
+    title: (S) => (S.framed === 'yes' ? 'The framed opening' : isPrefab(S) ? 'The prefabricated niche' : 'The niche you want'),
+    sub: (S) =>
+      S.framed === 'yes'
+        ? 'Measure the framing as it is now.'
+        : isPrefab(S)
+          ? 'Its size can’t change, so the planner puts its bottom on a grout line and frames it tight with 1/16″ each side.'
+          : 'Give rough targets. The planner nudges them to land on grout lines and whole tiles.',
     fields: [
       { t: 'num', id: 'rW', label: 'Rough opening width', step: 0.125, min: 2, max: 96, show: (S) => S.framed === 'yes' },
       { t: 'num', id: 'rH', label: 'Rough opening height', step: 0.125, min: 2, max: 120, show: (S) => S.framed === 'yes' },
@@ -244,7 +250,37 @@ export const STEPS: Step[] = [
         t: 'info',
         key: 'bay',
         text: (S) => `The bay is ${fmt(S.studOC - 1.5)} wide between studs, so the finished width will be ${fmt(S.studOC - 1.5 - 2 * bu(S))}.`,
-        show: (S) => S.framed !== 'yes' && S.studs === 'bay',
+        show: (S) => S.framed !== 'yes' && S.studs === 'bay' && !isPrefab(S),
+      },
+      {
+        t: 'choice',
+        id: 'pfModel',
+        label: 'Which niche',
+        opts: [...PREFABS.map((p): [string, string] => [p.key, p.name]), ['custom', 'Other (type its sizes)']],
+        on: (S, v) => {
+          const p = PREFABS.find((x) => x.key === v);
+          if (!p) return;
+          S.pfW = p.w;
+          S.pfH = p.h;
+          S.pfLip = p.lip;
+          S.pfRH = Math.round((S.pfRW - p.w + p.h) * 16) / 16;
+        },
+        show: isPrefab,
+      },
+      { t: 'num', id: 'pfW', label: 'Inside opening width', step: 0.125, min: 2, max: 72, show: (S) => isPrefab(S) && S.pfModel === 'custom' },
+      { t: 'num', id: 'pfH', label: 'Inside opening height', step: 0.125, min: 2, max: 96, show: (S) => isPrefab(S) && S.pfModel === 'custom' },
+      { t: 'num', id: 'pfLip', label: 'Lip the tile butts to', hint: '0 when it sits flush with the board and the tile runs to the opening (Schluter); up to 1″ for a framed lip', step: 0.0625, min: 0, max: 1.5, show: isPrefab },
+      { t: 'num', id: 'pfRW', label: 'Rough opening it needs, width', hint: 'From the box or spec sheet', step: 0.0625, min: 2, max: 72, show: isPrefab },
+      { t: 'num', id: 'pfRH', label: 'Rough opening it needs, height', hint: 'From the box or spec sheet', step: 0.0625, min: 2, max: 96, show: isPrefab },
+      {
+        t: 'info',
+        key: 'pf',
+        text: (S) => {
+          const need = S.pfRW + 2 * PF_GAP;
+          const bay = S.studOC - 1.5;
+          return `Framed opening ${fmt(need)} × ${fmt(S.pfRH + 2 * PF_GAP)} (${fmt(PF_GAP)} each side). ` + (need > bay + 1e-6 ? `That’s ${fmt(need - bay)} wider than a ${fmt(S.studOC)} on-center bay: a stud gets trimmed or moved.` : `It fits a ${fmt(S.studOC)} on-center bay (${fmt(bay)}).`);
+        },
+        show: isPrefab,
       },
       {
         t: 'choice',
@@ -253,10 +289,10 @@ export const STEPS: Step[] = [
         hint: 'Width × height inside the tile',
         opts: [['12x12', '12 × 12'], ['12x24', '12 × 24'], ['14x24', '14 × 24'], ['24x12', '24 wide × 12'], ['custom', 'Custom']],
         on: nichePreset,
-        show: (S) => S.framed !== 'yes',
+        show: (S) => S.framed !== 'yes' && !isPrefab(S),
       },
-      { t: 'num', id: 'nW', label: 'Finished width', step: 0.25, min: 4, max: 72, show: (S) => S.framed !== 'yes' && S.nPreset === 'custom' && S.studs !== 'bay' },
-      { t: 'num', id: 'nH', label: 'Finished height', step: 0.25, min: 4, max: 72, show: (S) => S.framed !== 'yes' && S.nPreset === 'custom' },
+      { t: 'num', id: 'nW', label: 'Finished width', step: 0.25, min: 4, max: 72, show: (S) => S.framed !== 'yes' && !isPrefab(S) && S.nPreset === 'custom' && S.studs !== 'bay' },
+      { t: 'num', id: 'nH', label: 'Finished height', step: 0.25, min: 4, max: 72, show: (S) => S.framed !== 'yes' && !isPrefab(S) && S.nPreset === 'custom' },
       { t: 'num', id: 'nSill', label: 'Floor to bottom of niche, about', hint: 'Finished height. It moves to the nearest grout line.', step: 0.5, min: 6, max: 200, show: (S) => S.framed !== 'yes' },
       {
         t: 'choice',
@@ -270,12 +306,12 @@ export const STEPS: Step[] = [
   },
   {
     id: 'extras',
-    skip: (S) => isPlain(S) && S.edge === 'none',
+    skip: (S) => (isPlain(S) || isPrefab(S)) && S.edge === 'none',
     title: (S) => (isPlain(S) ? 'Bullnose edge' : 'Shelf and bullnose'),
     sub: (S) => (isPlain(S) ? 'Size of the bullnose tile on the outside corner.' : 'Inside the niche, tile is laid out on its own, centered side to side and starting full on the sill.'),
     fields: [
-      { t: 'choice', id: 'shelves', nicheOnly: true, label: 'Shelves', opts: [[0, 'None'], [1, '1 shelf'], [2, '2 shelves']] },
-      { t: 'choice', id: 'sillType', nicheOnly: true, label: 'Niche sill', opts: [['tile', 'Tile, same as the walls'], ['marble', 'Marble or stone piece']] },
+      { t: 'choice', id: 'shelves', nicheOnly: true, show: (S) => !isPrefab(S), label: 'Shelves', opts: [[0, 'None'], [1, '1 shelf'], [2, '2 shelves']] },
+      { t: 'choice', id: 'sillType', nicheOnly: true, show: (S) => !isPrefab(S), label: 'Niche sill', opts: [['tile', 'Tile, same as the walls'], ['marble', 'Marble or stone piece']] },
       { t: 'num', id: 'sillT', nicheOnly: true, label: 'Sill thickness', step: 0.0625, min: 0.25, max: 2, show: (S) => S.sillType === 'marble' },
       { t: 'num', id: 'sillProj', nicheOnly: true, label: 'Projects past field tile', step: 0.125, min: 0, max: 3, show: (S) => S.sillType === 'marble' },
       {
@@ -286,7 +322,7 @@ export const STEPS: Step[] = [
         show: (S) => S.sillType === 'marble',
       },
       { t: 'num', id: 'shelfT', nicheOnly: true, label: 'Shelf thickness', step: 0.0625, min: 0.125, max: 3, show: (S) => S.shelves > 0 && S.sillType !== 'marble' },
-      { t: 'choice', id: 'frameOn', nicheOnly: true, label: 'Bullnose border around the niche', opts: [['no', 'No'], ['yes', 'Yes']] },
+      { t: 'choice', id: 'frameOn', nicheOnly: true, show: (S) => !isPrefab(S), label: 'Bullnose border around the niche', opts: [['no', 'No'], ['yes', 'Yes']] },
       {
         t: 'num',
         id: 'frameW',
@@ -324,10 +360,14 @@ export const ADJ: Field[] = [
 
 /** "Your answers" on the results screen: step index, label, summary. */
 export function answers(S: TileS): [number, string, string][] {
+  // A prefab has no shelf or border choices.
+  return allAnswers(S).filter((a) => !(isPrefab(S) && a[0] === 5));
+}
+function allAnswers(S: TileS): [number, string, string][] {
   const tub = isTub(S);
   const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
   return [
-    [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : S.studs === 'bay' ? 'Niche, between existing studs' : 'Niche, new blocking'],
+    [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : isPrefab(S) ? 'Prefabricated niche' : S.studs === 'bay' ? 'Niche, between existing studs' : 'Niche, new blocking'],
     [
       1,
       'Wall',
@@ -343,7 +383,11 @@ export function answers(S: TileS): [number, string, string][] {
           [
             4,
             'Niche',
-            S.framed === 'yes' ? `Framed ${fmt(S.rW)} × ${fmt(S.rH)}, sill ${fmt(S.rSill)} up` : `About ${S.studs === 'bay' ? 'bay width' : fmt(S.nW)} × ${fmt(S.nH)} finished, sill near ${fmt(S.nSill)}`,
+            S.framed === 'yes'
+              ? `Framed ${fmt(S.rW)} × ${fmt(S.rH)}, sill ${fmt(S.rSill)} up`
+              : isPrefab(S)
+                ? `Prefab ${fmt(S.pfW)} × ${fmt(S.pfH)} inside${S.pfLip ? `, ${fmt(S.pfLip)} lip` : ''}, rough ${fmt(S.pfRW)} × ${fmt(S.pfRH)}, sill near ${fmt(S.nSill)}`
+                : `About ${S.studs === 'bay' ? 'bay width' : fmt(S.nW)} × ${fmt(S.nH)} finished, sill near ${fmt(S.nSill)}`,
           ],
           [
             5,

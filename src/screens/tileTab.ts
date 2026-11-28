@@ -13,7 +13,7 @@ import { href } from '../router';
 import { DRAW_ONLY, UI0, readTile, writeTile, type TileUI } from '../tile/bind';
 import { drawTile, drawFraming, sheetA1, sheetA2, type Svg } from '../tile/draw';
 import { ADJ, STEPS, answers, lab, type Field, type Key, type Step } from '../tile/fields';
-import { DEF, normalize, type TileS } from '../tile/settings';
+import { DEF, isPrefab, normalize, type TileS } from '../tile/settings';
 import {
   PILL,
   bu,
@@ -208,9 +208,13 @@ export function renderTileTab(c: WallCtx): void {
         refreshInfo();
       }
     };
-    const next = () => {
+    const nextStep = () => {
       let i = ret ? LAST : Math.min(ui.cur + 1, LAST);
       while (i < LAST && skipped(i)) i++;
+      return i;
+    };
+    const next = () => {
+      const i = nextStep();
       if (i === LAST) ret = false;
       go(i);
     };
@@ -234,7 +238,7 @@ export function renderTileTab(c: WallCtx): void {
           { class: 'row' },
           ui.cur > 0 ? h('button', { class: 'btn', type: 'button', onclick: back }, 'Back') : null,
           h('span', { class: 'spacer' }),
-          h('button', { class: 'btn primary', type: 'button', disabled: st.id === 'start' && !isPlain(S) && !S.framed, onclick: next }, ret || ui.cur === LAST - 1 ? 'See layout' : 'Next'),
+          h('button', { class: 'btn primary', type: 'button', disabled: st.id === 'start' && !isPlain(S) && !S.framed, onclick: next }, ret || nextStep() === LAST ? 'See layout' : 'Next'),
         ),
       ),
     );
@@ -285,7 +289,7 @@ export function renderTileTab(c: WallCtx): void {
   const modified = () => !!ui.look && fingerprint() !== ui.lookKey;
   /** "Classic", "Modified Classic", or '' when no look is in use. */
   const lookLabel = () => (ui.look ? (modified() ? 'Modified ' : '') + lookName(ui.look) : '');
-  const nicheLooks = () => !isPlain(S) && S.framed === 'no';
+  const nicheLooks = () => !isPlain(S) && S.framed === 'no' && !isPrefab(S);
   const curShape = (): Shape | null => (nicheLooks() ? ((ui.shape as Shape) || shapeOf(S)) : null);
   let looksKey = '';
   let looksBase: TileS = S;
@@ -471,9 +475,9 @@ export function renderTileTab(c: WallCtx): void {
     let headline: HTMLElement;
     let extra: (HTMLElement | null)[];
     if (ui.view === 'draw') {
-      headline = h('div', { class: 'headline' }, h('span', {}, ui.sheet === 'a2' && !PL ? 'Sheet A-2 · Niche section' : 'Sheet A-1 · Construction drawings'));
+      headline = h('div', { class: 'headline' }, h('span', {}, ui.sheet === 'a2' && !PL && !isPrefab(S) ? 'Sheet A-2 · Niche section' : 'Sheet A-1 · Construction drawings'));
       extra = [
-        PL ? null : h('div', { class: 'form-grid' }, uiChips('sheet', 'Sheet', [['a1', 'A-1 Elevations'], ['a2', 'A-2 Niche section']])),
+        PL || isPrefab(S) ? null : h('div', { class: 'form-grid' }, uiChips('sheet', 'Sheet', [['a1', 'A-1 Elevations'], ['a2', 'A-2 Niche section']])),
         h('div', { class: 'row' }, h('button', { class: 'btn primary', type: 'button', onclick: () => downloadSheet(L) }, 'Download sheet (SVG)')),
         h('p', { class: 'note' }, 'The download opens in any browser full size, to zoom or print at 11×17.'),
       ];
@@ -578,7 +582,9 @@ export function renderTileTab(c: WallCtx): void {
             )
           : null,
       ),
-      sn.hOn && sn.sOn
+      isPrefab(TS)
+        ? h('p', { class: 'note' }, sn.sOn ? `The niche bottom lands on a grout line; the head is where the niche’s ${fmt(r.hF)} height puts it.` : 'The niche bottom is off a grout line: move it a course.')
+        : sn.hOn && sn.sOn
         ? h('p', { class: 'note' }, `The ${nm} sill and head both land on grout lines.`)
         : h(
             'div',
@@ -604,20 +610,22 @@ export function renderTileTab(c: WallCtx): void {
                   btn('Raise sill ' + fmt(sn.su), canAdjust(TS, L.r0, a(0, 0, 0, sn.su)), snap(0, sn.su), false),
                 ),
           ),
-      h(
-        'div',
-        { class: 'tune' },
-        h('span', { class: 'lab' }, 'Height'),
-        btn('− 1 course', canAdjust(TS, L.r0, a(-1, 0)), move(-1, 0)),
-        h('b', {}, `${fmt(r.hF)} finished`),
-        btn('+ 1 course', canAdjust(TS, L.r0, a(1, 0)), move(1, 0)),
-      ),
+      isPrefab(TS)
+        ? null
+        : h(
+            'div',
+            { class: 'tune' },
+            h('span', { class: 'lab' }, 'Height'),
+            btn('− 1 course', canAdjust(TS, L.r0, a(-1, 0)), move(-1, 0)),
+            h('b', {}, `${fmt(r.hF)} finished`),
+            btn('+ 1 course', canAdjust(TS, L.r0, a(1, 0)), move(1, 0)),
+          ),
       h(
         'div',
         { class: 'tune' },
         h('span', { class: 'lab' }, 'Position'),
         btn('Down 1 course', canAdjust(TS, L.r0, a(0, -1)), move(0, -1)),
-        h('b', {}, `Rough sill ${fmt(r.sF - bu(TS))}`),
+        h('b', {}, `Rough sill ${fmt(isPrefab(TS) ? L.fr.ys : r.sF - bu(TS))}`),
         btn('Up 1 course', canAdjust(TS, L.r0, a(0, 1)), move(0, 1)),
       ),
       bayRow(),
@@ -847,7 +855,7 @@ export function renderTileTab(c: WallCtx): void {
     draw.classList.toggle('sheet-view', ui.view === 'draw');
     if (ui.view === 'draw') {
       draw.setAttribute('viewBox', '0 0 1700 1100');
-      draw.innerHTML = '<g class="sheet">' + (ui.sheet === 'a2' && !PL ? sheetA2(L.S, L.r, L.fr, sheetInfo()) : sheetA1(L.S, L.r, L.fr, sheetInfo())) + '</g>';
+      draw.innerHTML = '<g class="sheet">' + (ui.sheet === 'a2' && !PL && !isPrefab(S) ? sheetA2(L.S, L.r, L.fr, sheetInfo()) : sheetA1(L.S, L.r, L.fr, sheetInfo())) + '</g>';
       draw.setAttribute('aria-label', 'Construction sheet with framing and tile elevations');
     } else if (ui.view === 'frame') {
       paint(draw, drawFraming(L.S, L.r, L.fr));
@@ -860,7 +868,7 @@ export function renderTileTab(c: WallCtx): void {
 
   function downloadSheet(L: Layout) {
     const PL = !!L.r.plain;
-    const a2 = ui.sheet === 'a2' && !PL;
+    const a2 = ui.sheet === 'a2' && !PL && !isPrefab(S);
     const inner = a2 ? sheetA2(L.S, L.r, L.fr, sheetInfo()) : sheetA1(L.S, L.r, L.fr, sheetInfo());
     const text = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="17in" height="11in" viewBox="0 0 1700 1100"><g class="sheet">${inner}</g></svg>`;
     const name = `${doc.job.name} wall ${number}`.replace(/[^A-Za-z0-9 _-]+/g, '').trim().replace(/\s+/g, '-') || 'tile-wall';

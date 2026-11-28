@@ -8,7 +8,7 @@
  * Positions are from the left inside corner of the wall as you face it;
  * heights are above the finished floor. All lengths are inches.
  */
-import type { TileS } from './settings';
+import { PF_GAP, isPrefab, pfStopH, pfStopW, type TileS } from './settings';
 
 export const EPS = 1 / 64;
 export const TOL = 0.04;
@@ -54,8 +54,8 @@ export const PATN: Record<TileS['pattern'], string> = { half: 'running bond 1/2'
 /* ---------- build-up, tub fit, finished width ---------- */
 
 export const bu = (S: TileS) => S.board + S.thinset + S.tileT;
-export const ext = (S: TileS) => (S.frameOn === 'yes' ? S.frameW + S.grout : 0);
-export const marble = (S: TileS) => S.sillType === 'marble';
+export const ext = (S: TileS) => (S.frameOn === 'yes' && !isPrefab(S) ? S.frameW + S.grout : 0);
+export const marble = (S: TileS) => S.sillType === 'marble' && !isPrefab(S);
 const furTot = (_S: TileS) => 0;
 
 export interface FitEnd {
@@ -413,6 +413,7 @@ export interface Interior {
   over?: boolean;
 }
 function interiorV(S: TileS, hF: number): Interior {
+  if (isPrefab(S)) return { pen: 0, bays: [], shelves: [] };
   const pl = S.shelfPos === 'center' ? { bays: [hF], shelves: centeredShelves(S, hF) } : shelfPlan(S, hF);
   let pen = 0;
   const bays = pl.bays.map((hb): Bay => {
@@ -474,6 +475,7 @@ function solveV(S: TileS): VOpt[] {
   const framed = S.framed === 'yes';
   let hs: number[] = [];
   if (framed) hs = [S.rH - B - sillDrop(S)];
+  else if (isPrefab(S)) hs = [pfStopH(S)];
   else {
     const R = Math.max(m, 3);
     for (let h = Math.max(4, Math.round((S.nH - R) * 16) / 16); h <= S.nH + R + 1e-9; h += 1 / 16) hs.push(Math.round(h * 16) / 16);
@@ -542,6 +544,11 @@ function solveH(S: TileS, o: VOpt): HFit | null {
   if (S.framed === 'yes') {
     widths = [S.rW - 2 * B];
     leftOf = () => S.rLeft + B - (S._offL || 0);
+  } else if (isPrefab(S)) {
+    // Fixed size; in the stud bay it's centered between the studs, otherwise placed like any niche.
+    widths = [pfStopW(S)];
+    const ref = S.studs === 'bay' ? S.bayL + (S.studOC - 1.5) / 2 - (S._offL || 0) : S.nPos === 'tub' ? tubCenter(S) : (fieldL(S) + fieldR(S)) / 2;
+    leftOf = (w) => ref - w / 2;
   } else if (S.studs === 'bay') {
     widths = [S.studOC - 1.5 - 2 * B];
     leftOf = () => S.bayL + B - (S._offL || 0);
@@ -914,10 +921,19 @@ export function framingFor(S: TileS, r: Opt): Framing {
   const OC = bayMode ? S.studOC : 16;
   const bt = S.block === 'edge' ? 3.5 : 1.5;
   const full = S.sides !== 'block';
-  const xL = r.h.L - B + off;
-  const xR = r.h.L + r.h.w + B + off;
-  const ys = r.sF - sillDrop(S);
-  const yh = r.sF + r.hF + B;
+  let xL = r.h.L - B + off;
+  let xR = r.h.L + r.h.w + B + off;
+  let ys = r.sF - sillDrop(S);
+  let yh = r.sF + r.hF + B;
+  if (isPrefab(S)) {
+    // The prefab's rough opening, plus the framing gap each side, centered on its opening.
+    const cx = r.h.L + r.h.w / 2 + off;
+    const cy = r.sF + r.hF / 2;
+    xL = cx - S.pfRW / 2 - PF_GAP;
+    xR = cx + S.pfRW / 2 + PF_GAP;
+    ys = cy - S.pfRH / 2 - PF_GAP;
+    yh = cy + S.pfRH / 2 + PF_GAP;
+  }
   const reg = studCenters(S, W);
   const near = (a: number, b: number) => Math.abs(a - b) < TOL;
   const over = (x: number, s: number) => x < s + SW - TOL && x + SW > s + TOL;
@@ -1141,7 +1157,34 @@ export function cutsFor(S: TileS, r: Opt): CutItem[] {
   return items;
 }
 
+/** The rough-in sheet for a prefabricated niche. */
+function sheetPrefab(S: TileS, r: Opt): SheetRow[] {
+  const h = r.h;
+  const tub = S.base === 'tub';
+  const fr = framingFor(S, r);
+  const FW = S._frW || S.wallW;
+  const rows: SheetRow[] = [];
+  rows.push(['Frame the rough opening', `${fmt(fr.xR - fr.xL)} wide × ${fmt(fr.yh - fr.ys)} tall (the niche’s ${fmt(S.pfRW)} × ${fmt(S.pfRH)} plus ${fmt(PF_GAP)} each side)`, true]);
+  rows.push(['Rough sill', fmt(fr.ys) + ' above floor' + (tub ? ' · ' + fmt(fr.ys - S.tubH) + ' above tub' : ''), true]);
+  rows.push(['Rough head', fmt(fr.yh) + ' above floor']);
+  rows.push(...furRows(S));
+  rows.push(['Left side', fmt(fr.xL) + ' from left corner' + (S.widthRef === 'framing' ? ' (stud)' : '')]);
+  rows.push(['Right side', fmt(FW - fr.xR) + ' from right corner']);
+  if (S.studs === 'bay') {
+    const bay = S.studOC - 1.5;
+    const need = fr.xR - fr.xL;
+    if (need > bay + 1e-6) rows.push(['Stud bay', `The opening is ${fmt(need - bay)} wider than the ${fmt(bay)} bay: trim or move a stud.`, true]);
+  }
+  rows.push(['Prefab niche', `${fmt(S.pfW)} × ${fmt(S.pfH)} inside, not tiled` + (S.pfLip ? `, ${fmt(S.pfLip)} lip` : ', flush with the board')]);
+  rows.push(['Tile stops at', `${fmt(h.w)} × ${fmt(r.hF)}, bottom at ${fmt(r.sF)} above floor` + (S.pfLip ? ' (outside of the lip)' : ' (the niche’s opening)')]);
+  rows.push(['First course', (r.p < S.tileH - EPS ? 'Cut to ' + fmt(r.p) : 'Full tile') + ', top at ' + fmt(r.G.T0) + ' above floor']);
+  rows.push(['Ledger line', (tub ? `${fmt(r.G.T0 + r.G.g - S.tubH)} above tub (${fmt(r.G.T0 + r.G.g)} above floor)` : fmt(r.G.T0 + r.G.g) + ' above floor') + ', bottom of 2nd course']);
+  rows.push(['Vertical line', verticalLine(S, h)]);
+  return rows;
+}
+
 export function sheetFor(S: TileS, r: Opt): SheetRow[] {
+  if (isPrefab(S)) return sheetPrefab(S, r);
   const B = bu(S);
   const h = r.h;
   const W = S.wallW;
@@ -1239,8 +1282,8 @@ export function layout(S0: TileS, optIdx: number, adj: Adjust, options?: Opt[]):
     const a = adjustOpt(S, r0, adj.adjH, adj.adjS, adj.adjHin, adj.adjSin);
     if (a) r = a;
     else adjusted = false;
-    const ixb = interiorX(S, r.h.L, r.h.w);
-    r = { ...r, int: interiorD(S, r.hF, r.sF, r.G), h: { ...r.h, ix: ixb.ix, inMin: ixb.mn } };
+    const ixb = isPrefab(S) ? { ix: r.h.L, mn: Infinity } : interiorX(S, r.h.L, r.h.w);
+    r = { ...r, int: isPrefab(S) ? { bays: [], shelves: [] } : interiorD(S, r.hF, r.sF, r.G), h: { ...r.h, ix: ixb.ix, inMin: ixb.mn } };
   }
   const PL = !!r.plain;
   const items = PL ? cutsPlain(S, r) : cutsFor(S, r);
