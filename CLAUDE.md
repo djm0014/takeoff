@@ -53,7 +53,8 @@ Read first: `docs/combined-app-plan.md` (goals, scope, milestones),
 - `src/tile/` — tile and niche (the old Niche Rough-In Planner): `settings.ts`
   (answers, old S and IN merged), `solve.ts` (layout, options, cuts, sheets,
   framing), `draw.ts` (tile/framing elevations, sheets A-1 and A-2, exact SVG
-  text of the old tool), `fields.ts` (setup steps), `bind.ts` (record ↔ settings).
+  text of the old tool), `fields.ts` (setup steps), `bind.ts` (record ↔ settings),
+  `looks.ts` (auto mode: named looks searched under the rules in `docs/tile-looks.md`).
 - `src/screens/` — `jobs`, `jobHome`, `floorPlan`, `wallScreen` (tabs; route
   `#/job/:id/wall/:wallId/(vanity|tile)`), `vanityTab`, `tileTab`, `shell`.
 - `src/data/keyDimensions.ts` — mirror of `docs/key-dimensions.xlsx`.

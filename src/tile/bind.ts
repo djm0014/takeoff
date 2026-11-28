@@ -30,8 +30,14 @@ export interface TileUI extends Adjust {
   view: 'tile' | 'present' | 'frame' | 'draw';
   sheet: 'a1' | 'a2';
   presIn: 'hide' | 'show';
+  /** The look last applied ('' for none), and a fingerprint of the layout it gave, to tell when it's been modified. */
+  look: string;
+  lookKey: string;
+  /** Niche shape the looks use ('' = from the answers), and the one the applied look used. */
+  shape: string;
+  lookShape: string;
 }
-export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide' };
+export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '' };
 
 /** Where the wall's shared numbers came from, for the screen to explain. */
 export interface TileSource {

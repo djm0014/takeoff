@@ -113,6 +113,12 @@ From the first phone test (Nov 27, 2026):
   Cuts list had a 1/2″ sliver. Fixed: a moved line is one exact position, and
   the fix checks each move in full before showing it. (The Tile drawing does
   color slivers red; Presentation hides cut colors on purpose.)
+- [x] **Auto mode with named looks** (step 1 built Nov 28: Classic, Balanced, Simple; Offset next) (idea, Nov 28, 2026): "present several
+  options that we could name that follow certain visual rules", e.g.
+  Symmetrical, Balanced, Offset (1/3, "more organic feel"), Fit the framing;
+  each finds the best fit for the wall, keeps the sliver rules and applies the
+  fixes on its own. Niche size and shape too (square, tall, linear). Manual
+  mode keeps today's quick fixes. Rules: `docs/tile-looks.md` (from the questionnaire, Nov 28).
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
@@ -177,6 +183,10 @@ separate Android listing if wanted.
 
 ## App
 
+- [ ] **Show which version is running** (e.g. a date or number on the jobs
+  screen), so a field test can tell whether the phone picked up the latest
+  update. The app updates itself in the background; the open copy keeps
+  running until it's closed and reopened (Nov 27, 2026).
 - [ ] Custom domain for the site.
 
 ## Open questions (from the plan)

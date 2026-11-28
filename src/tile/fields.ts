@@ -196,7 +196,8 @@ export const STEPS: Step[] = [
         opts: [[0.03125, 'Butted, no spacers'], [0.0625, '1/16″'], [0.125, '1/8″'], [0.1875, '3/16″']],
         hint: (S) => (S.grout < 0.05 ? 'Planned as a 1/32″ joint, about what stacked tile leaves with no spacers. Over many courses it adds up, so it still counts.' : ''),
       },
-      { t: 'choice', id: 'pattern', label: 'Pattern', opts: [['half', 'Running bond 1/2'], ['third', '1/3 offset'], ['stack', 'Stacked']] },
+      { t: 'choice', id: 'pattern', label: 'Pattern', opts: [['half', 'Running bond 1/2'], ['third', '1/3 offset'], ['quarter', '1/4 offset'], ['stack', 'Stacked']] },
+      { t: 'check', id: 'groutFixed', label: 'Grout joint can’t change (handmade or zellige tile)' },
       { t: 'choice', id: 'minFrac', label: 'Smallest cut you accept', opts: [[0.5, 'Half a tile'], [0.3333, 'A third'], [0.25, 'A quarter']] },
     ],
   },
@@ -301,7 +302,10 @@ export const ADJ: Field[] = [
     t: 'choice',
     id: 'center',
     label: 'Center the field tile on',
-    on: (S) => void (S.shift = 0),
+    on: (S) => {
+      S.shift = 0;
+      S.onCenter = 'auto';
+    },
     opts: [['niche', 'The niche', null, (S) => !isPlain(S)], ['wall', 'The wall'], ['tub', 'The tub', null, (S) => isTub(S) && S.tubPos !== 'full'], ['left', 'Full tile at left corner'], ['right', 'Full tile at right corner']],
   },
   find('tile', 'minFrac'),
@@ -313,7 +317,7 @@ export const ADJ: Field[] = [
 /** "Your answers" on the results screen: step index, label, summary. */
 export function answers(S: TileS): [number, string, string][] {
   const tub = isTub(S);
-  const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', stack: 'stacked' };
+  const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
   return [
     [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : 'Niche, not framed yet'],
     [
