@@ -113,12 +113,21 @@ export const STEPS: Step[] = [
     fields: [
       { t: 'choice', id: 'wallType', big: true, label: 'What’s on this wall?', opts: [['niche', 'A niche', 'Lay out the tile and find the niche rough-in'], ['plain', 'Just tile', 'Lay out the courses, cuts and framing']] },
       {
+        // Replaces the old tool's "Is the niche framed yet?" (owner, Nov 28): an existing niche is never reused;
+        // what matters is whether it follows the existing stud spacing.
         t: 'choice',
-        id: 'framed',
+        id: 'build',
         big: true,
-        label: 'Is the niche framed yet?',
+        label: 'How is the niche built?',
         show: (S) => S.wallType !== 'plain',
-        opts: [['no', 'Not framed yet', 'Tell me where to frame the rough opening'], ['yes', 'Already framed', 'Find the tile layout that suits the opening']],
+        opts: [
+          ['new', 'New blocking', 'Frame it wherever the tile layout wants it, any size'],
+          ['bay', 'Between existing studs', 'It goes in a stud bay you measure'],
+        ],
+        on: (S, v) => {
+          S.framed = 'no';
+          S.studs = v === 'bay' ? 'bay' : 'free';
+        },
       },
     ],
   },
@@ -229,7 +238,6 @@ export const STEPS: Step[] = [
       { t: 'num', id: 'rH', label: 'Rough opening height', step: 0.125, min: 2, max: 120, show: (S) => S.framed === 'yes' },
       { t: 'num', id: 'rSill', label: 'Floor to rough sill', step: 0.125, min: 0, max: 200, show: (S) => S.framed === 'yes' },
       { t: 'num', id: 'rLeft', label: 'Left corner to opening', hint: 'To the left side of the framing', step: 0.125, min: 0, max: 240, show: (S) => S.framed === 'yes' },
-      { t: 'choice', id: 'studs', label: 'Framing', opts: [['free', 'I can add blocking anywhere'], ['bay', 'It must fit an existing stud bay']], show: (S) => S.framed !== 'yes' },
       { t: 'choice', id: 'studOC', label: 'Stud spacing', opts: [[16, '16″ on center'], [24, '24″ on center']], show: (S) => S.framed !== 'yes' && S.studs === 'bay' },
       { t: 'num', id: 'bayL', label: 'Left corner to the bay', hint: 'To the face of the stud on the bay’s left side', step: 0.125, min: 0, max: 240, show: (S) => S.framed !== 'yes' && S.studs === 'bay' },
       {
@@ -319,7 +327,7 @@ export function answers(S: TileS): [number, string, string][] {
   const tub = isTub(S);
   const PATN: Record<string, string> = { half: 'running bond 1/2', third: '1/3 offset', quarter: '1/4 offset', stack: 'stacked' };
   return [
-    [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : 'Niche, not framed yet'],
+    [0, 'Wall type', isPlain(S) ? 'Just tile' : S.framed === 'yes' ? 'Niche, already framed' : S.studs === 'bay' ? 'Niche, between existing studs' : 'Niche, new blocking'],
     [
       1,
       'Wall',

@@ -85,6 +85,8 @@ export interface TileS {
   onCenter: 'auto' | 'tile' | 'joint';
   /** The grout joint can't change (handmade / zellige laid with a minimal joint). New. */
   groutFixed: boolean;
+  /** How the niche is built: new blocking anywhere, or between existing studs ('' until answered). New; sets framed and studs. */
+  build: '' | 'new' | 'bay';
   /** Avoid thin pieces beside the niche (the old tool always did). Looks turn it off: sides don't matter. New. */
   sideLegs: boolean;
   /* set by tileS(): the finished tile wall */
@@ -109,6 +111,7 @@ export const DEF: TileS = {
   onCenter: 'auto',
   groutFixed: false,
   sideLegs: true,
+  build: '',
 };
 
 /** Keys the old tool kept in IN rather than S. */

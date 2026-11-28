@@ -136,9 +136,15 @@ From the first phone test (Nov 27, 2026):
   niche that we reuse for a new project. we may however, encounter a pre
   fabricated niche whose size can't change but will always be able to be fit
   between 2 existing studs as long as they are at least 14.5″ wide."
-  Plan: replace "Already framed" with "Between existing studs" (the stud-bay
-  setup) and add "Prefabricated niche" (fixed size, in a bay at least 14.5″).
-  This retires the two questions about reframing an existing niche.
+  Done (Nov 28): the first question is now "How is the niche built?" (New
+  blocking / Between existing studs); walls saved as "Already framed" open as
+  between existing studs.
+- [ ] **Prefabricated niche** (Nov 28 answers): entered by the rough opening it
+  needs (most common 14 3/8″ wide), framed tight on all four sides with 1/16″
+  each side; inside not tiled; the sill goes on a grout line, the head lands
+  where the prefab's height puts it; in a wider bay, blocked down to fit.
+  Waiting on: where the wall tile stops around it (the prefab's inside
+  opening, or a flange on its face).
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

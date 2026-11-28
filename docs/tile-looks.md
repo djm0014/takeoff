@@ -9,8 +9,8 @@ auto mode is built from. Items marked **Open** still need an answer.
   wall (changed Nov 28: "all walls should have all options except for the
   Simple look"). When a wall can't keep every rule, the card shows the
   closest layout and says which rule it breaks.
-- **Simple** shows only when the niche goes between studs: the setup's "It
-  must fit an existing stud bay", in the bay you measured.
+- **Simple** shows only when the niche goes between studs: the setup's
+  "How is the niche built? Between existing studs", in the bay you measured.
 - Each card is the best layout for the wall that keeps that look's rules,
   with the planner's own fixes (moving the layout line, picking tile or joint
   on center, sizing the niche, adjusting the grout) applied by itself.
