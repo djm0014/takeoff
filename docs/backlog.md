@@ -130,11 +130,15 @@ From the first phone test (Nov 27, 2026):
   snap the sill and head to grout lines, moving an already-framed niche's
   sill or head block when needed ("reframe: …" on the card); niche sizes are
   targets, not limits.
-- [ ] When a look moves an already-framed niche's blocking, the rough-in
-  sheet still calls it "Your rough opening". Say "Reframe the rough opening
-  to …" and list the block moves.
-- [ ] An already-framed niche off center still breaks Classic and Balanced
-  ("niche not centered"): looks don't move framing sideways. Should they?
+- [ ] **"Already framed" means "between existing studs"** (Nov 28): "when I
+  select 'niche is already framed' that should be treated as 'follow
+  existing stud spacing'... we aren't going to encounter an already framed
+  niche that we reuse for a new project. we may however, encounter a pre
+  fabricated niche whose size can't change but will always be able to be fit
+  between 2 existing studs as long as they are at least 14.5″ wide."
+  Plan: replace "Already framed" with "Between existing studs" (the stud-bay
+  setup) and add "Prefabricated niche" (fixed size, in a bay at least 14.5″).
+  This retires the two questions about reframing an existing niche.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
