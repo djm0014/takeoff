@@ -19,6 +19,7 @@ import {
   NO_ADJ,
   rowPieces,
   shiftCount,
+  snapInfo,
   solve,
   studCenters,
   tileS,
@@ -123,10 +124,11 @@ export function checkLook(look: LookKey, L: Layout, shape: Shape | null, base: T
     if (shape && S.framed !== 'yes') {
       const sh = SHAPES[shape];
       const m = r.G.m;
-      if (r.hF < Math.max(sh.hMin, BAY_MIN) - 1e-6 || r.hF > sh.hMax + m + 1e-6) fails.push(`niche ${fmt(r.hF)} tall (not ${sh.name.toLowerCase()})`);
-      if (S.studs !== 'bay' && (r.h.w < sh.wMin - 1e-6 || r.h.w > sh.wMax + 1e-6)) fails.push(`niche ${fmt(r.h.w)} wide (not ${sh.name.toLowerCase()})`);
+      // Sizes are targets, not limits (owner, Nov 28): the niche grows or shrinks to land on grout lines.
+      // Getting far from the shape's size costs more past its range, so a tall niche stays tall.
+      const off = (v: number, lo: number, hi: number, t: number) => Math.abs(v - t) + 4 * Math.max(0, lo - v, v - hi);
+      score += (off(r.h.w, sh.wMin, sh.wMax, sh.w) + off(r.hF, sh.hMin, sh.hMax + m, sh.h)) * 0.3;
       if (shape === 'linear' && r.h.w <= r.hF) fails.push('linear niche not wider than tall');
-      score += (Math.abs(r.h.w - sh.w) + Math.abs(r.hF - sh.h)) * 0.3;
     }
     if (look === 'classic' || look === 'balanced') {
       const mid = (fieldL(S) + fieldR(S)) / 2;
@@ -221,7 +223,20 @@ interface Best {
 function tryVariant(look: LookKey, V: TileS, shape: Shape | null, base: TileS, keep: { best: Best | null; miss: Best | null }): void {
   const options = solve(V);
   options.forEach((o, i) => {
-    for (const adj of MOVES) {
+    // The niche lands its sill and head on grout lines: try the snaps Fine-tune offers, with the course moves.
+    // Setup sizes aren't limits (owner, Nov 28), so this includes moving an already-framed sill or head block.
+    let snaps: [number, number][] = [[0, 0]];
+    if (!o.plain) {
+      const L0 = layout(V, i, NO_ADJ, options);
+      if (L0) {
+        const sn = snapInfo(L0.S, L0.r);
+        const his = sn.hOn ? [0] : [-sn.hd, sn.hu];
+        const sis = sn.sOn ? [0] : [-sn.sd, sn.su];
+        snaps = his.flatMap((hi) => sis.map((si): [number, number] => [hi, si]));
+      }
+    }
+    const tries = snaps.flatMap(([hi, si]) => MOVES.map((m): Adjust => (hi || si ? { ...m, adjHin: hi, adjSin: si } : m)));
+    for (const adj of tries) {
       const L = layout(V, i, adj, options);
       if (!L || (adj !== NO_ADJ && !L.adjusted)) continue;
       const check = checkLook(look, L, shape, base);
@@ -320,5 +335,11 @@ export function lookLine(R: LookResult): string {
   if (!L.r.plain) parts.push(`niche ${fmt(L.r.h.w)} × ${fmt(L.r.hF)}, sill ${fmt(L.r.sF)} AFF`);
   parts.push(`corners ${fmt(minCorner(L))} and up`);
   if (S.shift) parts.push(`tile moved ${fmt(Math.abs(S.shift))} ${S.shift < 0 ? 'left' : 'right'}`);
+  // An already-framed niche whose blocking has to move to land on grout lines.
+  if (S.framed === 'yes' && !L.r.plain) {
+    const move = (what: string, by: number) => (Math.abs(by) < 1 / 32 ? '' : `${what} ${fmt(Math.abs(by))} ${by > 0 ? 'up' : 'down'}`);
+    const m = [move('sill block', L.fr.ys - S.rSill), move('head block', L.fr.yh - (S.rSill + S.rH))].filter(Boolean);
+    if (m.length) parts.push('reframe: ' + m.join(', '));
+  }
   return parts.join(' · ');
 }

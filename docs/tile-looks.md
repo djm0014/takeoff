@@ -26,14 +26,14 @@ auto mode is built from. Items marked **Open** still need an answer.
 | Rule | Value |
 | --- | --- |
 | Corner pieces (both ends, every row) | at least a quarter of the tile length. Both corners count; most are seen |
-| Niche top and bottom | on a grout joint, or a full tile; no strips above or below |
+| Niche top and bottom | on a grout joint, or a full tile; no strips above or below. Every look snaps them there, moving the sill or head block of an already-framed niche if it has to (the card says "reframe: head block 3/8″ down") |
 | Niche sides | slivers allowed (not a priority) |
 | Top course at the ceiling | at least half the tile height |
 | Bottom course on the tub or shower pan | full tile preferred; may be cut down to 3/4 of the tile height when that brings the ceiling course to at least half |
 | Splitting a sliver with the next tile | not used |
 | Grout joint | may change between 1/16″ and 3/16″ to make a look work, **unless the tile is marked "joint fixed"** (handmade / zellige, stacked with a minimal joint) |
 | Niche sill (bottom), AFF | 40″ to 52″, aim for 42″ to 48″ |
-| Niche height | whole courses; width free |
+| Niche height | whole courses; width free. Sizes from the setup and the shape buttons are **targets, not limits**: the niche grows or shrinks to land its sill and head on grout lines (owner, Nov 28) |
 | Niche clear space | every bay (above and below a shelf too) at least 10″ tall: shampoo bottles |
 | Niche depth | stud depth (deeper when nothing is behind the wall: later) |
 | Blocking | new blocking always allowed (walls are opened) |

@@ -124,6 +124,17 @@ From the first phone test (Nov 27, 2026):
   be an option only if the niche is positioned between studs." Classic and
   Balanced now always show (closest fit with the broken rule named); Simple
   only for a niche that must fit an existing stud bay.
+- [x] Nov 28: "niche sill and head lining up with grout lines should be what
+  all custom niches aim to do. any input dimensions related to niche size in
+  the setup questions should be understood as 'not a limitation'." Looks now
+  snap the sill and head to grout lines, moving an already-framed niche's
+  sill or head block when needed ("reframe: …" on the card); niche sizes are
+  targets, not limits.
+- [ ] When a look moves an already-framed niche's blocking, the rough-in
+  sheet still calls it "Your rough opening". Say "Reframe the rough opening
+  to …" and list the block moves.
+- [ ] An already-framed niche off center still breaks Classic and Balanced
+  ("niche not centered"): looks don't move framing sideways. Should they?
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.
