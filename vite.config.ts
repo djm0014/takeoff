@@ -35,5 +35,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Some tests check the tile planner on hundreds of walls; GitHub's runner is
+    // slower than a laptop, and a timed-out test blocks the deploy.
+    testTimeout: 60000,
   },
 });
