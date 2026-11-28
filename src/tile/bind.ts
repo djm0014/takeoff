@@ -41,8 +41,11 @@ export interface TileUI extends Adjust {
   /** The niche's target width before quick width changes (0 = not changed), to go back to. */
   widthFrom: number;
   presetFrom: string;
+  /** The niche's width / height before your first change to it (0 = unchanged), for Back to original. */
+  wFrom: number;
+  hFrom: number;
 }
-export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '', lookBase: '', widthFrom: 0, presetFrom: '' };
+export const UI0: TileUI = { cur: 0, optIdx: 0, ...NO_ADJ, view: 'tile', sheet: 'a1', presIn: 'hide', look: '', lookKey: '', shape: '', lookShape: '', lookBase: '', widthFrom: 0, presetFrom: '', wFrom: 0, hFrom: 0 };
 
 /** Where the wall's shared numbers came from, for the screen to explain. */
 export interface TileSource {

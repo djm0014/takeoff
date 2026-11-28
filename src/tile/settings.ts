@@ -89,6 +89,15 @@ export interface TileS {
   build: '' | 'new' | 'bay' | 'prefab';
   /** How far the niche width may move from nW to fit the tile (0 = the old tool's 2″). New. */
   nWTol: number;
+  /**
+   * Locks (new; 0 = off). lockP: the first course's height, from a planner
+   * option you picked; it keeps the ledger and the ceiling cut through pattern
+   * and style changes. lockW / lockH: the niche's finished width and height,
+   * kept through quick fixes until you change them.
+   */
+  lockP: number;
+  lockW: number;
+  lockH: number;
   /** The style the tile was ordered for; the planner fits the niche to it. New. */
   style: '' | 'classic' | 'balanced' | 'organic' | 'simple';
   /** Random-looking pattern: which arrangement (Shuffle picks another). New. */
@@ -127,6 +136,9 @@ export const DEF: TileS = {
   build: '',
   style: 'classic',
   nWTol: 0,
+  lockP: 0,
+  lockW: 0,
+  lockH: 0,
   seed: 1,
   pfModel: 'kb12x28',
   pfW: 12,
