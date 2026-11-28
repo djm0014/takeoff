@@ -181,6 +181,18 @@ From the first phone test (Nov 27, 2026):
   original". Fine-tune has a Width row: −50%, −25%, +25%, +50%, +100%, a
   custom width, and Back to original width. A width set this way stays within
   1/2″ of what was asked (the planner's own targets still move up to 2″).
+- [x] Nov 28: "the niche size will reset or change when certain quick fixes
+  are done... once I have selected an option for a fix to the ceiling tile
+  and tub tile fix, that should be locked in unless I revert. where the ledger
+  is and what kind of sliver at the ceiling remains is independent of the
+  look." Causes: every change worked the layout out again from scratch
+  (re-picking the width within 2″ and the planner's options), and a change on
+  the Adjust card put the whole style back on the wall. Now: the niche size
+  is locked from the first quick fix (Back to original size / width undo
+  changes); tapping a planner option locks the first course (Let the planner
+  choose unlocks); the style is only put back on the wall when picked or when
+  setup answers change. Switching style fits the niche to that style, keeping
+  a locked first course.
 - [ ] More sliver fixes if the line move isn't enough: split the sliver with
   the next tile into two pieces; fur or trim an end wall while it's still
   framing; a grout change of 1/16″ or less.

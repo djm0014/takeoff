@@ -139,3 +139,16 @@ pattern. but I don't necessarily know if balanced is always stacked."
   corners and moves the tile up to a quarter tile when it has to.
 - Checked on every wall width from 44″ to 72″ with 3×12, 4×12 and 6×24 tile:
   Classic, Balanced and Organic each keep every rule in their own pattern.
+
+## Locks (Nov 28)
+
+- **First course** (the ledger and the cut at the ceiling): tapping a planner
+  option locks it. Pattern changes, line moves and style switches keep it.
+  **Let the planner choose** unlocks it.
+- **Niche size**: kept through quick fixes (Adjust card, line moves, centering,
+  pattern) from the first one on. It changes only when you change it (height
+  buttons, head snaps, width buttons, custom width); **Back to original size**
+  and **Back to original width** undo those.
+- **Style**: put on the wall when you pick it, or after the setup answers
+  change; never after a quick fix. Switching style fits the niche to that
+  style and keeps a locked first course.

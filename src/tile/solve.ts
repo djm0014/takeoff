@@ -568,6 +568,7 @@ function solveV(S: TileS): VOpt[] {
   let hs: number[] = [];
   if (framed) hs = [S.rH - B - sillDrop(S)];
   else if (isPrefab(S)) hs = [pfStopH(S)];
+  else if (S.lockH > 0) hs = [S.lockH];
   else {
     const R = Math.max(m, 3);
     for (let h = Math.max(4, Math.round((S.nH - R) * 16) / 16); h <= S.nH + R + 1e-9; h += 1 / 16) hs.push(Math.round(h * 16) / 16);
@@ -576,6 +577,7 @@ function solveV(S: TileS): VOpt[] {
   const ints = hs.map((h) => interiorV(S, h));
   for (let i = Math.round(t * 16); i >= 1; i--) {
     const p = i / 16;
+    if (lockedOut(S, p)) continue;
     const G = grid(S, p);
     const cl = topCut(S, G, 0);
     const cr = topCut(S, G, S.wallW);
@@ -646,7 +648,8 @@ function solveH(S: TileS, o: VOpt): HFit | null {
     leftOf = () => S.bayL + B - (S._offL || 0);
   } else {
     widths = [];
-    for (let w = Math.max(3, S.nW - nWTol(S)); w <= S.nW + nWTol(S) + 1e-9; w += 1 / 16) widths.push(Math.round(w * 16) / 16);
+    if (S.lockW > 0) widths.push(S.lockW);
+    else for (let w = Math.max(3, S.nW - nWTol(S)); w <= S.nW + nWTol(S) + 1e-9; w += 1 / 16) widths.push(Math.round(w * 16) / 16);
     const ref = S.nPos === 'tub' ? tubCenter(S) : (fieldL(S) + fieldR(S)) / 2;
     leftOf = (w) => (S.nPos === 'custom' ? S.nLeft + B - (S._offL || 0) : ref - w / 2);
   }
@@ -727,6 +730,9 @@ function solveH(S: TileS, o: VOpt): HFit | null {
   return best;
 }
 
+/** With the first course locked (a planner option you picked), every other first-course height is left out. */
+const lockedOut = (S: TileS, p: number) => S.lockP > 0 && S.lockP <= S.tileH + 1e-9 && Math.abs(p - S.lockP) > 1e-9;
+
 /** How far the planner may move the niche width from the one asked for: 2″ (the old tool), ½″ for a width set by hand. */
 const nWTol = (S: TileS) => (S.nWTol > 0 ? S.nWTol : 2);
 
@@ -765,6 +771,7 @@ function solvePlain(S: TileS): Opt[] {
   const none: Leg = { aligned: true, leg: 0 };
   for (let i = Math.round(t * 16); i >= 1; i--) {
     const p = i / 16;
+    if (lockedOut(S, p)) continue;
     const G = grid(S, p);
     const cl = topCut(S, G, 0);
     const cr = topCut(S, G, S.wallW);

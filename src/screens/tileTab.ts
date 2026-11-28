@@ -33,6 +33,8 @@ import {
   snapInfo,
   solve,
   spotOf,
+  EPS,
+  type NicheSpot,
   worstOf,
   type Layout,
   type Opt,
@@ -201,6 +203,11 @@ export function renderTileTab(c: WallCtx): void {
     const preview = st.preview ? svgEl('tile-svg tile-preview', 'Sketch of the wall and tub') : null;
     const redraw = () => preview && paint(preview, drawTile(S, null));
     onChange = (structural) => {
+      // New answers: the niche is fitted again and the style put back on the wall.
+      S.lockW = S.lockH = 0;
+      ui.lookBase = '';
+      ui.hFrom = ui.widthFrom = ui.wFrom = 0;
+      noRelock = true;
       save();
       if (structural) render();
       else {
@@ -248,6 +255,14 @@ export function renderTileTab(c: WallCtx): void {
   /* ---------- results ---------- */
 
   let cacheK = '';
+  /** Set before a change that should refit the niche's size instead of keeping it. */
+  let noRelock = false;
+  /** Where to put the niche after the next solve (a planner option just tapped), instead of where it was. */
+  let wantSpot: NicheSpot | null = null;
+  /** Solve again on the next redraw, for a change the solve key doesn't see (a size lock). */
+  const forceSolve = () => {
+    if (cacheK) cacheK = '#';
+  };
   let res: Opt[] = [];
   /** Solve again when an answer that changes the options changed; keep = keep the picked option. */
   function solveIfChanged(keep: boolean) {
@@ -259,9 +274,18 @@ export function renderTileTab(c: WallCtx): void {
     // Where the niche was, to put it back after the options are worked out again.
     const was = !first && lastL && !lastL.r.plain ? spotOf(lastL.r) : null;
     const moved = !!(ui.adjH || ui.adjS || ui.adjHin || ui.adjSin);
+    // A quick fix keeps the niche's size: lock it at what's on the wall (owner, Nov 28). Not when you
+    // changed the size or the answers yourself, or a planner option moved the courses.
+    if (!first && !noRelock && lastL && !lastL.r.plain && !isPrefab(S) && S.framed === 'no') {
+      S.lockH = lastL.r.hF;
+      if (S.studs !== 'bay') S.lockW = lastL.r.h.w;
+    }
+    noRelock = false;
     res = solve(S);
     if (first) return;
-    const back = was ? keepSpot(S, res, was) : null;
+    const target = wantSpot ?? was;
+    wantSpot = null;
+    const back = target ? keepSpot(S, res, target) : null;
     if (back) {
       ui.optIdx = back.optIdx;
       Object.assign(ui, back.adj);
@@ -282,7 +306,8 @@ export function renderTileTab(c: WallCtx): void {
 
   /* ---------- style (auto mode) ---------- */
 
-  const solveKey = () => JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) ? undefined : v));
+  // The size locks are set here, not by you, so they don't count as a change of answers.
+  const solveKey = () => JSON.stringify(S, (key, v) => (DRAW_ONLY.includes(key) || key === 'lockW' || key === 'lockH' ? undefined : v));
   /** Settings a style chooses; changing them doesn't change what the styles start from. */
   const LOOK_KEYS = ['style', 'nWTol', 'pattern', 'grout', 'shift', 'onCenter', 'sideLegs', 'center', 'nPos', 'studs', 'bayL', 'nPreset', 'nW', 'nH', 'nSill', 'shelves'];
   const fingerprint = () => JSON.stringify([S, ui.optIdx, ui.adjH, ui.adjS, ui.adjHin, ui.adjSin]);
@@ -309,7 +334,8 @@ export function renderTileTab(c: WallCtx): void {
     return k && stylesOn().some((l) => l.key === k) ? k : null;
   };
   /** The chosen style's layout needs putting on the wall: just picked, or the answers it starts from changed. */
-  const needsApply = () => !!style() && (ui.look !== style() || ui.lookBase !== looksKey);
+  // Put the style on the wall when it's picked or the setup answers changed; never after a quick fix (owner, Nov 28).
+  const needsApply = () => !!style() && (ui.look !== style() || ui.lookBase === '');
   let applying = false;
   function autoApply() {
     const k = style();
@@ -354,10 +380,10 @@ export function renderTileTab(c: WallCtx): void {
     ui.optIdx = R.optIdx;
     Object.assign(ui, R.adj);
     ui.look = R.look;
-    ui.widthFrom = 0;
+    ui.widthFrom = ui.wFrom = ui.hFrom = 0;
     ui.presetFrom = '';
     ui.lookShape = curShape() ?? '';
-    ui.lookBase = looksKey;
+    ui.lookBase = looksKey || 'applied';
     cacheK = solveKey();
     res = R.options;
     ui.lookKey = fingerprint();
@@ -496,7 +522,28 @@ export function renderTileTab(c: WallCtx): void {
       'section',
       { class: 'card stack' },
       h('h2', {}, L.options.length > 1 ? 'Planner’s options' : 'Planner’s option'),
-      h('p', { class: 'muted small', style: 'margin:0' }, 'The planner’s own picks, to fine-tune by hand.'),
+      h('p', { class: 'muted small', style: 'margin:0' }, 'The planner’s own picks, to fine-tune by hand. Tapping one locks its first course (the ledger and the cut at the ceiling) through pattern and style changes.'),
+      S.lockP > 0
+        ? h(
+            'div',
+            { class: 'row' },
+            h('span', { class: 'note', style: 'flex:1' }, `First course locked at ${S.lockP >= S.tileH - EPS ? 'a full tile' : fmt(S.lockP)}.`),
+            h(
+              'button',
+              {
+                class: 'btn small-btn',
+                type: 'button',
+                onclick: () => {
+                  S.lockP = 0;
+                  S.lockW = S.lockH = 0;
+                  noRelock = true;
+                  results(true, true);
+                },
+              },
+              'Let the planner choose',
+            ),
+          )
+        : null,
       h(
         'div',
         { class: 'opts' },
@@ -509,9 +556,22 @@ export function renderTileTab(c: WallCtx): void {
               class: 'opt',
               'aria-pressed': String(i === L.optIdx),
               onclick: () => {
-                ui.optIdx = i;
                 ui.adjH = ui.adjS = ui.adjHin = ui.adjSin = 0;
-                results(true, false);
+                if (S.lockP > 0 && Math.abs(o.p - S.lockP) < 1e-9) {
+                  ui.optIdx = i;
+                  results(true, true);
+                  return;
+                }
+                // Lock the first course (the ledger and the ceiling cut) at this option's (owner, Nov 28).
+                // Only refit the niche when this option moves the courses; otherwise keep its size.
+                const moves = !lastL || Math.abs(lastL.r.p - o.p) > 1e-9;
+                S.lockP = o.p;
+                if (moves) {
+                  S.lockW = S.lockH = 0;
+                  if (!o.plain) wantSpot = spotOf(o);
+                  noRelock = true;
+                }
+                results(true, true);
               },
             },
             h('small', {}, `Option ${i + 1}`),
@@ -589,14 +649,19 @@ export function renderTileTab(c: WallCtx): void {
       if (!ui.widthFrom) {
         ui.widthFrom = S.nW;
         ui.presetFrom = S.nPreset;
+        ui.wFrom = w;
       }
-      const before = { nW: S.nW, nPreset: S.nPreset, nWTol: S.nWTol };
+      const before = { nW: S.nW, nPreset: S.nPreset, nWTol: S.nWTol, lockW: S.lockW };
       S.nPreset = 'custom';
       S.nW = Math.max(4, Math.round(target * 16) / 16);
       S.nWTol = 0.5;
+      S.lockW = 0; // fitted to the new width, then kept
+      noRelock = true;
       results(true, true);
       if (!lastL) {
         Object.assign(S, before);
+        noRelock = true;
+        forceSolve();
         results(true, true);
         toast('That width doesn’t fit on this wall.', 'error');
       }
@@ -635,8 +700,11 @@ export function renderTileTab(c: WallCtx): void {
                 S.nW = ui.widthFrom;
                 S.nPreset = ui.presetFrom || 'custom';
                 S.nWTol = 0;
-                ui.widthFrom = 0;
+                S.lockW = ui.wFrom || 0;
+                ui.widthFrom = ui.wFrom = 0;
                 ui.presetFrom = '';
+                noRelock = true;
+                forceSolve();
                 results(true, true);
               },
             },
@@ -674,18 +742,23 @@ export function renderTileTab(c: WallCtx): void {
     const a = (dh: number, ds: number, hi = 0, si = 0) => ({ adjH: ui.adjH + dh, adjS: ui.adjS + ds, adjHin: ui.adjHin + hi, adjSin: ui.adjSin + si });
     const btn = (label: string, ok: boolean, run: () => void, ghost = true) =>
       h('button', { class: 'btn small-btn' + (ghost ? '' : ' primary'), type: 'button', disabled: !ok, onclick: run }, label);
+    const remember = () => {
+      if (!ui.hFrom) ui.hFrom = r.hF;
+    };
     const move = (dh: number, ds: number) => () => {
+      if (dh) remember();
       ui.adjH += dh;
       ui.adjS += ds;
       results(true, true);
     };
     const snap = (hi: number, si: number) => () => {
+      if (hi) remember();
       ui.adjHin += hi;
       ui.adjSin += si;
       results(true, true);
     };
     const sn = snapInfo(TS, r);
-    const any = ui.adjH || ui.adjS || ui.adjHin || ui.adjSin;
+    const any = ui.adjH || ui.adjS || ui.adjHin || ui.adjSin || ui.hFrom;
     return h(
       'section',
       { class: 'card stack' },
@@ -701,7 +774,15 @@ export function renderTileTab(c: WallCtx): void {
                 class: 'btn small-btn',
                 type: 'button',
                 onclick: () => {
+                  // The height before your first change, even if a quick fix locked a newer one since,
+                  // with the sill where it is now.
+                  const hFrom = ui.hFrom || (lastL ? lastL.r.hF - (ui.adjH * lastL.r.G.m + ui.adjHin - ui.adjSin) : 0);
                   ui.adjH = ui.adjS = ui.adjHin = ui.adjSin = 0;
+                  if (S.lockH && hFrom) S.lockH = hFrom;
+                  if (lastL && hFrom) wantSpot = { ...spotOf(lastL.r), hF: hFrom };
+                  ui.hFrom = 0;
+                  noRelock = true;
+                  forceSolve();
                   results(true, true);
                 },
               },

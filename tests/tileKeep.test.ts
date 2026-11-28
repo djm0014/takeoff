@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fromSaved } from '../src/tile/settings';
+import { solveLook } from '../src/tile/looks';
 import { keepSpot, layout, lineMoves, solve, spotOf } from '../src/tile/solve';
 
 const adj = { adjH: 1, adjS: -1, adjHin: 0, adjSin: 0 };
@@ -103,5 +104,33 @@ describe('quick width changes', () => {
       const loose = layout({ ...S, nW }, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
       expect(Math.abs(loose.r.h.w - nW)).toBeLessThanOrEqual(2 + 1e-9);
     }
+  });
+});
+
+describe('locks (owner, Nov 28: "once I have selected an option... that should be locked in unless I revert")', () => {
+  const S = fromSaved({ framed: 'no', widthRef: 'framing', wallW: 61 });
+  const p0 = solve(S).map((o) => o.p);
+
+  it('a locked first course keeps every option on it, through a pattern change', () => {
+    const lockP = p0[1]!;
+    for (const pattern of ['half', 'stack', 'third', 'random'] as const) {
+      const res = solve({ ...S, lockP, pattern });
+      expect(res.length).toBeGreaterThan(0);
+      expect(res.every((o) => o.p === lockP)).toBe(true);
+    }
+  });
+
+  it('a locked niche size stays through a pattern or centering change', () => {
+    const L0 = layout(S, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+    const locked = { ...S, lockW: L0.r.h.w, lockH: L0.r.hF };
+    for (const change of [{ pattern: 'stack' as const }, { center: 'wall' as const }, { pattern: 'third' as const, shift: 2 }]) {
+      const L = layout({ ...locked, ...change }, 0, { adjH: 0, adjS: 0, adjHin: 0, adjSin: 0 })!;
+      expect([L.r.h.w, L.r.hF]).toEqual([L0.r.h.w, L0.r.hF]);
+    }
+  });
+
+  it('a style keeps a locked first course', () => {
+    const lockP = p0[1]!;
+    for (const look of ['classic', 'balanced', 'organic'] as const) expect(solveLook(look, { ...S, lockP }, 'tall').L!.r.p).toBe(lockP);
   });
 });
