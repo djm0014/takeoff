@@ -41,6 +41,8 @@ describe('looks keep their rules', () => {
               }
               // A closest fit says which rules it breaks; only a full fit is checked rule by rule.
               expect(R.broken).toEqual(R.check!.fails);
+              // A niche not framed yet always lands its sill and head on grout lines (owner, Nov 28).
+              expect(R.L.r.sill.aligned && R.L.r.head.aligned).toBe(true);
               if (R.broken.length) {
                 closest++;
                 continue;
@@ -116,4 +118,28 @@ describe('every wall gets Classic and Balanced', () => {
       }
       expect(solveLook('simple', S, 'tall').hidden).toBe(true);
     });
+});
+
+describe('the niche lands on grout lines in every look', () => {
+  // Setup sizes aren't limits (owner, Nov 28): framed or not, the sill and head move to grout lines.
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = <T,>(a: T[]) => a[Math.floor(rnd() * a.length)]!;
+  it('on 50 random walls, framed and not', () => {
+    for (let k = 0; k < 50; k++) {
+      const [tileH, tileW] = pick([[3, 6], [3, 12], [4, 12], [4, 16], [6, 24], [12, 24]]);
+      const S = fromSaved({
+        framed: pick(['no', 'yes']), rW: pick([14, 16, 26]), rH: pick([16, 26, 30]), rSill: pick([40, 44, 47]), rLeft: 18,
+        widthRef: 'framing', wallW: 44 + Math.round(rnd() * 28 * 16) / 16, tilePreset: 'custom', tileH, tileW,
+        grout: pick([1 / 32, 1 / 16, 1 / 8, 3 / 16]), shelves: pick([0, 1, 2]), sillType: pick(['tile', 'tile', 'marble']),
+        frameOn: pick(['no', 'no', 'yes']), tubH: pick([14, 15, 16.5]), base: pick(['tub', 'floor']), ceilL: pick([84, 90, 96, 108]),
+        nPreset: 'custom', nW: pick([12, 14, 24]), nH: pick([12, 18, 24, 30]),
+      } as Record<string, unknown>);
+      for (const look of ['classic', 'balanced'] as const) {
+        const R = solveLook(look, S, S.framed === 'no' ? pick(['square', 'tall', 'linear'] as Shape[]) : null);
+        expect(R.L).not.toBeNull();
+        expect(R.broken.filter((b) => /grout line/.test(b))).toEqual([]);
+      }
+    }
+  });
 });
