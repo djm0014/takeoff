@@ -58,8 +58,8 @@ Checked over every wall width from 48″ to 72″ (1/16″ steps), 12″ and 24�
 
 | Look | Pattern | Niche | Layout line | Corners |
 | --- | --- | --- | --- | --- |
-| **Classic** (symmetrical) | half bond or stacked | centered on the wall (a niche never goes above or below a valve) | tile or joint on center, whichever cuts better; never moved off center | exactly equal both ends |
-| **Balanced** | half bond, stacked or 1/4 offset | stays centered; only the tile moves | may move up to a quarter tile off center | at least a quarter tile |
+| **Classic** | running bond (half bond), any tile size: the familiar subway pattern | centered on the wall (new blocking) | centered; moves up to a quarter tile where that keeps slivers off the corners | a quarter tile or more (equal both ends preferred) |
+| **Balanced** | stacked by default (an even grid), or a 1/3 or 1/4 offset; never running bond | centered on the wall (new blocking) | centered; moves up to a quarter tile if needed | a quarter tile or more (equal both ends preferred) |
 | **Organic** | random-looking (no repeating step), or a 1/4 offset (Nov 28: "set the smallest of organic to 2″ and allow a 4th step"): each course's joints at least 2″ from the course below; a joint may line up with the one two courses up; long tile (over 18″) steps no more than 1/3 of the tile; corners a quarter tile or more. Shuffle picks another arrangement. The layout sheet lists each course's left piece | anywhere its top and bottom land best on grout lines; edges line up with tile joints | free | at least a quarter tile |
 | **Simple** (only for a niche bound by studs) | the planner's best | in the existing stud bay closest to center | free | at least a quarter tile |
 
@@ -123,3 +123,19 @@ design option (later).
   widths (about 1 in 5 with 12″ tile, 1 in 25 with 24″ tile): its four kinds
   of courses end a quarter tile apart. When it can't, Organic uses random
   offsets and the Style card says so.
+
+## Every wall gets every style (Nov 28)
+
+"I think every wall should be able to portray each of the looks... the
+classic look is simply a running bond with whatever tile size... for tiles
+that have no variation in course, I think we should call that a stacked
+pattern. but I don't necessarily know if balanced is always stacked."
+
+- Each style keeps to its own patterns and never borrows another's, so the
+  styles always look different: Classic running bond; Balanced stacked (or
+  1/3, 1/4 offset if picked); Organic random (or 1/4 offset); Simple any.
+- Classic no longer insists on equal corners (that made it fail on half of
+  walls and fall back to stacked, the same as Balanced). It prefers equal
+  corners and moves the tile up to a quarter tile when it has to.
+- Checked on every wall width from 44″ to 72″ with 3×12, 4×12 and 6×24 tile:
+  Classic, Balanced and Organic each keep every rule in their own pattern.
